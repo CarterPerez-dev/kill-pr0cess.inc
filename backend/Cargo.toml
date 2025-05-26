@@ -1,60 +1,268 @@
+# Rust backend manifest for the dark performance showcase with maximum optimization settings.
+# I'm configuring for both development productivity and production performance with comprehensive dependency management.
+
 [package]
 name = "dark-performance-backend"
 version = "0.1.0"
 edition = "2021"
+authors = ["Your Name <your.email@example.com>"]
+description = "High-performance backend showcasing Rust's computational capabilities"
+repository = "https://github.com/yourusername/dark-performance-showcase"
+license = "MIT"
+readme = "README.md"
+keywords = ["performance", "fractals", "github", "api", "rust"]
+categories = ["web-programming", "api-bindings", "mathematics"]
+
+# Build configuration with maximum optimization
+[profile.release]
+opt-level = 3              # Maximum optimization
+lto = "fat"               # Full link-time optimization
+codegen-units = 1         # Single codegen unit for maximum optimization
+panic = "abort"           # Smaller binary size and faster panics
+strip = true              # Remove debug symbols in release
+overflow-checks = false   # Disable integer overflow checks for performance
+
+[profile.dev]
+opt-level = 1             # Some optimization in debug builds for better dev experience
+debug = true              # Full debug info
+overflow-checks = true    # Keep overflow checks in development
+
+# Production profile with balanced optimization and debugging
+[profile.production]
+inherits = "release"
+debug = 1                 # Minimal debug info for production debugging
+strip = "debuginfo"       # Keep symbols but remove debug info
+
+# Benchmark profile for criterion
+[profile.bench]
+opt-level = 3
+debug = false
+lto = "fat"
 
 [dependencies]
-# Web framework
-axum = "0.7"
-tokio = { version = "1.0", features = ["full"] }
-tower = "0.4"
-tower-http = { version = "0.5", features = ["cors", "compression", "trace"] }
-hyper = "1.0"
+# Web framework - I'm using Axum for maximum async performance
+axum = { version = "0.7", features = ["macros", "multipart", "ws"] }
+tokio = { version = "1.0", features = ["full", "tracing"] }
+tower = { version = "0.4", features = ["util", "timeout", "load-shed", "limit"] }
+tower-http = { version = "0.5", features = ["cors", "compression", "trace", "auth", "request-id"] }
+hyper = { version = "1.0", features = ["full"] }
 
-# Serialization
-serde = { version = "1.0", features = ["derive"] }
+# Serialization and data handling
+serde = { version = "1.0", features = ["derive", "rc"] }
 serde_json = "1.0"
+serde_yaml = "0.9"
 
-# Database
-sqlx = { version = "0.7", features = ["runtime-tokio-rustls", "postgres", "chrono", "uuid"] }
-redis = { version = "0.24", features = ["tokio-comp"] }
+# Database integration with comprehensive features
+sqlx = { version = "0.7", features = [
+    "runtime-tokio-rustls",
+    "postgres",
+    "chrono",
+    "uuid",
+    "json",
+    "migrate",
+    "offline"
+] }
+redis = { version = "0.24", features = ["tokio-comp", "connection-manager", "streams"] }
 
-# HTTP client
-reqwest = { version = "0.11", features = ["json"] }
+# HTTP client with full feature set
+reqwest = { version = "0.11", features = ["json", "stream", "multipart", "cookies"] }
 
-# Async utilities
+# Async utilities and concurrency
 futures = "0.3"
 async-trait = "0.1"
+async-stream = "0.3"
+tokio-stream = "0.1"
 
-# Configuration
+# Configuration management
 config = "0.14"
 dotenvy = "0.15"
+clap = { version = "4.4", features = ["derive", "env"] }
 
-# Logging & tracing
+# Logging and observability
 tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json", "chrono"] }
+tracing-opentelemetry = "0.21"
+opentelemetry = { version = "0.20", features = ["rt-tokio"] }
+opentelemetry-jaeger = "0.19"
 
-# Error handling
+# Error handling and validation
 anyhow = "1.0"
 thiserror = "1.0"
+validator = { version = "0.16", features = ["derive"] }
 
-# Fractal computation
+# Mathematical computation for fractals
 num-complex = "0.4"
+num-traits = "0.2"
 rayon = "1.8"
+ndarray = "0.15"
+
+# Performance monitoring and metrics
+metrics = "0.22"
+metrics-exporter-prometheus = { version = "0.13", features = ["push-gateway"] }
+metrics-util = "0.16"
+sysinfo = "0.29"
+
+# Time and date handling
+chrono = { version = "0.4", features = ["serde", "clock"] }
+time = "0.3"
+
+# UUID and unique identifiers
+uuid = { version = "1.0", features = ["v4", "serde", "fast-rng"] }
+
+# Memory management and optimization
+once_cell = "1.19"
+dashmap = "5.5"
+parking_lot = "0.12"
+
+# Security and authentication
+argon2 = "0.5"
+jsonwebtoken = "9.1"
+hmac = "0.12"
+sha2 = "0.10"
+
+# Data compression and optimization
+flate2 = "1.0"
+brotli = "3.4"
+
+# Template engine for dynamic content
+tera = "1.19"
+handlebars = "4.4"
+
+# WebSocket support for real-time features
+tokio-tungstenite = "0.20"
+
+# Development and testing dependencies
+[dev-dependencies]
+criterion = { version = "0.5", features = ["html_reports", "async_tokio"] }
+tokio-test = "0.4"
+proptest = "1.4"
+quickcheck = "1.0"
+quickcheck_macros = "1.0"
+mockall = "0.11"
+wiremock = "0.5"
+testcontainers = "0.15"
+rstest = "0.18"
+
+# Benchmarking dependencies
+[[bench]]
+name = "fractal_generation"
+harness = false
+
+[[bench]]
+name = "database_operations"
+harness = false
+
+[[bench]]
+name = "api_performance"
+harness = false
+
+# Optional feature flags for conditional compilation
+[features]
+default = ["postgres", "redis", "metrics"]
+
+# Database backends
+postgres = ["sqlx/postgres"]
+mysql = ["sqlx/mysql"]
+sqlite = ["sqlx/sqlite"]
+
+# Cache backends
+redis = ["dep:redis"]
+memcached = []
 
 # Performance monitoring
-metrics = "0.22"
-metrics-exporter-prometheus = "0.13"
+metrics = ["dep:metrics", "dep:metrics-exporter-prometheus"]
+tracing = ["dep:tracing-opentelemetry"]
 
-# Time handling
-chrono = { version = "0.4", features = ["serde"] }
+# Advanced features
+gpu-acceleration = []
+machine-learning = []
+distributed-computing = []
 
-# UUID generation
-uuid = { version = "1.0", features = ["v4", "serde"] }
+# Security features
+advanced-auth = ["dep:argon2", "dep:jsonwebtoken"]
+rate-limiting = []
 
-# Memory management
-once_cell = "1.19"
+# Optimization features
+jemalloc = ["tikv-jemallocator"]
+mimalloc = ["mimalloc"]
 
-[dev-dependencies]
-criterion = "0.5"
-tokio-test = "0.4"
+# Optional memory allocators for performance
+[target.'cfg(not(target_env = "msvc"))'.dependencies]
+tikv-jemallocator = { version = "0.5", optional = true }
+
+[target.'cfg(not(target_env = "msvc"))'.dependencies.mimalloc]
+version = "0.1"
+optional = true
+default-features = false
+
+# Build script for compile-time optimizations
+[build]
+# Enable build script for compile-time configuration
+build = "build.rs"
+
+# Workspace configuration for multi-crate projects
+[workspace]
+members = [".", "cli", "benchmark-suite"]
+
+# Package metadata
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
+
+# Cargo-dist configuration for releases
+[package.metadata.dist]
+cargo-dist-version = "0.4.0"
+ci = ["github"]
+installers = ["shell", "powershell"]
+targets = ["x86_64-unknown-linux-gnu", "x86_64-apple-darwin", "x86_64-pc-windows-msvc"]
+
+# Performance optimization hints
+[package.metadata.performance]
+# I'm providing hints for runtime optimization
+cpu-target = "native"
+simd = true
+parallel = true
+memory-pool = true
+
+# Clippy configuration for code quality
+[lints.clippy]
+# Performance lints - I want to catch performance issues early
+needless_collect = "warn"
+needless_pass_by_value = "warn"
+trivially_copy_pass_by_ref = "warn"
+clone_on_ref_ptr = "warn"
+rc_buffer = "warn"
+
+# Correctness lints
+missing_errors_doc = "warn"
+missing_panics_doc = "warn"
+missing_safety_doc = "warn"
+
+# Style lints for consistency
+inconsistent_struct_constructor = "warn"
+manual_let_else = "warn"
+semicolon_if_nothing_returned = "warn"
+
+[lints.rust]
+unsafe_code = "forbid"
+missing_docs = "warn"
+unused_extern_crates = "warn"
+unused_import_braces = "warn"
+
+# Environment-specific configurations
+[package.metadata.env.development]
+rust_log = "debug"
+database_max_connections = "10"
+
+[package.metadata.env.production]
+rust_log = "info"
+database_max_connections = "100"
+
+# Cargo configuration aliases for convenience
+[package.metadata.scripts]
+dev = "cargo run"
+test-all = "cargo test --all-features"
+bench-all = "cargo bench --all-features"
+check-all = "cargo check --all-features && cargo clippy --all-features"
+build-release = "cargo build --release --all-features"
+build-prod = "cargo build --profile production --all-features"

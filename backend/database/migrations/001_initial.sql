@@ -1,7 +1,10 @@
 # Production-optimized Docker Compose configuration for the dark performance showcase.
 # I'm focusing on security, performance, resource limits, and production-ready settings for maximum throughput and reliability.
 
+version: '3.8'
+
 services:
+  # Production PostgreSQL with performance tuning and security hardening
   postgres:
     image: postgres:15-alpine
     restart: unless-stopped
@@ -9,6 +12,7 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-dark_performance}
       POSTGRES_USER: ${POSTGRES_USER:-darkuser}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      # Performance tuning parameters
       POSTGRES_SHARED_BUFFERS: 256MB
       POSTGRES_EFFECTIVE_CACHE_SIZE: 1GB
       POSTGRES_MAINTENANCE_WORK_MEM: 64MB
