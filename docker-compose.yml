@@ -1,0 +1,99 @@
+# Prod
+
+services:
+  # PostgreSQL for caching GitHub data and performance metrics
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: dark_performance
+      POSTGRES_USER: darkuser
+      POSTGRES_PASSWORD: darkpass
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/database/migrations:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
+    networks:
+      - dark_network
+
+  # Redis for real-time performance data
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - dark_network
+
+  # Rust backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: postgresql://darkuser:darkpass@postgres:5432/dark_performance
+      REDIS_URL: redis://redis:6379
+      RUST_LOG: info
+      PORT: 3001
+    ports:
+      - "3001:3001"
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - dark_network
+    volumes:
+      - ./backend:/app
+    command: cargo run --release
+
+  # SolidJS frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      VITE_API_URL: http://backend:3001
+    depends_on:
+      - backend
+    networks:
+      - dark_network
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+
+  # Nginx reverse proxy
+  nginx:
+    image: nginx:1.27-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/sites-enabled:/etc/nginx/sites-enabled
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - dark_network
+
+  # Prometheus for metrics collection
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - dark_network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  dark_network:
+    driver: bridge
