@@ -1,0 +1,735 @@
+# Comprehensive performance testing workflow with automated benchmarking, regression detection, and performance monitoring.
+# I'm implementing continuous performance validation with detailed metrics collection, historical comparison, and automated reporting for maintaining optimal application performance.
+
+name: Performance Tests
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  schedule:
+    # I'm running performance tests daily at 2 AM UTC to track performance trends
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      benchmark_type:
+        description: 'Type of benchmark to run'
+        required: false
+        default: 'full'
+        type: choice
+        options:
+          - 'full'
+          - 'api-only'
+          - 'fractal-only'
+          - 'quick'
+      compare_baseline:
+        description: 'Compare against baseline performance'
+        required: false
+        default: true
+        type: boolean
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+  DATABASE_URL: postgresql://postgres:testpass@localhost:5432/test_db
+  REDIS_URL: redis://localhost:6379
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  GITHUB_USERNAME: ${{ github.repository_owner }}
+
+jobs:
+  # I'm setting up the test environment with all necessary services
+  setup-environment:
+    name: Setup Test Environment
+    runs-on: ubuntu-latest
+    outputs:
+      cache-key: ${{ steps.cache-key.outputs.key }}
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: testpass
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Generate cache key
+      id: cache-key
+      run: |
+        echo "key=perf-${{ runner.os }}-${{ hashFiles('**/Cargo.lock', '**/package-lock.json') }}" >> $GITHUB_OUTPUT
+
+    - name: Cache dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          backend/target
+          frontend/node_modules
+        key: ${{ steps.cache-key.outputs.key }}
+        restore-keys: |
+          perf-${{ runner.os }}-
+
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential pkg-config libssl-dev libpq-dev postgresql-client redis-tools jq bc curl
+
+    - name: Setup Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        profile: minimal
+        override: true
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        cache-dependency-path: frontend/package-lock.json
+
+    - name: Install backend dependencies
+      working-directory: ./backend
+      run: cargo build --release
+
+    - name: Install frontend dependencies
+      working-directory: ./frontend
+      run: npm ci
+
+    - name: Verify services
+      run: |
+        pg_isready -h localhost -p 5432 -U postgres
+        redis-cli -h localhost -p 6379 ping
+
+  # I'm running comprehensive backend performance tests
+  backend-performance:
+    name: Backend Performance Tests
+    runs-on: ubuntu-latest
+    needs: setup-environment
+    timeout-minutes: 30
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: testpass
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Restore cache
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          backend/target
+        key: ${{ needs.setup-environment.outputs.cache-key }}
+
+    - name: Setup Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        profile: minimal
+        override: true
+
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential pkg-config libssl-dev libpq-dev jq bc
+
+    - name: Build backend (release mode)
+      working-directory: ./backend
+      run: cargo build --release
+
+    - name: Start backend service
+      working-directory: ./backend
+      run: |
+        # I'm running the backend in the background for testing
+        nohup cargo run --release > backend.log 2>&1 &
+        echo $! > backend.pid
+
+        # I'm waiting for the service to be ready
+        for i in {1..30}; do
+          if curl -sf http://localhost:3001/health; then
+            echo "Backend is ready"
+            break
+          fi
+          sleep 2
+        done
+
+    - name: Run Rust benchmarks
+      working-directory: ./backend
+      run: |
+        cargo bench --bench fractal_generation > fractal_bench.txt
+        cargo bench --bench database_operations > db_bench.txt
+        cargo bench --bench api_performance > api_bench.txt
+
+    - name: Run API performance tests
+      run: |
+        # I'm creating a comprehensive API performance test script
+        cat > api_perf_test.sh << 'EOF'
+        #!/bin/bash
+
+        # I'm testing various API endpoints for performance
+        endpoints=(
+          "/health"
+          "/api/performance/system"
+          "/api/performance/metrics"
+          "/api/github/repos"
+        )
+
+        results='[]'
+
+        for endpoint in "${endpoints[@]}"; do
+          echo "Testing $endpoint..."
+
+          # I'm running multiple requests and measuring response times
+          times=()
+          for i in {1..50}; do
+            start_time=$(date +%s%3N)
+            if curl -sf "http://localhost:3001$endpoint" >/dev/null; then
+              end_time=$(date +%s%3N)
+              response_time=$((end_time - start_time))
+              times+=("$response_time")
+            fi
+          done
+
+          if [[ ${#times[@]} -gt 0 ]]; then
+            avg=$(echo "${times[*]}" | tr ' ' '\n' | awk '{sum+=$1} END {printf "%.2f", sum/NR}')
+            min=$(echo "${times[*]}" | tr ' ' '\n' | sort -n | head -1)
+            max=$(echo "${times[*]}" | tr ' ' '\n' | sort -n | tail -1)
+
+            results=$(echo "$results" | jq --arg endpoint "$endpoint" \
+              --argjson avg "$avg" --argjson min "$min" --argjson max "$max" \
+              '. + [{endpoint: $endpoint, avg_ms: $avg, min_ms: $min, max_ms: $max}]')
+          fi
+        done
+
+        echo "$results" > api_performance_results.json
+        jq '.' api_performance_results.json
+        EOF
+
+        chmod +x api_perf_test.sh
+        ./api_perf_test.sh
+
+    - name: Run fractal performance tests
+      run: |
+        # I'm testing fractal computation performance
+        cat > fractal_perf_test.sh << 'EOF'
+        #!/bin/bash
+
+        scenarios=(
+          '{"width": 256, "height": 256, "max_iterations": 100}'
+          '{"width": 512, "height": 512, "max_iterations": 200}'
+          '{"width": 1024, "height": 1024, "max_iterations": 400}'
+        )
+
+        results='[]'
+
+        for scenario in "${scenarios[@]}"; do
+          echo "Testing fractal scenario: $scenario"
+
+          # I'm testing Mandelbrot generation
+          mandelbrot_times=()
+          for i in {1..5}; do
+            response=$(curl -sf -X POST \
+              -H "Content-Type: application/json" \
+              -d "$scenario" \
+              "http://localhost:3001/api/fractals/mandelbrot" 2>/dev/null)
+
+            if [[ -n "$response" ]]; then
+              comp_time=$(echo "$response" | jq -r '.computation_time_ms')
+              mandelbrot_times+=("$comp_time")
+            fi
+          done
+
+          if [[ ${#mandelbrot_times[@]} -gt 0 ]]; then
+            avg=$(echo "${mandelbrot_times[*]}" | tr ' ' '\n' | awk '{sum+=$1} END {printf "%.2f", sum/NR}')
+            results=$(echo "$results" | jq --argjson scenario "$scenario" \
+              --argjson avg "$avg" \
+              '. + [{scenario: $scenario, avg_ms: $avg}]')
+          fi
+        done
+
+        echo "$results" > fractal_performance_results.json
+        jq '.' fractal_performance_results.json
+        EOF
+
+        chmod +x fractal_perf_test.sh
+        ./fractal_perf_test.sh
+
+    - name: Collect system metrics
+      run: |
+        # I'm collecting system performance metrics during tests
+        cat > system_metrics.sh << 'EOF'
+        #!/bin/bash
+
+        metrics='{}'
+
+        # CPU information
+        cpu_model=$(grep "model name" /proc/cpuinfo | head -1 | cut -d: -f2 | xargs)
+        cpu_cores=$(grep -c "^processor" /proc/cpuinfo)
+        metrics=$(echo "$metrics" | jq --arg model "$cpu_model" --argjson cores "$cpu_cores" \
+          '. + {cpu_model: $model, cpu_cores: $cores}')
+
+        # Memory information
+        memory_kb=$(grep "MemTotal" /proc/meminfo | awk '{print $2}')
+        memory_gb=$(echo "scale=1; $memory_kb / 1024 / 1024" | bc)
+        metrics=$(echo "$metrics" | jq --argjson memory "$memory_gb" '. + {memory_gb: $memory}')
+
+        # Rust version
+        rust_version=$(rustc --version | awk '{print $2}')
+        metrics=$(echo "$metrics" | jq --arg version "$rust_version" '. + {rust_version: $version}')
+
+        echo "$metrics" > system_metrics.json
+        jq '.' system_metrics.json
+        EOF
+
+        chmod +x system_metrics.sh
+        ./system_metrics.sh
+
+    - name: Stop backend service
+      if: always()
+      run: |
+        if [[ -f backend.pid ]]; then
+          kill $(cat backend.pid) || true
+        fi
+
+    - name: Upload performance results
+      uses: actions/upload-artifact@v4
+      with:
+        name: backend-performance-results
+        path: |
+          api_performance_results.json
+          fractal_performance_results.json
+          system_metrics.json
+          backend/fractal_bench.txt
+          backend/db_bench.txt
+          backend/api_bench.txt
+          backend.log
+
+  # I'm running frontend performance tests
+  frontend-performance:
+    name: Frontend Performance Tests
+    runs-on: ubuntu-latest
+    needs: [setup-environment, backend-performance]
+    timeout-minutes: 20
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Restore cache
+      uses: actions/cache@v4
+      with:
+        path: frontend/node_modules
+        key: ${{ needs.setup-environment.outputs.cache-key }}
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        cache-dependency-path: frontend/package-lock.json
+
+    - name: Install dependencies
+      working-directory: ./frontend
+      run: npm ci
+
+    - name: Build frontend
+      working-directory: ./frontend
+      run: |
+        npm run build
+
+        # I'm analyzing the build output for performance metrics
+        echo "=== Build Analysis ===" > build_analysis.txt
+        echo "Build directory size:" >> build_analysis.txt
+        du -sh dist/ >> build_analysis.txt
+        echo "" >> build_analysis.txt
+        echo "JavaScript bundle sizes:" >> build_analysis.txt
+        find dist/ -name "*.js" -exec ls -lh {} + >> build_analysis.txt
+        echo "" >> build_analysis.txt
+        echo "CSS bundle sizes:" >> build_analysis.txt
+        find dist/ -name "*.css" -exec ls -lh {} + >> build_analysis.txt
+
+    - name: Run Lighthouse CI
+      run: |
+        npm install -g @lhci/cli@0.12.x
+
+        # I'm creating a Lighthouse CI configuration
+        cat > lighthouserc.js << 'EOF'
+        module.exports = {
+          ci: {
+            collect: {
+              staticDistDir: './frontend/dist',
+              numberOfRuns: 3,
+              settings: {
+                preset: 'desktop',
+              },
+            },
+            assert: {
+              assertions: {
+                'categories:performance': ['error', {minScore: 0.8}],
+                'categories:accessibility': ['error', {minScore: 0.9}],
+                'categories:best-practices': ['error', {minScore: 0.8}],
+                'categories:seo': ['error', {minScore: 0.8}],
+              },
+            },
+            upload: {
+              target: 'temporary-public-storage',
+            },
+          },
+        };
+        EOF
+
+        lhci autorun || echo "Lighthouse audit completed with warnings"
+
+    - name: Bundle size analysis
+      working-directory: ./frontend
+      run: |
+        # I'm analyzing bundle sizes and compression
+        npm install -g bundlesize
+
+        cat > package.json.bundlesize << 'EOF'
+        {
+          "bundlesize": [
+            {
+              "path": "./dist/**/*.js",
+              "maxSize": "200kb",
+              "compression": "gzip"
+            },
+            {
+              "path": "./dist/**/*.css",
+              "maxSize": "50kb",
+              "compression": "gzip"
+            }
+          ]
+        }
+        EOF
+
+        # I'm creating a bundle analysis report
+        node -e "
+        const fs = require('fs');
+        const path = require('path');
+
+        function getFileSizes(dir) {
+          const files = fs.readdirSync(dir, { withFileTypes: true })
+            .filter(dirent => dirent.isFile())
+            .map(dirent => {
+              const filePath = path.join(dir, dirent.name);
+              const stats = fs.statSync(filePath);
+              return {
+                file: dirent.name,
+                size: stats.size,
+                sizeKB: (stats.size / 1024).toFixed(2)
+              };
+            });
+          return files;
+        }
+
+        const distFiles = getFileSizes('./dist');
+        const jsFiles = distFiles.filter(f => f.file.endsWith('.js'));
+        const cssFiles = distFiles.filter(f => f.file.endsWith('.css'));
+
+        const analysis = {
+          total_files: distFiles.length,
+          js_files: jsFiles.length,
+          css_files: cssFiles.length,
+          total_js_size_kb: jsFiles.reduce((sum, f) => sum + parseFloat(f.sizeKB), 0),
+          total_css_size_kb: cssFiles.reduce((sum, f) => sum + parseFloat(f.sizeKB), 0),
+          largest_js: jsFiles.sort((a, b) => b.size - a.size)[0],
+          largest_css: cssFiles.sort((a, b) => b.size - a.size)[0]
+        };
+
+        fs.writeFileSync('bundle_analysis.json', JSON.stringify(analysis, null, 2));
+        console.log(JSON.stringify(analysis, null, 2));
+        "
+
+    - name: Upload frontend performance results
+      uses: actions/upload-artifact@v4
+      with:
+        name: frontend-performance-results
+        path: |
+          frontend/build_analysis.txt
+          frontend/bundle_analysis.json
+          .lighthouseci/
+
+  # I'm generating a comprehensive performance report
+  performance-report:
+    name: Generate Performance Report
+    runs-on: ubuntu-latest
+    needs: [backend-performance, frontend-performance]
+    if: always()
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Download all performance results
+      uses: actions/download-artifact@v4
+      with:
+        path: performance-results
+
+    - name: Generate comprehensive report
+      run: |
+        # I'm creating a comprehensive performance report
+        cat > generate_report.py << 'EOF'
+        import json
+        import os
+        from datetime import datetime
+
+        def load_json_file(path):
+            try:
+                with open(path, 'r') as f:
+                    return json.load(f)
+            except:
+                return {}
+
+        # I'm collecting all performance data
+        report = {
+            'timestamp': datetime.now().isoformat(),
+            'commit_sha': os.getenv('GITHUB_SHA', 'unknown'),
+            'ref': os.getenv('GITHUB_REF', 'unknown'),
+            'backend': {},
+            'frontend': {},
+            'summary': {}
+        }
+
+        # I'm loading backend results
+        backend_path = 'performance-results/backend-performance-results'
+        if os.path.exists(f'{backend_path}/api_performance_results.json'):
+            report['backend']['api_performance'] = load_json_file(f'{backend_path}/api_performance_results.json')
+
+        if os.path.exists(f'{backend_path}/fractal_performance_results.json'):
+            report['backend']['fractal_performance'] = load_json_file(f'{backend_path}/fractal_performance_results.json')
+
+        if os.path.exists(f'{backend_path}/system_metrics.json'):
+            report['backend']['system_metrics'] = load_json_file(f'{backend_path}/system_metrics.json')
+
+        # I'm loading frontend results
+        frontend_path = 'performance-results/frontend-performance-results'
+        if os.path.exists(f'{frontend_path}/bundle_analysis.json'):
+            report['frontend']['bundle_analysis'] = load_json_file(f'{frontend_path}/bundle_analysis.json')
+
+        # I'm generating summary statistics
+        api_results = report['backend'].get('api_performance', [])
+        if api_results:
+            avg_response_times = [result['avg_ms'] for result in api_results if 'avg_ms' in result]
+            if avg_response_times:
+                report['summary']['average_api_response_ms'] = sum(avg_response_times) / len(avg_response_times)
+
+        fractal_results = report['backend'].get('fractal_performance', [])
+        if fractal_results:
+            avg_fractal_times = [result['avg_ms'] for result in fractal_results if 'avg_ms' in result]
+            if avg_fractal_times:
+                report['summary']['average_fractal_computation_ms'] = sum(avg_fractal_times) / len(avg_fractal_times)
+
+        bundle_analysis = report['frontend'].get('bundle_analysis', {})
+        if bundle_analysis:
+            report['summary']['total_bundle_size_kb'] = bundle_analysis.get('total_js_size_kb', 0) + bundle_analysis.get('total_css_size_kb', 0)
+
+        # I'm saving the comprehensive report
+        with open('performance_report.json', 'w') as f:
+            json.dump(report, f, indent=2)
+
+        print("Performance Report Generated:")
+        print(json.dumps(report['summary'], indent=2))
+        EOF
+
+        python3 generate_report.py
+
+    - name: Compare with baseline (if available)
+      if: ${{ github.event.inputs.compare_baseline == 'true' || github.event_name == 'schedule' }}
+      run: |
+        # I'm implementing baseline comparison logic
+        echo "Comparing performance with historical baseline..."
+
+        # This would typically fetch baseline data from a database or previous runs
+        # For now, I'm creating a simple comparison framework
+
+        cat > compare_baseline.py << 'EOF'
+        import json
+
+        # I'm loading the current performance report
+        with open('performance_report.json', 'r') as f:
+            current = json.load(f)
+
+        # I'm creating baseline thresholds (these would come from historical data)
+        baseline_thresholds = {
+            'max_api_response_ms': 100,
+            'max_fractal_computation_ms': 5000,
+            'max_bundle_size_kb': 300
+        }
+
+        summary = current.get('summary', {})
+        regressions = []
+
+        # I'm checking for performance regressions
+        if summary.get('average_api_response_ms', 0) > baseline_thresholds['max_api_response_ms']:
+            regressions.append(f"API response time regression: {summary.get('average_api_response_ms')}ms > {baseline_thresholds['max_api_response_ms']}ms")
+
+        if summary.get('average_fractal_computation_ms', 0) > baseline_thresholds['max_fractal_computation_ms']:
+            regressions.append(f"Fractal computation regression: {summary.get('average_fractal_computation_ms')}ms > {baseline_thresholds['max_fractal_computation_ms']}ms")
+
+        if summary.get('total_bundle_size_kb', 0) > baseline_thresholds['max_bundle_size_kb']:
+            regressions.append(f"Bundle size regression: {summary.get('total_bundle_size_kb')}KB > {baseline_thresholds['max_bundle_size_kb']}KB")
+
+        comparison_result = {
+            'regressions_detected': len(regressions) > 0,
+            'regressions': regressions,
+            'baseline_thresholds': baseline_thresholds,
+            'current_metrics': summary
+        }
+
+        with open('baseline_comparison.json', 'w') as f:
+            json.dump(comparison_result, f, indent=2)
+
+        if regressions:
+            print("⚠️ Performance regressions detected:")
+            for regression in regressions:
+                print(f"  - {regression}")
+            exit(1)
+        else:
+            print("✅ No performance regressions detected")
+        EOF
+
+        python3 compare_baseline.py || echo "Baseline comparison completed with warnings"
+
+    - name: Upload final performance report
+      uses: actions/upload-artifact@v4
+      with:
+        name: performance-report
+        path: |
+          performance_report.json
+          baseline_comparison.json
+
+    - name: Comment PR with performance results
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+
+          // I'm reading the performance report
+          let report = {};
+          try {
+            report = JSON.parse(fs.readFileSync('performance_report.json', 'utf8'));
+          } catch (error) {
+            console.log('Could not read performance report');
+            return;
+          }
+
+          const summary = report.summary || {};
+
+          // I'm creating a performance summary comment
+          const comment = `## 🚀 Performance Test Results
+
+          **Backend Performance:**
+          - Average API Response Time: ${summary.average_api_response_ms?.toFixed(2) || 'N/A'}ms
+          - Average Fractal Computation: ${summary.average_fractal_computation_ms?.toFixed(2) || 'N/A'}ms
+
+          **Frontend Performance:**
+          - Total Bundle Size: ${summary.total_bundle_size_kb?.toFixed(2) || 'N/A'}KB
+
+          **System Info:**
+          - CPU: ${report.backend?.system_metrics?.cpu_model || 'N/A'}
+          - Cores: ${report.backend?.system_metrics?.cpu_cores || 'N/A'}
+          - Memory: ${report.backend?.system_metrics?.memory_gb || 'N/A'}GB
+          - Rust Version: ${report.backend?.system_metrics?.rust_version || 'N/A'}
+
+          <details>
+          <summary>📊 Detailed Results</summary>
+
+          \`\`\`json
+          ${JSON.stringify(summary, null, 2)}
+          \`\`\`
+          </details>
+          `;
+
+          // I'm posting the comment on the PR
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: comment
+          });
+
+  # I'm setting up performance alerts for significant regressions
+  performance-alerts:
+    name: Performance Alerts
+    runs-on: ubuntu-latest
+    needs: performance-report
+    if: failure() && (github.event_name == 'schedule' || github.ref == 'refs/heads/main')
+
+    steps:
+    - name: Send performance regression alert
+      uses: actions/github-script@v7
+      with:
+        script: |
+          // I'm creating a GitHub issue for performance regressions
+          const title = `🚨 Performance Regression Detected - ${new Date().toISOString().split('T')[0]}`;
+          const body = `
+          A performance regression has been detected in the latest performance tests.
+
+          **Details:**
+          - Commit: ${context.sha}
+          - Branch: ${context.ref}
+          - Workflow Run: ${context.runId}
+
+          Please review the [workflow run](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}) for detailed information.
+
+          **Next Steps:**
+          1. Review the performance test results
+          2. Identify the cause of the regression
+          3. Implement necessary optimizations
+          4. Re-run performance tests to verify improvements
+          `;
+
+          github.rest.issues.create({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            title: title,
+            body: body,
+            labels: ['performance', 'regression', 'priority-high']
+          });

@@ -1,0 +1,116 @@
+# Production-optimized multi-stage Dockerfile for the Rust backend with maximum performance and minimal attack surface.
+# I'm implementing comprehensive optimization including static linking, minimal base images, and security hardening for production deployment.
+
+# Build stage with full development environment
+FROM rust:1.75-slim as builder
+
+# I'm setting up the build environment with necessary system dependencies
+RUN apt-get update && apt-get install -y \
+    pkg-config \
+    libssl-dev \
+    libpq-dev \
+    build-essential \
+    git \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# I'm creating a non-root user for security
+RUN useradd -m -u 1001 -s /bin/bash builder
+USER builder
+WORKDIR /home/builder
+
+# I'm copying dependency manifests first for better Docker layer caching
+COPY --chown=builder:builder Cargo.toml Cargo.lock ./
+COPY --chown=builder:builder build.rs ./
+
+# I'm creating a dummy src directory to cache dependencies
+RUN mkdir src && echo "fn main() {}" > src/main.rs
+
+# I'm pre-building dependencies for faster subsequent builds
+RUN cargo build --release --locked
+RUN rm -rf src
+
+# I'm copying the actual source code
+COPY --chown=builder:builder src ./src
+COPY --chown=builder:builder database ./database
+
+# I'm setting build-time environment variables for maximum optimization
+ENV CARGO_NET_GIT_FETCH_WITH_CLI=true
+ENV RUSTFLAGS="-C target-cpu=native -C opt-level=3 -C lto=fat -C codegen-units=1 -C panic=abort"
+ENV CARGO_PROFILE_RELEASE_LTO=fat
+ENV CARGO_PROFILE_RELEASE_CODEGEN_UNITS=1
+ENV CARGO_PROFILE_RELEASE_PANIC=abort
+ENV CARGO_PROFILE_RELEASE_STRIP=true
+
+# I'm building the optimized production binary
+RUN touch src/main.rs && \
+    cargo build --release --locked --target-dir ./target
+
+# I'm creating a separate stage to strip and verify the binary
+FROM debian:bookworm-slim as binary-prep
+
+RUN apt-get update && apt-get install -y \
+    binutils \
+    file \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=builder /home/builder/target/release/dark-performance-backend /tmp/app
+
+# I'm stripping debug symbols and verifying the binary
+RUN strip /tmp/app && \
+    file /tmp/app && \
+    chmod +x /tmp/app
+
+# Production runtime stage with minimal distroless image
+FROM gcr.io/distroless/cc-debian12:latest
+
+# I'm adding metadata for the production image
+LABEL maintainer="your-email@example.com"
+LABEL description="High-performance Rust backend for performance showcase"
+LABEL version="1.0.0"
+LABEL org.opencontainers.image.source="https://github.com/yourusername/dark-performance-showcase"
+
+# I'm setting up the runtime environment
+ENV RUST_LOG=info
+ENV RUST_BACKTRACE=1
+ENV ENVIRONMENT=production
+ENV PORT=3001
+
+# I'm creating necessary directories with proper permissions
+USER 65532:65532
+WORKDIR /app
+
+# I'm copying only the essential files for runtime
+COPY --from=binary-prep --chown=65532:65532 /tmp/app /app/backend
+COPY --from=builder --chown=65532:65532 /home/builder/database/migrations /app/database/migrations
+
+# I'm exposing the application port
+EXPOSE 3001
+
+# I'm setting up health check for container orchestration
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD ["/app/backend", "--health-check"] || exit 1
+
+# I'm using exec form for proper signal handling
+ENTRYPOINT ["/app/backend"]
+
+# Build arguments for customization
+ARG BUILD_DATE
+ARG GIT_COMMIT
+ARG VERSION
+
+# I'm adding build information as labels
+LABEL org.opencontainers.image.created=${BUILD_DATE}
+LABEL org.opencontainers.image.revision=${GIT_COMMIT}
+LABEL org.opencontainers.image.version=${VERSION}
+
+# I'm setting resource limits recommendations
+LABEL resource.cpu.min="0.5"
+LABEL resource.cpu.max="2.0"
+LABEL resource.memory.min="512Mi"
+LABEL resource.memory.max="2Gi"
+
+# I'm configuring security settings
+LABEL security.non-root=true
+LABEL security.readonly-rootfs=true
+LABEL security.capabilities.drop=ALL
