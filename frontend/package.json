@@ -1,22 +1,53 @@
 {
-  "name": "example-with-tailwindcss",
+  "name": "performance-showcase-frontend",
+  "version": "1.0.0",
+  "description": "High-performance SolidJS frontend for computational showcase",
   "type": "module",
   "scripts": {
-    "dev": "vinxi dev",
+    "dev": "vinxi dev --host 0.0.0.0 --port 3000",
     "build": "vinxi build",
-    "start": "vinxi start"
+    "start": "vinxi start",
+    "preview": "vinxi preview",
+    "type-check": "tsc --noEmit",
+    "lint": "eslint src/**/*.{js,ts,tsx} --fix",
+    "format": "prettier --write src/**/*.{js,ts,tsx,css,scss,md}",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:run": "vitest run"
   },
   "dependencies": {
     "@solidjs/router": "^0.15.0",
     "@solidjs/start": "^1.1.0",
+    "@solidjs/meta": "^0.29.4",
     "solid-js": "^1.9.5",
     "vinxi": "^0.5.3"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.0.7",
-    "tailwindcss": "^4.0.7"
+    "@tailwindcss/line-clamp": "^0.4.4",
+    "tailwindcss": "^4.0.7",
+    "@types/node": "^20.10.0",
+    "typescript": "^5.3.0",
+    "vite": "^5.0.0",
+    "vitest": "^1.0.0",
+    "eslint": "^8.57.0",
+    "@typescript-eslint/eslint-plugin": "^6.15.0",
+    "@typescript-eslint/parser": "^6.15.0",
+    "prettier": "^3.1.0",
+    "autoprefixer": "^10.4.16"
   },
   "engines": {
-    "node": ">=22"
-  }
+    "node": ">=20",
+    "npm": ">=9"
+  },
+  "keywords": [
+    "solidjs",
+    "performance",
+    "rust",
+    "typescript",
+    "tailwindcss",
+    "showcase"
+  ],
+  "author": "Performance Showcase",
+  "license": "MIT"
 }

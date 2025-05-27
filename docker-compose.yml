@@ -1,4 +1,5 @@
-# Prod
+# Development Docker Compose configuration for the performance showcase with hot reload and debugging capabilities.
+# I'm setting up a complete development environment with database, cache, services, and monitoring for local development.
 
 services:
   # PostgreSQL for caching GitHub data and performance metrics
@@ -10,13 +11,18 @@ services:
       POSTGRES_PASSWORD: darkpass
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./backend/database/migrations:/docker-entrypoint-initdb.d
+      - ./backend/database/migrations:/docker-entrypoint-initdb.d:ro
     ports:
       - "5432:5432"
     networks:
       - dark_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U darkuser -d dark_performance"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  # Redis for real-time performance data
+  # Redis for real-time performance data and caching
   redis:
     image: redis:7-alpine
     command: redis-server --appendonly yes
@@ -26,8 +32,13 @@ services:
       - "6379:6379"
     networks:
       - dark_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
 
-  # Rust backend
+  # Rust backend with hot reload for development
   backend:
     build:
       context: ./backend
@@ -35,20 +46,27 @@ services:
     environment:
       DATABASE_URL: postgresql://darkuser:darkpass@postgres:5432/dark_performance
       REDIS_URL: redis://redis:6379
-      RUST_LOG: info
+      RUST_LOG: debug
       PORT: 3001
+      ENVIRONMENT: development
+      GITHUB_TOKEN: ${GITHUB_TOKEN}
+      GITHUB_USERNAME: ${GITHUB_USERNAME}
     ports:
       - "3001:3001"
     depends_on:
-      - postgres
-      - redis
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     networks:
       - dark_network
     volumes:
-      - ./backend:/app
-    command: cargo run --release
+      - ./backend:/app:cached
+      - backend_target:/app/target
+      - backend_cargo_registry:/usr/local/cargo/registry
+    restart: unless-stopped
 
-  # SolidJS frontend
+  # SolidJS frontend with hot module replacement
   frontend:
     build:
       context: ./frontend
@@ -56,44 +74,83 @@ services:
     ports:
       - "3000:3000"
     environment:
-      VITE_API_URL: http://backend:3001
+      NODE_ENV: development
+      VITE_API_URL: http://localhost:3001
+      VITE_DEV_MODE: true
     depends_on:
       - backend
     networks:
       - dark_network
     volumes:
-      - ./frontend:/app
-      - /app/node_modules
+      - ./frontend:/app:cached
+      - frontend_node_modules:/app/node_modules
+    restart: unless-stopped
 
-  # Nginx reverse proxy
+  # Nginx reverse proxy for development
   nginx:
     image: nginx:1.27-alpine
     ports:
       - "80:80"
-      - "443:443"
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
-      - ./nginx/sites-enabled:/etc/nginx/sites-enabled
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/sites-enabled:/etc/nginx/sites-enabled:ro
     depends_on:
       - frontend
       - backend
     networks:
       - dark_network
+    restart: unless-stopped
 
-  # Prometheus for metrics collection
+  # Prometheus for metrics collection in development
   prometheus:
-    image: prom/prometheus:latest
+    image: prom/prometheus:v2.47.2
     ports:
       - "9090:9090"
     volumes:
-      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
     networks:
       - dark_network
+    restart: unless-stopped
 
+  # Grafana for development monitoring dashboards
+  grafana:
+    image: grafana/grafana:10.2.2
+    ports:
+      - "3030:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: false
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+    depends_on:
+      - prometheus
+    networks:
+      - dark_network
+    restart: unless-stopped
+
+# Named volumes for persistent data and performance optimization
 volumes:
   postgres_data:
+    driver: local
   redis_data:
+    driver: local
+  grafana_data:
+    driver: local
+  frontend_node_modules:
+    driver: local
+  backend_target:
+    driver: local
+  backend_cargo_registry:
+    driver: local
 
+# Development network configuration
 networks:
   dark_network:
     driver: bridge
