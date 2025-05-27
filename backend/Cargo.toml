@@ -5,9 +5,9 @@
 name = "dark-performance-backend"
 version = "0.1.0"
 edition = "2021"
-authors = ["Your Name <your.email@example.com>"]
+authors = ["Your Name <carterperez@certgames.com.com>"]
 description = "High-performance backend showcasing Rust's computational capabilities"
-repository = "https://github.com/yourusername/dark-performance-showcase"
+repository = "https://github.com/CarterPerez-dev/kill-pr0cess.inc"
 license = "MIT"
 readme = "README.md"
 keywords = ["performance", "fractals", "github", "api", "rust"]
@@ -202,7 +202,7 @@ build = "build.rs"
 
 # Workspace configuration for multi-crate projects
 [workspace]
-members = [".", "cli", "benchmark-suite"]
+members = ["."]
 
 # Package metadata
 [package.metadata.docs.rs]

@@ -78,7 +78,7 @@ RUN rm -rf /usr/share/nginx/html/* && \
 COPY --from=compressor /app/dist /usr/share/nginx/html
 
 # I'm copying the optimized nginx configuration
-COPY --chown=root:root nginx.prod.conf /etc/nginx/nginx.conf
+# COPY --chown=root:root nginx.prod.conf /etc/nginx/nginx.conf:ro
 
 # I'm creating a custom nginx configuration for SPA routing and performance
 RUN cat > /etc/nginx/conf.d/app.conf << 'EOF'

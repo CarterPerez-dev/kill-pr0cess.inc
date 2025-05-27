@@ -142,7 +142,7 @@ pub async fn health_check(
             version: env!("CARGO_PKG_VERSION").to_string(),
             build_time: env!("BUILD_TIME").to_string(),
             git_commit: env!("GIT_COMMIT").to_string(),
-            rust_version: env!("BUILD_RUST_VERSION").unwrap_or("unknown").to_string(),
+            rust_version: option_env!("BUILD_RUST_VERSION").unwrap_or("unknown").to_string(),
         },
         services: ServiceHealthStatus {
             database: database_status,
@@ -157,7 +157,7 @@ pub async fn health_check(
 
     let total_check_time = start_time.elapsed();
     info!("Health check completed in {}ms with status: {:?}",
-          total_check_time.as_millis(), health_response.status);
+        total_check_time.as_millis(), health_response.status);
 
     Ok(Json(health_response))
 }
@@ -179,11 +179,11 @@ pub async fn readiness_check(
     let readiness_response = serde_json::json!({
         "ready": is_ready,
         "timestamp": chrono::Utc::now(),
-                                               "checks": {
-                                                   "database": database_ready,
-                                                   "redis": redis_ready,
-                                                   "configuration": config_ready
-                                               }
+        "checks": {
+            "database": database_ready,
+            "redis": redis_ready,
+            "configuration": config_ready
+        }
     });
 
     if is_ready {
@@ -202,7 +202,7 @@ pub async fn liveness_check() -> Result<JsonResponse<serde_json::Value>> {
     let liveness_response = serde_json::json!({
         "alive": true,
         "timestamp": chrono::Utc::now(),
-                                              "uptime_seconds": get_uptime_seconds()
+        "uptime_seconds": get_uptime_seconds()
     });
 
     Ok(Json(liveness_response))
@@ -215,8 +215,8 @@ async fn check_database_health(app_state: &AppState) -> (ComponentStatus, Health
     let check_name = "database_connection".to_string();
 
     match sqlx::query("SELECT 1 as health_check, pg_database_size(current_database()) as db_size")
-    .fetch_one(&app_state.db_pool)
-    .await
+        .fetch_one(&app_state.db_pool)
+        .await
     {
         Ok(row) => {
             let duration = start_time.elapsed();
@@ -230,7 +230,7 @@ async fn check_database_health(app_state: &AppState) -> (ComponentStatus, Health
                 metadata: Some(serde_json::json!({
                     "database_size_bytes": db_size,
                     "pool_size": app_state.db_pool.size(),
-                                                 "idle_connections": app_state.db_pool.num_idle()
+                    "idle_connections": app_state.db_pool.num_idle()
                 })),
             };
 
@@ -394,7 +394,7 @@ async fn check_github_api_health(app_state: &AppState) -> (ComponentStatus, Heal
                 status,
                 duration_ms: duration.as_millis() as u64,
                 message: format!("GitHub API accessible, {}/{} requests remaining",
-                                 rate_limit.remaining, rate_limit.limit),
+                    rate_limit.remaining, rate_limit.limit),
             };
 
             (component_status, check)
@@ -535,7 +535,7 @@ async fn check_system_health(_app_state: &AppState) -> (SystemHealth, HealthChec
         status: system_status,
         duration_ms: duration.as_millis() as u64,
         message: format!("CPU: {:.1}%, Memory: {:.1}%, Disk: {:.1}%",
-                         cpu_usage, memory_usage, disk_usage),
+            cpu_usage, memory_usage, disk_usage),
     };
 
     (system_health, check)
@@ -545,19 +545,19 @@ async fn check_system_health(_app_state: &AppState) -> (SystemHealth, HealthChec
 
 async fn check_database_readiness(app_state: &AppState) -> bool {
     sqlx::query("SELECT 1")
-    .fetch_one(&app_state.db_pool)
-    .await
-    .is_ok()
+        .fetch_one(&app_state.db_pool)
+        .await
+        .is_ok()
 }
 
 async fn check_redis_readiness(app_state: &AppState) -> bool {
     match app_state.redis_client.get_async_connection().await {
         Ok(mut conn) => {
             redis::cmd("PING")
-            .query_async::<_, String>(&mut conn)
-            .await
-            .map(|response| response == "PONG")
-            .unwrap_or(false)
+                .query_async::<_, String>(&mut conn)
+                .await
+                .map(|response| response == "PONG")
+                .unwrap_or(false)
         }
         Err(_) => false,
     }
@@ -566,9 +566,9 @@ async fn check_redis_readiness(app_state: &AppState) -> bool {
 async fn check_configuration_readiness(app_state: &AppState) -> bool {
     // I'm checking that essential configuration is present
     !app_state.config.github_token.is_empty()
-    && !app_state.config.github_username.is_empty()
-    && !app_state.config.database_url.is_empty()
-    && !app_state.config.redis_url.is_empty()
+        && !app_state.config.github_username.is_empty()
+        && !app_state.config.database_url.is_empty()
+        && !app_state.config.redis_url.is_empty()
 }
 
 // Helper functions for metrics and status determination

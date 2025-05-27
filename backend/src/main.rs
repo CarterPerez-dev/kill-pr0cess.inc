@@ -64,14 +64,14 @@ impl AppState {
 
         // Initialize Redis client
         let redis_client = redis::Client::open(config.redis_url.clone())
-        .map_err(|e| AppError::CacheError(format!("Failed to create Redis client: {}", e)))?;
+            .map_err(|e| AppError::CacheError(format!("Failed to create Redis client: {}", e)))?;
         info!("Redis client initialized");
 
         // Initialize cache service
         let cache_service = CacheService::with_config(
             redis_client.clone(),
-                                                      "perf_showcase:".to_string(),
-                                                      config.cache_default_ttl,
+            "perf_showcase:".to_string(),
+            config.cache_default_ttl,
         );
 
         // Test cache connection
@@ -126,7 +126,7 @@ impl AppState {
         let mut health_status = serde_json::json!({
             "status": "healthy",
             "timestamp": chrono::Utc::now(),
-                                                  "services": {}
+            "services": {}
         });
 
         // Database health check
@@ -135,7 +135,7 @@ impl AppState {
                 health_status["services"]["database"] = serde_json::json!({
                     "status": "healthy",
                     "connections": self.db_pool.size(),
-                                                                          "idle_connections": self.db_pool.num_idle()
+                    "idle_connections": self.db_pool.num_idle()
                 });
             }
             Err(e) => {
@@ -223,36 +223,36 @@ impl AppState {
     pub async fn get_app_stats(&self) -> Result<serde_json::Value> {
         let stats = serde_json::json!({
             "timestamp": chrono::Utc::now(),
-                                      "environment": self.config.environment,
-                                      "version": env!("CARGO_PKG_VERSION"),
-                                      "build_info": {
-                                          "rust_version": env!("BUILD_RUST_VERSION").unwrap_or("unknown"),
-                                      "build_time": env!("BUILD_TIME").unwrap_or("unknown"),
-                                      "git_commit": env!("GIT_COMMIT").unwrap_or("unknown"),
-                                      "debug_build": cfg!(debug_assertions),
-                                      },
-                                      "database": {
-                                          "pool_size": self.db_pool.size(),
-                                      "idle_connections": self.db_pool.num_idle(),
-                                      "active_connections": self.db_pool.size() - self.db_pool.num_idle(),
-                                      },
-                                      "cache": match self.cache_service.get_stats().await {
-                                          Ok(stats) => serde_json::to_value(stats).unwrap_or_default(),
-                                      Err(_) => serde_json::json!({"status": "unavailable"}),
-                                      },
-                                      "configuration": {
-                                          "fractal_limits": {
-                                              "max_width": self.config.fractal_max_width,
-                                              "max_height": self.config.fractal_max_height,
-                                              "max_iterations": self.config.fractal_max_iterations,
-                                              "max_zoom": self.config.fractal_max_zoom,
-                                          },
-                                          "performance": {
-                                              "metrics_enabled": self.config.metrics_enabled,
-                                              "cache_enabled": self.config.cache_enabled,
-                                              "rate_limiting_enabled": self.config.rate_limit_enabled,
-                                          }
-                                      }
+            "environment": self.config.environment,
+            "version": env!("CARGO_PKG_VERSION"),
+            "build_info": {
+                "rust_version": env!("BUILD_RUST_VERSION").unwrap_or("unknown"),
+                "build_time": env!("BUILD_TIME").unwrap_or("unknown"),
+                "git_commit": env!("GIT_COMMIT").unwrap_or("unknown"),
+                "debug_build": cfg!(debug_assertions),
+            },
+            "database": {
+                "pool_size": self.db_pool.size(),
+                "idle_connections": self.db_pool.num_idle(),
+                "active_connections": self.db_pool.size() - self.db_pool.num_idle(),
+            },
+            "cache": match self.cache_service.get_stats().await {
+                Ok(stats) => serde_json::to_value(stats).unwrap_or_default(),
+                Err(_) => serde_json::json!({"status": "unavailable"}),
+            },
+            "configuration": {
+                "fractal_limits": {
+                    "max_width": self.config.fractal_max_width,
+                    "max_height": self.config.fractal_max_height,
+                    "max_iterations": self.config.fractal_max_iterations,
+                    "max_zoom": self.config.fractal_max_zoom,
+                },
+                "performance": {
+                    "metrics_enabled": self.config.metrics_enabled,
+                    "cache_enabled": self.config.cache_enabled,
+                    "rate_limiting_enabled": self.config.rate_limit_enabled,
+                }
+            }
         });
 
         Ok(stats)
@@ -265,89 +265,89 @@ pub fn create_app_router(app_state: AppState) -> Router {
     info!("Creating application router");
 
     Router::new()
-    // Health check endpoints (no authentication required)
-    .route("/health", get(routes::health::health_check))
-    .route("/health/ready", get(routes::health::readiness_check))
-    .route("/health/live", get(routes::health::liveness_check))
+        // Health check endpoints (no authentication required)
+        .route("/health", get(routes::health::health_check))
+        .route("/health/ready", get(routes::health::readiness_check))
+        .route("/health/live", get(routes::health::liveness_check))
 
-    // API routes with authentication and rate limiting
-    .nest("/api", create_api_router())
+        // API routes with authentication and rate limiting
+        .nest("/api", create_api_router())
 
-    // Metrics endpoint for monitoring
-    .route("/metrics", get(prometheus_metrics))
+        // Metrics endpoint for monitoring
+        .route("/metrics", get(prometheus_metrics))
 
-    // Add comprehensive middleware stack
-    .layer(create_middleware_stack(&app_state.config))
+        // Add comprehensive middleware stack
+        .layer(create_middleware_stack(&app_state.config))
 
-    // Share application state with all handlers
-    .with_state(app_state)
+        // Share application state with all handlers
+        .with_state(app_state)
 }
 
 /// Create API router with all endpoints
 /// I'm organizing API routes for clean structure and easy maintenance
 fn create_api_router() -> Router<AppState> {
     Router::new()
-    // GitHub integration endpoints
-    .route("/github/repos", get(routes::github::get_repositories))
-    .route("/github/repo/:owner/:name", get(routes::github::get_repository_details))
-    .route("/github/repo/:owner/:name/stats", get(routes::github::get_repository_stats))
-    .route("/github/language-distribution", get(routes::github::get_language_distribution))
+        // GitHub integration endpoints
+        .route("/github/repos", get(routes::github::get_repositories))
+        .route("/github/repo/:owner/:name", get(routes::github::get_repository_details))
+        .route("/github/repo/:owner/:name/stats", get(routes::github::get_repository_stats))
+        .route("/github/language-distribution", get(routes::github::get_language_distribution))
 
-    // Fractal generation endpoints
-    .route("/fractals/mandelbrot", post(routes::fractals::generate_mandelbrot))
-    .route("/fractals/julia", post(routes::fractals::generate_julia))
-    .route("/fractals/benchmark", post(routes::fractals::benchmark_generation))
+        // Fractal generation endpoints
+        .route("/fractals/mandelbrot", post(routes::fractals::generate_mandelbrot))
+        .route("/fractals/julia", post(routes::fractals::generate_julia))
+        .route("/fractals/benchmark", post(routes::fractals::benchmark_generation))
 
-    // Performance monitoring endpoints
-    .route("/performance/metrics", get(routes::performance::get_current_metrics))
-    .route("/performance/system", get(routes::performance::get_system_info))
-    .route("/performance/benchmark", post(routes::performance::run_benchmark))
-    .route("/performance/history", get(routes::performance::get_metrics_history))
+        // Performance monitoring endpoints
+        .route("/performance/metrics", get(routes::performance::get_current_metrics))
+        .route("/performance/system", get(routes::performance::get_system_info))
+        .route("/performance/benchmark", post(routes::performance::run_benchmark))
+        .route("/performance/history", get(routes::performance::get_metrics_history))
 }
 
 /// Create comprehensive middleware stack for production deployment
 /// I'm implementing security, performance, and observability middleware
 fn create_middleware_stack(config: &Config) -> tower::ServiceBuilder<
-tower::util::Stack<
-tower::util::Stack<
-tower::util::Stack<
-TraceLayer<tower_http::classify::SharedClassifier<tower_http::classify::ServerErrorsAsFailures>>,
-CompressionLayer,
->,
-CorsLayer,
->,
-tower::util::Identity,
->,
+    tower::util::Stack<
+        tower::util::Stack<
+            tower::util::Stack<
+                TraceLayer<tower_http::classify::SharedClassifier<tower_http::classify::ServerErrorsAsFailures>>,
+                CompressionLayer,
+            >,
+            CorsLayer,
+        >,
+        tower::util::Identity,
+    >,
 > {
     tower::ServiceBuilder::new()
-    // Request tracing for observability
-    .layer(TraceLayer::new_for_http())
+        // Request tracing for observability
+        .layer(TraceLayer::new_for_http())
 
-    // Response compression for performance
-    .layer(CompressionLayer::new())
+        // Response compression for performance
+        .layer(CompressionLayer::new())
 
-    // CORS configuration
-    .layer(create_cors_layer(config))
+        // CORS configuration
+        .layer(create_cors_layer(config))
 }
 
 /// Create CORS layer with environment-appropriate configuration
 /// I'm implementing flexible CORS for development and production environments
 fn create_cors_layer(config: &Config) -> CorsLayer {
     let mut cors = CorsLayer::new()
-    .allow_methods([
-        Method::GET,
-        Method::POST,
-        Method::PUT,
-        Method::DELETE,
-        Method::HEAD,
-        Method::OPTIONS,
-    ])
-    .allow_headers([
-        header::CONTENT_TYPE,
-        header::AUTHORIZATION,
-        header::ACCEPT,
-        header::USER_AGENT,
-    ]);
+        .allow_methods([
+            Method::GET,
+            Method::POST,
+            Method::PUT,
+            Method::DELETE,
+            Method::HEAD,
+            Method::OPTIONS,
+        ])
+        .allow_headers([
+            header::CONTENT_TYPE,
+            header::AUTHORIZATION,
+            header::ACCEPT,
+            header::USER_AGENT,
+        ]);
 
     // Configure origins based on environment
     if config.is_development() {
@@ -355,9 +355,9 @@ fn create_cors_layer(config: &Config) -> CorsLayer {
     } else {
         // In production, restrict to specific origins
         let origins: Vec<_> = config.cors_allowed_origins
-        .iter()
-        .filter_map(|origin| origin.parse().ok())
-        .collect();
+            .iter()
+            .filter_map(|origin| origin.parse().ok())
+            .collect();
 
         if !origins.is_empty() {
             cors = cors.allow_origin(origins);
@@ -374,22 +374,22 @@ async fn prometheus_metrics() -> Result<String, AppError> {
     // For now, providing a basic metrics structure
     let metrics = format!(
         "# HELP app_requests_total Total number of requests\n\
-# TYPE app_requests_total counter\n\
-app_requests_total{{method=\"GET\",endpoint=\"/api/github/repos\"}} 0\n\
-app_requests_total{{method=\"POST\",endpoint=\"/api/fractals/mandelbrot\"}} 0\n\
-\n\
-# HELP app_request_duration_seconds Request duration in seconds\n\
-# TYPE app_request_duration_seconds histogram\n\
-app_request_duration_seconds_bucket{{le=\"0.1\"}} 0\n\
-app_request_duration_seconds_bucket{{le=\"0.5\"}} 0\n\
-app_request_duration_seconds_bucket{{le=\"1.0\"}} 0\n\
-app_request_duration_seconds_bucket{{le=\"+Inf\"}} 0\n\
-\n\
-# HELP app_info Application information\n\
-# TYPE app_info gauge\n\
-app_info{{version=\"{}\",rust_version=\"{}\"}} 1\n",
-env!("CARGO_PKG_VERSION"),
-                          env!("BUILD_RUST_VERSION").unwrap_or("unknown")
+         # TYPE app_requests_total counter\n\
+         app_requests_total{{method=\"GET\",endpoint=\"/api/github/repos\"}} 0\n\
+         app_requests_total{{method=\"POST\",endpoint=\"/api/fractals/mandelbrot\"}} 0\n\
+         \n\
+         # HELP app_request_duration_seconds Request duration in seconds\n\
+         # TYPE app_request_duration_seconds histogram\n\
+         app_request_duration_seconds_bucket{{le=\"0.1\"}} 0\n\
+         app_request_duration_seconds_bucket{{le=\"0.5\"}} 0\n\
+         app_request_duration_seconds_bucket{{le=\"1.0\"}} 0\n\
+         app_request_duration_seconds_bucket{{le=\"+Inf\"}} 0\n\
+         \n\
+         # HELP app_info Application information\n\
+         # TYPE app_info gauge\n\
+         app_info{{version=\"{}\",rust_version=\"{}\"}} 1\n",
+        env!("CARGO_PKG_VERSION"),
+        env!("BUILD_RUST_VERSION").unwrap_or("unknown")
     );
 
     Ok(metrics)
@@ -401,11 +401,11 @@ env!("CARGO_PKG_VERSION"),
 pub async fn main() -> Result<()> {
     // Initialize logging
     tracing_subscriber::registry()
-    .with(tracing_subscriber::EnvFilter::new(
-        std::env::var("RUST_LOG").unwrap_or_else(|_| "info".into()),
-    ))
-    .with(tracing_subscriber::fmt::layer())
-    .init();
+        .with(tracing_subscriber::EnvFilter::new(
+            std::env::var("RUST_LOG").unwrap_or_else(|_| "info".into()),
+        ))
+        .with(tracing_subscriber::fmt::layer())
+        .init();
 
     info!("Starting Dark Performance Showcase backend");
 
@@ -430,7 +430,7 @@ pub async fn main() -> Result<()> {
 
     // Start the server with graceful shutdown
     let listener = tokio::net::TcpListener::bind(&addr).await
-    .map_err(|e| AppError::ConfigurationError(format!("Failed to bind to address {}: {}", addr, e)))?;
+        .map_err(|e| AppError::ConfigurationError(format!("Failed to bind to address {}: {}", addr, e)))?;
 
     info!("🚀 Dark Performance Showcase backend is running on {}", addr);
     info!("🌐 Frontend URL: {}", app_state.config.frontend_url);
@@ -439,9 +439,9 @@ pub async fn main() -> Result<()> {
 
     // Run server with graceful shutdown
     axum::serve(listener, app)
-    .with_graceful_shutdown(shutdown_signal())
-    .await
-    .map_err(|e| AppError::InternalServerError(format!("Server error: {}", e)))?;
+        .with_graceful_shutdown(shutdown_signal())
+        .await
+        .map_err(|e| AppError::InternalServerError(format!("Server error: {}", e)))?;
 
     info!("Server shutting down gracefully");
     Ok(())
@@ -452,16 +452,16 @@ pub async fn main() -> Result<()> {
 async fn shutdown_signal() {
     let ctrl_c = async {
         signal::ctrl_c()
-        .await
-        .expect("failed to install Ctrl+C handler");
+            .await
+            .expect("failed to install Ctrl+C handler");
     };
 
     #[cfg(unix)]
     let terminate = async {
         signal::unix::signal(signal::unix::SignalKind::terminate())
-        .expect("failed to install signal handler")
-        .recv()
-        .await;
+            .expect("failed to install signal handler")
+            .recv()
+            .await;
     };
 
     #[cfg(not(unix))]

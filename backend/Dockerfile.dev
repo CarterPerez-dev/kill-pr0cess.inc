@@ -1,7 +1,7 @@
 # Development Dockerfile for the Rust backend with hot reload and debugging capabilities.
 # I'm optimizing for development speed with volume mounting and cargo watch for automatic rebuilds.
 
-FROM rust:1.75-slim
+FROM rust:1.81-slim
 
 # I'm installing development dependencies including cargo-watch for hot reload
 RUN apt-get update && apt-get install -y \
@@ -23,8 +23,8 @@ RUN useradd -m -u 1001 -s /bin/bash developer
 USER developer
 WORKDIR /app
 
-# I'm copying dependency manifests first for better layer caching
-COPY --chown=developer:developer Cargo.toml Cargo.lock ./
+COPY --chown=developer:developer Cargo.toml ./Cargo.toml
+RUN cargo generate-lockfile
 COPY --chown=developer:developer build.rs ./
 
 # I'm creating a dummy src to cache dependencies

@@ -59,7 +59,7 @@ impl AppState {
 
         // Initialize Redis client with connection pooling
         let redis_client = redis::Client::open(config.redis_url.clone())
-        .map_err(|e| AppError::DatabaseError(format!("Redis connection failed: {}", e)))?;
+            .map_err(|e| AppError::DatabaseError(format!("Redis connection failed: {}", e)))?;
 
         // Initialize metrics collector for performance monitoring
         let metrics = MetricsCollector::new()?;
@@ -68,12 +68,11 @@ impl AppState {
         let cache_service = CacheService::new(redis_client.clone());
         let github_service = GitHubService::new(
             config.github_token.clone(),
-                                                cache_service.clone(),
+            cache_service.clone(),
         );
         let fractal_service = FractalService::new();
         let performance_service = PerformanceService::new(
             db_pool.clone(),
-                                                          metrics.clone(),
         );
 
         Ok(AppState {
@@ -95,8 +94,8 @@ impl AppState {
 
         // Test database connectivity
         let db_status = match sqlx::query("SELECT 1 as test")
-        .fetch_one(&self.db_pool)
-        .await
+            .fetch_one(&self.db_pool)
+            .await
         {
             Ok(_) => "healthy",
             Err(_) => "unhealthy",
@@ -104,11 +103,11 @@ impl AppState {
 
         // Test Redis connectivity
         let mut conn = self.redis_client.get_async_connection().await
-        .map_err(|e| AppError::DatabaseError(format!("Redis connection failed: {}", e)))?;
+            .map_err(|e| AppError::DatabaseError(format!("Redis connection failed: {}", e)))?;
 
         let redis_status = match redis::cmd("PING")
-        .query_async::<_, String>(&mut conn)
-        .await
+            .query_async::<_, String>(&mut conn)
+            .await
         {
             Ok(_) => "healthy",
             Err(_) => "unhealthy",
@@ -120,21 +119,21 @@ impl AppState {
         Ok(serde_json::json!({
             "status": if db_status == "healthy" && redis_status == "healthy" { "healthy" } else { "unhealthy" },
             "timestamp": chrono::Utc::now(),
-                             "services": {
-                                 "database": db_status,
-                                 "redis": redis_status,
-                                 "github_api": "healthy", // GitHub service handles its own health
-                                 "fractal_engine": "healthy"
-                             },
-                             "system": {
-                                 "cpu_usage": system_info.cpu_usage_percent,
-                                 "memory_usage": system_info.memory_usage_percent,
-                                 "uptime_seconds": system_info.uptime_seconds,
-                                 "active_connections": system_info.active_connections
-                             },
-                             "version": env!("CARGO_PKG_VERSION"),
-                             "build_time": env!("BUILD_TIME"),
-                             "git_commit": env!("GIT_COMMIT")
+            "services": {
+                "database": db_status,
+                "redis": redis_status,
+                "github_api": "healthy", // GitHub service handles its own health
+                "fractal_engine": "healthy"
+            },
+            "system": {
+                "cpu_usage": system_info.cpu_usage_percent,
+                "memory_usage": system_info.memory_usage_percent,
+                "uptime_seconds": system_info.uptime_seconds,
+                "active_connections": system_info.active_connections
+            },
+            "version": env!("CARGO_PKG_VERSION"),
+            "build_time": env!("BUILD_TIME"),
+            "git_commit": env!("GIT_COMMIT")
         }))
     }
 
@@ -303,8 +302,8 @@ pub mod async_utils {
         initial_delay: Duration,
     ) -> Result<T>
     where
-    F: FnMut() -> Fut,
-    Fut: Future<Output = Result<T>>,
+        F: FnMut() -> Fut,
+        Fut: Future<Output = Result<T>>,
     {
         let mut delay = initial_delay;
 
@@ -329,10 +328,10 @@ pub mod async_utils {
         timeout_duration: Duration,
     ) -> Result<T>
     where
-    F: Future<Output = Result<T>>,
+        F: Future<Output = Result<T>>,
     {
         timeout(timeout_duration, operation)
-        .await
-        .map_err(|_| AppError::TimeoutError("Operation timed out".to_string()))?
+            .await
+            .map_err(|_| AppError::TimeoutError("Operation timed out".to_string()))?
     }
 }

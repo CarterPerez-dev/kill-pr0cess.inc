@@ -80,7 +80,7 @@ pub struct RuntimeInfo {
 /// I'm providing real-time performance data for monitoring and display
 pub async fn get_current_metrics(
     State(app_state): State<AppState>,
-                                 Query(params): Query<MetricsQuery>,
+    Query(params): Query<MetricsQuery>,
 ) -> Result<JsonResponse<CurrentMetricsResponse>> {
     info!("Fetching current performance metrics");
 
@@ -163,76 +163,76 @@ pub async fn get_system_info(
 
     let system_info = serde_json::json!({
         "timestamp": chrono::Utc::now(),
-                                        "hardware": {
-                                            "cpu": {
-                                                "model": system.global_cpu_info().brand(),
-                                        "cores": system.physical_core_count().unwrap_or(0),
-                                        "threads": system.cpus().len(),
-                                        "frequency_mhz": system.global_cpu_info().frequency(),
-                                        "usage_percent": system.global_cpu_info().cpu_usage(),
-                                        "architecture": std::env::consts::ARCH,
-                                            },
-                                            "memory": {
-                                                "total_gb": system.total_memory() as f64 / (1024.0 * 1024.0 * 1024.0),
-                                        "available_gb": system.available_memory() as f64 / (1024.0 * 1024.0 * 1024.0),
-                                        "used_gb": (system.total_memory() - system.available_memory()) as f64 / (1024.0 * 1024.0 * 1024.0),
-                                        "usage_percent": {
-                                            let total = system.total_memory() as f64;
-                                            let available = system.available_memory() as f64;
-                                            ((total - available) / total) * 100.0
-                                        },
-                                        "swap_total_gb": system.total_swap() as f64 / (1024.0 * 1024.0 * 1024.0),
-                                        "swap_used_gb": system.used_swap() as f64 / (1024.0 * 1024.0 * 1024.0),
-                                            },
-                                            "storage": system.disks().iter().map(|disk| {
-                                                serde_json::json!({
-                                                    "name": disk.name(),
-                                                                  "mount_point": disk.mount_point(),
-                                                                  "file_system": disk.file_system(),
-                                                                  "total_gb": disk.total_space() as f64 / (1024.0 * 1024.0 * 1024.0),
-                                                                  "available_gb": disk.available_space() as f64 / (1024.0 * 1024.0 * 1024.0),
-                                                                  "usage_percent": {
-                                                                      let total = disk.total_space() as f64;
-                                                                      let available = disk.available_space() as f64;
-                                                                      if total > 0.0 {
-                                                                          ((total - available) / total) * 100.0
-                                                                      } else {
-                                                                          0.0
-                                                                      }
-                                                                  }
-                                                })
-                                            }).collect::<Vec<_>>(),
-                                        },
-                                        "system": {
-                                            "os": {
-                                                "name": system.name(),
-                                        "version": system.os_version(),
-                                        "long_version": system.long_os_version(),
-                                        "kernel_version": system.kernel_version(),
-                                        "host_name": system.host_name(),
-                                            },
-                                            "uptime_seconds": system.uptime(),
-                                        "boot_time": system.boot_time(),
-                                        "load_average": {
-                                            "one_minute": system.load_average().one,
-                                        "five_minutes": system.load_average().five,
-                                        "fifteen_minutes": system.load_average().fifteen,
-                                        },
-                                        "processes": {
-                                            "total": system.processes().len(),
-                                        "running": system.processes().values().filter(|p| p.status() == sysinfo::ProcessStatus::Run).count(),
-                                        }
-                                        },
-                                        "runtime": {
-                                            "rust_version": env!("BUILD_RUST_VERSION").unwrap_or("unknown"),
-                                        "build_timestamp": env!("BUILD_TIME").unwrap_or("unknown"),
-                                        "git_commit": env!("GIT_COMMIT").unwrap_or("unknown"),
-                                        "build_type": if cfg!(debug_assertions) { "debug" } else { "release" },
-                                        "target_arch": std::env::consts::ARCH,
-                                        "target_os": std::env::consts::OS,
-                                        "optimization_level": if cfg!(debug_assertions) { "0" } else { "3" },
-                                        "features": get_enabled_features(),
-                                        }
+        "hardware": {
+            "cpu": {
+                "model": system.global_cpu_info().brand(),
+                "cores": system.physical_core_count().unwrap_or(0),
+                "threads": system.cpus().len(),
+                "frequency_mhz": system.global_cpu_info().frequency(),
+                "usage_percent": system.global_cpu_info().cpu_usage(),
+                "architecture": std::env::consts::ARCH,
+            },
+            "memory": {
+                "total_gb": system.total_memory() as f64 / (1024.0 * 1024.0 * 1024.0),
+                "available_gb": system.available_memory() as f64 / (1024.0 * 1024.0 * 1024.0),
+                "used_gb": (system.total_memory() - system.available_memory()) as f64 / (1024.0 * 1024.0 * 1024.0),
+                "usage_percent": {
+                    let total = system.total_memory() as f64;
+                    let available = system.available_memory() as f64;
+                    ((total - available) / total) * 100.0
+                },
+                "swap_total_gb": system.total_swap() as f64 / (1024.0 * 1024.0 * 1024.0),
+                "swap_used_gb": system.used_swap() as f64 / (1024.0 * 1024.0 * 1024.0),
+            },
+            "storage": system.disks().iter().map(|disk| {
+                serde_json::json!({
+                    "name": disk.name(),
+                    "mount_point": disk.mount_point(),
+                    "file_system": disk.file_system(),
+                    "total_gb": disk.total_space() as f64 / (1024.0 * 1024.0 * 1024.0),
+                    "available_gb": disk.available_space() as f64 / (1024.0 * 1024.0 * 1024.0),
+                    "usage_percent": {
+                        let total = disk.total_space() as f64;
+                        let available = disk.available_space() as f64;
+                        if total > 0.0 {
+                            ((total - available) / total) * 100.0
+                        } else {
+                            0.0
+                        }
+                    }
+                })
+            }).collect::<Vec<_>>(),
+        },
+        "system": {
+            "os": {
+                "name": system.name(),
+                "version": system.os_version(),
+                "long_version": system.long_os_version(),
+                "kernel_version": system.kernel_version(),
+                "host_name": system.host_name(),
+            },
+            "uptime_seconds": system.uptime(),
+            "boot_time": system.boot_time(),
+            "load_average": {
+                "one_minute": system.load_average().one,
+                "five_minutes": system.load_average().five,
+                "fifteen_minutes": system.load_average().fifteen,
+            },
+            "processes": {
+                "total": system.processes().len(),
+                "running": system.processes().values().filter(|p| p.status() == sysinfo::ProcessStatus::Run).count(),
+            }
+        },
+        "runtime": {
+            "rust_version": option_env!("BUILD_RUST_VERSION").unwrap_or("unknown"),
+            "build_timestamp": env!("BUILD_TIME").unwrap_or("unknown"),
+            "git_commit": env!("GIT_COMMIT").unwrap_or("unknown"),
+            "build_type": if cfg!(debug_assertions) { "debug" } else { "release" },
+            "target_arch": std::env::consts::ARCH,
+            "target_os": std::env::consts::OS,
+            "optimization_level": if cfg!(debug_assertions) { "0" } else { "3" },
+            "features": get_enabled_features(),
+        }
     });
 
     info!("System information collected successfully");
@@ -264,25 +264,25 @@ pub async fn run_benchmark(
         // Multi-threaded benchmark
         let start = std::time::Instant::now();
         let multi_thread_primes = (2..50000u32)
-        .collect::<Vec<_>>()
-        .into_iter()
-        .filter(|&i| is_prime(i))
-        .count();
+            .collect::<Vec<_>>()
+            .into_iter()
+            .filter(|&i| is_prime(i))
+            .count();
         let multi_thread_time = start.elapsed();
 
         serde_json::json!({
             "single_thread": {
                 "primes_found": single_thread_primes,
                 "duration_ms": single_thread_time.as_millis(),
-                          "primes_per_second": single_thread_primes as f64 / single_thread_time.as_secs_f64()
+                "primes_per_second": single_thread_primes as f64 / single_thread_time.as_secs_f64()
             },
             "multi_thread": {
                 "primes_found": multi_thread_primes,
                 "duration_ms": multi_thread_time.as_millis(),
-                          "primes_per_second": multi_thread_primes as f64 / multi_thread_time.as_secs_f64()
+                "primes_per_second": multi_thread_primes as f64 / multi_thread_time.as_secs_f64()
             },
             "parallel_efficiency": (multi_thread_primes as f64 / multi_thread_time.as_secs_f64()) /
-            (single_thread_primes as f64 / single_thread_time.as_secs_f64())
+                                  (single_thread_primes as f64 / single_thread_time.as_secs_f64())
         })
     }).await.unwrap();
 
@@ -307,17 +307,17 @@ pub async fn run_benchmark(
         serde_json::json!({
             "allocation": {
                 "duration_ms": allocation_time.as_millis(),
-                          "mb_allocated": (data_size * 8) as f64 / (1024.0 * 1024.0),
-                          "mb_per_second": (data_size * 8) as f64 / (1024.0 * 1024.0) / allocation_time.as_secs_f64()
+                "mb_allocated": (data_size * 8) as f64 / (1024.0 * 1024.0),
+                "mb_per_second": (data_size * 8) as f64 / (1024.0 * 1024.0) / allocation_time.as_secs_f64()
             },
             "sequential_read": {
                 "duration_ms": read_time.as_millis(),
-                          "sum_result": sum,
-                          "mb_per_second": (data_size * 8) as f64 / (1024.0 * 1024.0) / read_time.as_secs_f64()
+                "sum_result": sum,
+                "mb_per_second": (data_size * 8) as f64 / (1024.0 * 1024.0) / read_time.as_secs_f64()
             },
             "sequential_write": {
                 "duration_ms": write_time.as_millis(),
-                          "mb_per_second": (data_size * 8) as f64 / (1024.0 * 1024.0) / write_time.as_secs_f64()
+                "mb_per_second": (data_size * 8) as f64 / (1024.0 * 1024.0) / write_time.as_secs_f64()
             }
         })
     }).await.unwrap();
@@ -330,25 +330,25 @@ pub async fn run_benchmark(
 
     let benchmark_results = serde_json::json!({
         "benchmark_id": uuid::Uuid::new_v4().to_string(),
-                                              "timestamp": chrono::Utc::now(),
-                                              "total_duration_ms": benchmark_duration.as_millis(),
-                                              "system_info": {
-                                                  "cpu_model": system.global_cpu_info().brand(),
-                                              "cpu_cores": system.physical_core_count().unwrap_or(0),
-                                              "cpu_threads": system.cpus().len(),
-                                              "memory_total_gb": system.total_memory() as f64 / (1024.0 * 1024.0 * 1024.0),
-                                              "architecture": std::env::consts::ARCH,
-                                              "os": system.long_os_version(),
-                                              },
-                                              "benchmarks": {
-                                                  "cpu": cpu_benchmark,
-                                                  "memory": memory_benchmark,
-                                              },
-                                              "performance_rating": calculate_performance_rating(&cpu_benchmark, &memory_benchmark),
-                                              "comparison": {
-                                                  "baseline_system": "Intel Core i5-8400 (6 cores, 16GB RAM)",
-                                              "relative_performance": 1.0, // Would be calculated based on baseline comparison
-                                              }
+        "timestamp": chrono::Utc::now(),
+        "total_duration_ms": benchmark_duration.as_millis(),
+        "system_info": {
+            "cpu_model": system.global_cpu_info().brand(),
+            "cpu_cores": system.physical_core_count().unwrap_or(0),
+            "cpu_threads": system.cpus().len(),
+            "memory_total_gb": system.total_memory() as f64 / (1024.0 * 1024.0 * 1024.0),
+            "architecture": std::env::consts::ARCH,
+            "os": system.long_os_version(),
+        },
+        "benchmarks": {
+            "cpu": cpu_benchmark,
+            "memory": memory_benchmark,
+        },
+        "performance_rating": calculate_performance_rating(&cpu_benchmark, &memory_benchmark),
+        "comparison": {
+            "baseline_system": "Intel Core i5-8400 (6 cores, 16GB RAM)",
+            "relative_performance": 1.0, // Would be calculated based on baseline comparison
+        }
     });
 
     info!("Benchmark completed in {:?}", benchmark_duration);
@@ -359,7 +359,7 @@ pub async fn run_benchmark(
 /// I'm providing historical performance data for analysis and visualization
 pub async fn get_metrics_history(
     State(_app_state): State<AppState>,
-                                 Query(params): Query<MetricsQuery>,
+    Query(params): Query<MetricsQuery>,
 ) -> Result<JsonResponse<serde_json::Value>> {
     info!("Fetching performance metrics history");
 
@@ -369,23 +369,23 @@ pub async fn get_metrics_history(
     // For now, I'm providing sample historical data structure
     let history = serde_json::json!({
         "timestamp": chrono::Utc::now(),
-                                    "period_minutes": limit * 5, // Assuming 5-minute intervals
-                                    "data_points": limit,
-                                    "metrics": {
-                                        "cpu_usage": generate_sample_timeseries(limit, 20.0, 80.0),
-                                    "memory_usage": generate_sample_timeseries(limit, 40.0, 70.0),
-                                    "disk_usage": generate_sample_timeseries(limit, 50.0, 60.0),
-                                    "load_average": generate_sample_timeseries(limit, 0.1, 2.0),
-                                    "response_times": generate_sample_timeseries(limit, 5.0, 50.0),
-                                    },
-                                    "summary": {
-                                        "average_cpu": 45.0,
-                                        "peak_cpu": 85.0,
-                                        "average_memory": 55.0,
-                                        "peak_memory": 72.0,
-                                        "incidents": 0,
-                                        "uptime_percentage": 100.0,
-                                    }
+        "period_minutes": limit * 5, // Assuming 5-minute intervals
+        "data_points": limit,
+        "metrics": {
+            "cpu_usage": generate_sample_timeseries(limit, 20.0, 80.0),
+            "memory_usage": generate_sample_timeseries(limit, 40.0, 70.0),
+            "disk_usage": generate_sample_timeseries(limit, 50.0, 60.0),
+            "load_average": generate_sample_timeseries(limit, 0.1, 2.0),
+            "response_times": generate_sample_timeseries(limit, 5.0, 50.0),
+        },
+        "summary": {
+            "average_cpu": 45.0,
+            "peak_cpu": 85.0,
+            "average_memory": 55.0,
+            "peak_memory": 72.0,
+            "incidents": 0,
+            "uptime_percentage": 100.0,
+        }
     });
 
     info!("Performance history generated with {} data points", limit);
@@ -454,16 +454,16 @@ fn generate_sample_timeseries(count: usize, min: f64, max: f64) -> Vec<serde_jso
     use std::f64::consts::PI;
 
     (0..count)
-    .map(|i| {
-        let t = i as f64 / count as f64;
-        let noise = (t * PI * 4.0).sin() * 0.1 + (t * PI * 8.0).cos() * 0.05;
-        let base = min + (max - min) * (0.5 + 0.3 * (t * PI * 2.0).sin());
-        let value = (base + noise * (max - min)).max(min).min(max);
+        .map(|i| {
+            let t = i as f64 / count as f64;
+            let noise = (t * PI * 4.0).sin() * 0.1 + (t * PI * 8.0).cos() * 0.05;
+            let base = min + (max - min) * (0.5 + 0.3 * (t * PI * 2.0).sin());
+            let value = (base + noise * (max - min)).max(min).min(max);
 
-        serde_json::json!({
-            "timestamp": chrono::Utc::now() - chrono::Duration::minutes((count - i) as i64 * 5),
-                          "value": (value * 100.0).round() / 100.0
+            serde_json::json!({
+                "timestamp": chrono::Utc::now() - chrono::Duration::minutes((count - i) as i64 * 5),
+                "value": (value * 100.0).round() / 100.0
+            })
         })
-    })
-    .collect()
+        .collect()
 }

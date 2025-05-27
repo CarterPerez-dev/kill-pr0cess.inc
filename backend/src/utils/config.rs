@@ -97,59 +97,59 @@ impl Config {
             // Database configuration with environment-specific defaults
             database_url: get_required_env("DATABASE_URL")?,
             database_max_connections: parse_env_var("DATABASE_MAX_CONNECTIONS",
-                                                    if environment == Environment::Production { 100 } else { 20 })?,
-                                                        database_min_connections: parse_env_var("DATABASE_MIN_CONNECTIONS", 5)?,
-                                                        database_connection_timeout: parse_env_var("DATABASE_CONNECTION_TIMEOUT", 30)?,
+                if environment == Environment::Production { 100 } else { 20 })?,
+            database_min_connections: parse_env_var("DATABASE_MIN_CONNECTIONS", 5)?,
+            database_connection_timeout: parse_env_var("DATABASE_CONNECTION_TIMEOUT", 30)?,
 
-                                                        // Redis configuration
-                                                        redis_url: get_required_env("REDIS_URL")?,
-                                                        redis_max_connections: parse_env_var("REDIS_MAX_CONNECTIONS", 10)?,
-                                                        redis_connection_timeout: parse_env_var("REDIS_CONNECTION_TIMEOUT", 5)?,
+            // Redis configuration
+            redis_url: get_required_env("REDIS_URL")?,
+            redis_max_connections: parse_env_var("REDIS_MAX_CONNECTIONS", 10)?,
+            redis_connection_timeout: parse_env_var("REDIS_CONNECTION_TIMEOUT", 5)?,
 
-                                                        // GitHub API configuration
-                                                        github_token: get_required_env("GITHUB_TOKEN")?,
-                                                        github_username: get_required_env("GITHUB_USERNAME")?,
-                                                        github_api_base_url: env::var("GITHUB_API_BASE_URL")
-                                                        .unwrap_or_else(|_| "https://api.github.com".to_string()),
-                                                        github_rate_limit_requests: parse_env_var("GITHUB_RATE_LIMIT_REQUESTS", 5000)?,
-                                                        github_cache_ttl: parse_env_var("GITHUB_CACHE_TTL", 1800)?,
+            // GitHub API configuration
+            github_token: get_required_env("GITHUB_TOKEN")?,
+            github_username: get_required_env("GITHUB_USERNAME")?,
+            github_api_base_url: env::var("GITHUB_API_BASE_URL")
+                .unwrap_or_else(|_| "https://api.github.com".to_string()),
+            github_rate_limit_requests: parse_env_var("GITHUB_RATE_LIMIT_REQUESTS", 5000)?,
+            github_cache_ttl: parse_env_var("GITHUB_CACHE_TTL", 1800)?,
 
-                                                        // Frontend configuration
-                                                        frontend_url: env::var("FRONTEND_URL").unwrap_or_else(|_| "http://localhost:3000".to_string()),
-                                                        cors_allowed_origins: parse_cors_origins()?,
+            // Frontend configuration
+            frontend_url: env::var("FRONTEND_URL").unwrap_or_else(|_| "http://localhost:3000".to_string()),
+            cors_allowed_origins: parse_cors_origins()?,
 
-                                                        // Performance monitoring
-                                                        metrics_enabled: parse_bool_env("METRICS_ENABLED", true)?,
-                                                        prometheus_port: parse_env_var("PROMETHEUS_PORT", 9090)?,
-                                                        system_metrics_interval: parse_env_var("SYSTEM_METRICS_INTERVAL", 60)?,
+            // Performance monitoring
+            metrics_enabled: parse_bool_env("METRICS_ENABLED", true)?,
+            prometheus_port: parse_env_var("PROMETHEUS_PORT", 9090)?,
+            system_metrics_interval: parse_env_var("SYSTEM_METRICS_INTERVAL", 60)?,
 
-                                                        // Fractal computation limits for safety
-                                                        fractal_max_width: parse_env_var("MAX_FRACTAL_WIDTH", 4096)?,
-                                                        fractal_max_height: parse_env_var("MAX_FRACTAL_HEIGHT", 4096)?,
-                                                        fractal_max_iterations: parse_env_var("MAX_FRACTAL_ITERATIONS", 10000)?,
-                                                        fractal_max_zoom: parse_env_var("MAX_FRACTAL_ZOOM", 1e15)?,
-                                                        fractal_computation_timeout: parse_env_var("FRACTAL_COMPUTATION_TIMEOUT", 120)?,
+            // Fractal computation limits for safety
+            fractal_max_width: parse_env_var("MAX_FRACTAL_WIDTH", 4096)?,
+            fractal_max_height: parse_env_var("MAX_FRACTAL_HEIGHT", 4096)?,
+            fractal_max_iterations: parse_env_var("MAX_FRACTAL_ITERATIONS", 10000)?,
+            fractal_max_zoom: parse_env_var("MAX_FRACTAL_ZOOM", 1e15)?,
+            fractal_computation_timeout: parse_env_var("FRACTAL_COMPUTATION_TIMEOUT", 120)?,
 
-                                                        // Logging configuration
-                                                        log_level: env::var("RUST_LOG").unwrap_or_else(|_|
-                                                        match environment {
-                                                            Environment::Development => "debug".to_string(),
-                                                                                                       Environment::Staging => "info".to_string(),
-                                                                                                       Environment::Production => "warn".to_string(),
-                                                        }
-                                                        ),
-                                                        log_format: parse_log_format()?,
+            // Logging configuration
+            log_level: env::var("RUST_LOG").unwrap_or_else(|_|
+                match environment {
+                    Environment::Development => "debug".to_string(),
+                    Environment::Staging => "info".to_string(),
+                    Environment::Production => "warn".to_string(),
+                }
+            ),
+            log_format: parse_log_format()?,
 
-                                                        // Security configuration
-                                                        rate_limit_enabled: parse_bool_env("RATE_LIMIT_ENABLED", true)?,
-                                                        rate_limit_requests_per_minute: parse_env_var("RATE_LIMIT_REQUESTS_PER_MINUTE",
-                                                                                                      if environment == Environment::Production { 60 } else { 100 })?,
-                                                                                                          fractal_rate_limit_per_minute: parse_env_var("FRACTAL_RATE_LIMIT_PER_MINUTE", 10)?,
+            // Security configuration
+            rate_limit_enabled: parse_bool_env("RATE_LIMIT_ENABLED", true)?,
+            rate_limit_requests_per_minute: parse_env_var("RATE_LIMIT_REQUESTS_PER_MINUTE",
+                if environment == Environment::Production { 60 } else { 100 })?,
+            fractal_rate_limit_per_minute: parse_env_var("FRACTAL_RATE_LIMIT_PER_MINUTE", 10)?,
 
-                                                                                                          // Caching configuration
-                                                                                                          cache_enabled: parse_bool_env("CACHE_ENABLED", true)?,
-                                                                                                          cache_default_ttl: parse_env_var("CACHE_DEFAULT_TTL", 3600)?,
-                                                                                                          github_cache_enabled: parse_bool_env("GITHUB_CACHE_ENABLED", true)?,
+            // Caching configuration
+            cache_enabled: parse_bool_env("CACHE_ENABLED", true)?,
+            cache_default_ttl: parse_env_var("CACHE_DEFAULT_TTL", 3600)?,
+            github_cache_enabled: parse_bool_env("GITHUB_CACHE_ENABLED", true)?,
         };
 
         // Validate configuration after loading
@@ -232,7 +232,7 @@ impl Config {
     pub fn socket_addr(&self) -> Result<SocketAddr> {
         let addr = format!("{}:{}", self.host, self.port);
         addr.parse()
-        .map_err(|e| AppError::ConfigurationError(format!("Invalid socket address: {}", e)))
+            .map_err(|e| AppError::ConfigurationError(format!("Invalid socket address: {}", e)))
     }
 
     /// Check if running in development mode
@@ -265,16 +265,16 @@ impl Config {
         info!("Environment: {:?}", self.environment);
         info!("Server: {}:{}", self.host, self.port);
         info!("Database: {} (max_conn: {})",
-              mask_connection_string(&self.database_url), self.database_max_connections);
+            mask_connection_string(&self.database_url), self.database_max_connections);
         info!("Redis: {} (max_conn: {})",
-              mask_connection_string(&self.redis_url), self.redis_max_connections);
+            mask_connection_string(&self.redis_url), self.redis_max_connections);
         info!("GitHub: {} (user: {})", self.github_api_base_url, self.github_username);
         info!("Frontend: {}", self.frontend_url);
         info!("Metrics: {} (port: {})", self.metrics_enabled, self.prometheus_port);
         info!("Fractal limits: {}x{} max, {} iterations",
-              self.fractal_max_width, self.fractal_max_height, self.fractal_max_iterations);
+            self.fractal_max_width, self.fractal_max_height, self.fractal_max_iterations);
         info!("Rate limiting: {} ({} req/min)",
-              self.rate_limit_enabled, self.rate_limit_requests_per_minute);
+            self.rate_limit_enabled, self.rate_limit_requests_per_minute);
         info!("Caching: {} (TTL: {}s)", self.cache_enabled, self.cache_default_ttl);
         info!("Log level: {} (format: {:?})", self.log_level, self.log_format);
         info!("============================");
@@ -294,8 +294,8 @@ pub struct DatabasePoolConfig {
 
 fn parse_environment() -> Result<Environment> {
     let env_str = env::var("ENVIRONMENT")
-    .or_else(|_| env::var("ENV"))
-    .unwrap_or_else(|_| "development".to_string());
+        .or_else(|_| env::var("ENV"))
+        .unwrap_or_else(|_| "development".to_string());
 
     match env_str.to_lowercase().as_str() {
         "development" | "dev" => Ok(Environment::Development),
@@ -309,15 +309,15 @@ fn parse_environment() -> Result<Environment> {
 
 fn get_required_env(key: &str) -> Result<String> {
     env::var(key)
-    .map_err(|_| AppError::ConfigurationError(
-        format!("Required environment variable {} is not set", key)
-    ))
+        .map_err(|_| AppError::ConfigurationError(
+            format!("Required environment variable {} is not set", key)
+        ))
 }
 
 fn parse_env_var<T>(key: &str, default: T) -> Result<T>
 where
-T: std::str::FromStr,
-T::Err: std::fmt::Display,
+    T: std::str::FromStr,
+    T::Err: std::fmt::Display,
 {
     match env::var(key) {
         Ok(value) => value.parse().map_err(|e| {
@@ -344,13 +344,13 @@ fn parse_bool_env(key: &str, default: bool) -> Result<bool> {
 
 fn parse_cors_origins() -> Result<Vec<String>> {
     let origins_str = env::var("CORS_ALLOWED_ORIGINS")
-    .unwrap_or_else(|_| "http://localhost:3000,http://localhost:3001".to_string());
+        .unwrap_or_else(|_| "http://localhost:3000,http://localhost:3001".to_string());
 
     let origins: Vec<String> = origins_str
-    .split(',')
-    .map(|s| s.trim().to_string())
-    .filter(|s| !s.is_empty())
-    .collect();
+        .split(',')
+        .map(|s| s.trim().to_string())
+        .filter(|s| !s.is_empty())
+        .collect();
 
     // Validate each origin URL
     for origin in &origins {
@@ -475,11 +475,11 @@ mod tests {
     #[test]
     fn test_config_builder() {
         let config = ConfigBuilder::new()
-        .database_url("postgresql://test:test@localhost/testdb")
-        .github_token("ghp_test_token")
-        .environment(Environment::Development)
-        .build()
-        .unwrap();
+            .database_url("postgresql://test:test@localhost/testdb")
+            .github_token("ghp_test_token")
+            .environment(Environment::Development)
+            .build()
+            .unwrap();
 
         assert_eq!(config.environment, Environment::Development);
         assert_eq!(config.github_token, "ghp_test_token");

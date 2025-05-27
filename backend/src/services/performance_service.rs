@@ -92,9 +92,9 @@ impl PerformanceService {
 
         // Network statistics
         let (network_rx, network_tx) = system.networks().iter()
-        .fold((0u64, 0u64), |(rx, tx), (_, network)| {
-            (rx + network.received(), tx + network.transmitted())
-        });
+            .fold((0u64, 0u64), |(rx, tx), (_, network)| {
+                (rx + network.received(), tx + network.transmitted())
+            });
 
         // Load average information
         let load_avg = system.load_average();
@@ -107,9 +107,9 @@ impl PerformanceService {
 
         // System temperature (if available)
         let system_temperature = system.components()
-        .iter()
-        .find(|component| component.label().contains("CPU") || component.label().contains("Core"))
-        .map(|component| component.temperature() as f64);
+            .iter()
+            .find(|component| component.label().contains("CPU") || component.label().contains("Core"))
+            .map(|component| component.temperature() as f64);
 
         let metrics = SystemMetrics {
             timestamp: chrono::Utc::now(),
@@ -156,22 +156,22 @@ impl PerformanceService {
 
         let info = serde_json::json!({
             "cpu_model": system.global_cpu_info().brand(),
-                                     "cpu_cores": system.physical_core_count().unwrap_or(0),
-                                     "cpu_threads": system.cpus().len(),
-                                     "memory_total_gb": system.total_memory() as f64 / (1024.0 * 1024.0 * 1024.0),
-                                     "memory_available_gb": system.available_memory() as f64 / (1024.0 * 1024.0 * 1024.0),
-                                     "memory_usage_percent": {
-                                         let total = system.total_memory() as f64;
-                                         let available = system.available_memory() as f64;
-                                         ((total - available) / total) * 100.0
-                                     },
-                                     "cpu_usage_percent": system.global_cpu_info().cpu_usage(),
-                                     "uptime_seconds": system.uptime(),
-                                     "load_average_1m": system.load_average().one,
-                                     "load_average_5m": system.load_average().five,
-                                     "load_average_15m": system.load_average().fifteen,
-                                     "os_version": system.long_os_version(),
-                                     "processes_count": system.processes().len(),
+            "cpu_cores": system.physical_core_count().unwrap_or(0),
+            "cpu_threads": system.cpus().len(),
+            "memory_total_gb": system.total_memory() as f64 / (1024.0 * 1024.0 * 1024.0),
+            "memory_available_gb": system.available_memory() as f64 / (1024.0 * 1024.0 * 1024.0),
+            "memory_usage_percent": {
+                let total = system.total_memory() as f64;
+                let available = system.available_memory() as f64;
+                ((total - available) / total) * 100.0
+            },
+            "cpu_usage_percent": system.global_cpu_info().cpu_usage(),
+            "uptime_seconds": system.uptime(),
+            "load_average_1m": system.load_average().one,
+            "load_average_5m": system.load_average().five,
+            "load_average_15m": system.load_average().fifteen,
+            "os_version": system.long_os_version(),
+            "processes_count": system.processes().len(),
         });
 
         Ok(info)
@@ -208,19 +208,19 @@ impl PerformanceService {
 
         let benchmark_results = serde_json::json!({
             "benchmark_id": uuid::Uuid::new_v4().to_string(),
-                                                  "timestamp": chrono::Utc::now(),
-                                                  "total_duration_ms": total_time.as_millis(),
-                                                  "cpu_benchmark": {
-                                                      "primes_found": cpu_benchmark.0,
-                                                      "duration_ms": cpu_benchmark.1.as_millis(),
-                                                  "operations_per_second": cpu_benchmark.0 as f64 / cpu_benchmark.1.as_secs_f64()
-                                                  },
-                                                  "memory_benchmark": {
-                                                      "data_processed": memory_benchmark.0,
-                                                      "duration_ms": memory_benchmark.1.as_millis(),
-                                                  "mb_per_second": (10_000_000 * 8) as f64 / (1024.0 * 1024.0) / memory_benchmark.1.as_secs_f64()
-                                                  },
-                                                  "system_info": self.get_system_info().await?
+            "timestamp": chrono::Utc::now(),
+            "total_duration_ms": total_time.as_millis(),
+            "cpu_benchmark": {
+                "primes_found": cpu_benchmark.0,
+                "duration_ms": cpu_benchmark.1.as_millis(),
+                "operations_per_second": cpu_benchmark.0 as f64 / cpu_benchmark.1.as_secs_f64()
+            },
+            "memory_benchmark": {
+                "data_processed": memory_benchmark.0,
+                "duration_ms": memory_benchmark.1.as_millis(),
+                "mb_per_second": (10_000_000 * 8) as f64 / (1024.0 * 1024.0) / memory_benchmark.1.as_secs_f64()
+            },
+            "system_info": self.get_system_info().await?
         });
 
         info!("Benchmark completed in {:?}", total_time);
@@ -243,23 +243,23 @@ impl PerformanceService {
             r#"
             INSERT INTO performance_metrics (
                 metric_type, metric_value, metric_unit, timestamp, metadata
-        ) VALUES
-        ('cpu_usage', $1, 'percent', $2, $3),
-                     ('memory_usage', $4, 'percent', $2, $3),
-                     ('disk_usage', $5, 'percent', $2, $3),
-                     ('load_average_1m', $6, 'ratio', $2, $3)
-        "#,
-        metrics.cpu_usage_percent,
-        metrics.timestamp,
-        serde_json::json!({
-            "cpu_cores": metrics.cpu_cores,
-            "cpu_threads": metrics.cpu_threads,
-            "memory_total_gb": metrics.memory_total_gb,
-            "uptime_seconds": metrics.uptime_seconds
-        }),
-        metrics.memory_usage_percent,
-        metrics.disk_usage_percent,
-        metrics.load_average_1m
+            ) VALUES
+                ('cpu_usage', $1, 'percent', $2, $3),
+                ('memory_usage', $4, 'percent', $2, $3),
+                ('disk_usage', $5, 'percent', $2, $3),
+                ('load_average_1m', $6, 'ratio', $2, $3)
+            "#,
+            metrics.cpu_usage_percent,
+            metrics.timestamp,
+            serde_json::json!({
+                "cpu_cores": metrics.cpu_cores,
+                "cpu_threads": metrics.cpu_threads,
+                "memory_total_gb": metrics.memory_total_gb,
+                "uptime_seconds": metrics.uptime_seconds
+            }),
+            metrics.memory_usage_percent,
+            metrics.disk_usage_percent,
+            metrics.load_average_1m
         )
         .execute(&self.db_pool)
         .await?;
