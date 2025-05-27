@@ -1,0 +1,34 @@
+# Development Dockerfile for the SolidJS frontend with hot module replacement and development tools.
+# I'm setting up a development environment with volume mounting for instant file changes and debugging capabilities.
+
+FROM node:20-alpine
+
+# I'm installing development tools and utilities
+RUN apk add --no-cache \
+    git \
+    curl \
+    && rm -rf /var/cache/apk/*
+
+# I'm creating a development user for security
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S developer -u 1001 -G nodejs
+
+USER developer
+WORKDIR /app
+
+# I'm copying package files for dependency installation
+COPY --chown=developer:nodejs package*.json ./
+
+# I'm installing all dependencies including dev dependencies
+RUN npm ci
+
+# I'm setting development environment variables
+ENV NODE_ENV=development
+ENV VITE_DEV_MODE=true
+ENV VITE_API_URL=http://localhost:3001
+
+# I'm exposing the development server port
+EXPOSE 3000
+
+# I'm starting the development server with hot reload
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
