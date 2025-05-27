@@ -44,7 +44,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile.dev
     environment:
-      DATABASE_URL: postgresql://angelamoss:Yoshi2003@host:port/killprocess
+      DATABASE_URL: postgresql://darkuser:darkpass@postgres:5432/dark_performance
       REDIS_URL: redis://redis:6379
       RUST_LOG: debug
       PORT: 3001

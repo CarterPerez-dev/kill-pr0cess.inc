@@ -135,6 +135,8 @@ wiremock = "0.5"
 testcontainers = "0.15"
 rstest = "0.18"
 
+[build-dependencies]
+chrono = "0.4"
 
 # Optional feature flags for conditional compilation
 [features]

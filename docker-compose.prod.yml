@@ -19,7 +19,7 @@ services:
       POSTGRES_EFFECTIVE_IO_CONCURRENCY: 200
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./backend/database/migrations:/docker-entrypoint-initdb.d:ro
+      - ./backend/src/database/migrations:/docker-entrypoint-initdb.d:ro
       - ./postgresql.conf:/etc/postgresql/postgresql.conf:ro
     networks:
       - dark_network
