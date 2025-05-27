@@ -97,7 +97,7 @@ rayon = "1.8"
 ndarray = "0.15"
 
 # Performance monitoring and metrics
-metrics = "0.22"
+metrics = { version = "0.22", optional = true }
 metrics-exporter-prometheus = { version = "0.13", features = ["push-gateway"] }
 metrics-util = "0.16"
 sysinfo = "0.29"
@@ -115,8 +115,8 @@ dashmap = "5.5"
 parking_lot = "0.12"
 
 # Security and authentication
-argon2 = "0.5"
-jsonwebtoken = "9.1"
+argon2 = { version = "0.5", optional = true }
+jsonwebtoken = { version = "9.1", optional = true }
 hmac = "0.12"
 sha2 = "0.10"
 

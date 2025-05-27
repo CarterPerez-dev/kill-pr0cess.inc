@@ -24,11 +24,10 @@ USER developer
 WORKDIR /app
 
 COPY --chown=developer:developer Cargo.toml ./Cargo.toml
-RUN cargo generate-lockfile
+RUN mkdir -p src && echo "fn main()" > src/main.rs && cargo generate-lockfile
 COPY --chown=developer:developer build.rs ./
 
 # I'm creating a dummy src to cache dependencies
-RUN mkdir src && echo "fn main() {}" > src/main.rs
 RUN cargo build
 RUN rm -rf src
 
