@@ -1,0 +1,24 @@
+
+**Project Goal:**
+Develop a "Project shwoing and perfroamce" web application. The application should have the theme as (theme) document 
+
+**Core Technologies:**
+*   **Frontend:** **SolidStart** (using SolidJS and TypeScript).
+*   **Styling:** Primarily **Tailwind CSS**.
+*   **Backend:** Rust with Axum 
+
+**Current Project Status & Your Task:**
+A significant portion of the application, including core backend services, frontend components, and infrastructure, has already been designed or implemented. Your primary task is to **continue developing and completing the application by analyzing the existing files and adhering to the established patterns and overall project goal.**
+
+**Key Directives:**
+
+1.  **Autonomous Development:** Based on the project goal,  files you can see,, determine the most logical next steps. Focus on implementing missing features, refining existing ones, and ensuring the application is cohesive and functional.
+2.  **Styling Conventions:**
+    *   **Tailwind CSS is the primary styling method.** Utilize it for component styling and layout.
+3.  **Analyze Existing Code:** Thoroughly review the structure and content of the files to maintain consistency in architecture, coding style, and feature implementation.
+
+
+**Your Goal Now:** Proceed with generating the necessary code to complete the  application, making informed decisions based on the existing structure and overall objectives. 
+
+---
+
