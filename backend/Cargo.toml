@@ -62,7 +62,7 @@ sqlx = { version = "0.7", features = [
     "migrate",
     "offline"
 ] }
-redis = { version = "0.24", features = ["tokio-comp", "connection-manager", "streams"] }
+redis = { version = "0.24", features = ["tokio-comp", "connection-manager", "streams"], optional = true }
 
 # HTTP client with full feature set
 reqwest = { version = "0.11", features = ["json", "stream", "multipart", "cookies"] }
@@ -81,7 +81,7 @@ clap = { version = "4.4", features = ["derive", "env"] }
 # Logging and observability
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "json", "chrono"] }
-tracing-opentelemetry = "0.21"
+tracing-opentelemetry = { version = "0.21", optional = true }
 opentelemetry = { version = "0.20", features = ["rt-tokio"] }
 opentelemetry-jaeger = "0.19"
 
@@ -98,7 +98,7 @@ ndarray = "0.15"
 
 # Performance monitoring and metrics
 metrics = { version = "0.22", optional = true }
-metrics-exporter-prometheus = { version = "0.13", features = ["push-gateway"] }
+metrics-exporter-prometheus = { version = "0.13", features = ["push-gateway"], optional = true }
 metrics-util = "0.16"
 sysinfo = "0.29"
 
