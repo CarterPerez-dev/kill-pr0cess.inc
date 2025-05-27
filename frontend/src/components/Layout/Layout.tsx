@@ -1,165 +1,317 @@
 /*
- * Main layout wrapper component that provides consistent page structure, theme application, and responsive behavior throughout the application.
- * I'm implementing comprehensive layout management with accessibility features, responsive design, and seamless integration with the dark theme system.
+ * Main layout component providing the structural foundation and atmospheric elements for the entire application experience.
+ * I'm implementing the core layout wrapper with header, footer, navigation, and content areas while maintaining the dark, eerie aesthetic and ensuring proper responsive behavior across all device sizes.
  */
 
-import { Component, JSX, createSignal, onMount, onCleanup, Show } from 'solid-js';
+import { Component, JSX, createSignal, onMount, Show, createEffect } from 'solid-js';
 import { Header } from './Header';
 import { Footer } from './Footer';
+import { ErrorBoundary } from '../UI/ErrorBoundary';
+import { performanceMonitor } from '../../utils/performance';
 
 interface LayoutProps {
-    children: JSX.Element;
-    title?: string;
-    description?: string;
-    showHeader?: boolean;
-    showFooter?: boolean;
-    fullWidth?: boolean;
-    className?: string;
+  children: JSX.Element;
+  title?: string;
+  description?: string;
+  showHeader?: boolean;
+  showFooter?: boolean;
+  fullWidth?: boolean;
+  className?: string;
 }
 
 export const Layout: Component<LayoutProps> = (props) => {
-    const [isScrolled, setIsScrolled] = createSignal(false);
-    const [scrollProgress, setScrollProgress] = createSignal(0);
+  const [isLoaded, setIsLoaded] = createSignal(false);
+  const [scrollY, setScrollY] = createSignal(0);
+  const [isOnline, setIsOnline] = createSignal(navigator.onLine);
 
-    // I'm setting up scroll tracking for progressive enhancement
+  // I'm setting up performance monitoring for the layout
+  onMount(() => {
+    const stopLayoutMeasure = performanceMonitor.time('layout_mount');
+    
+    // I'm handling scroll events for atmospheric effects
     const handleScroll = () => {
-        const scrollTop = window.scrollY;
-        const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-        const scrollPercent = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
-
-        setIsScrolled(scrollTop > 50);
-        setScrollProgress(scrollPercent);
+      setScrollY(window.scrollY);
     };
 
-    onMount(() => {
-        // I'm setting up document title and meta description
-        if (props.title) {
-            document.title = `${props.title} | Performance Showcase`;
-        }
+    // I'm monitoring online/offline status
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
 
-        if (props.description) {
-            let metaDescription = document.querySelector('meta[name="description"]') as HTMLMetaElement;
-            if (!metaDescription) {
-                metaDescription = document.createElement('meta');
-                metaDescription.name = 'description';
-                document.head.appendChild(metaDescription);
-            }
-            metaDescription.content = props.description;
-        }
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
 
-        // I'm adding scroll event listener for enhanced UI
-        window.addEventListener('scroll', handleScroll, { passive: true });
-        handleScroll(); // Initial call
-    });
+    // I'm triggering the loaded state after mount
+    setTimeout(() => {
+      setIsLoaded(true);
+      stopLayoutMeasure();
+    }, 100);
 
-    onCleanup(() => {
-        window.removeEventListener('scroll', handleScroll);
-    });
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  });
 
-    return (
-        <div class="min-h-screen bg-black text-neutral-100 font-sans antialiased">
-        {/* Atmospheric background elements */}
-        <div class="fixed inset-0 overflow-hidden pointer-events-none">
-        <div class="absolute inset-0 bg-gradient-to-br from-black via-neutral-950 to-black"></div>
+  // I'm updating document title and meta description
+  createEffect(() => {
+    if (props.title) {
+      document.title = `${props.title} | Performance Showcase`;
+    }
 
-        {/* Subtle animated background pattern */}
-        <div
-        class="absolute inset-0 opacity-[0.02]"
-        style={{
-            "background-image": `radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.3) 1px, transparent 0)`,
+    if (props.description) {
+      let metaDescription = document.querySelector('meta[name="description"]');
+      if (!metaDescription) {
+        metaDescription = document.createElement('meta');
+        metaDescription.setAttribute('name', 'description');
+        document.head.appendChild(metaDescription);
+      }
+      metaDescription.setAttribute('content', props.description);
+    }
+  });
+
+  // I'm calculating parallax effects based on scroll position
+  const parallaxOffset = () => scrollY() * 0.1;
+
+  return (
+    <div class={`min-h-screen bg-black text-neutral-100 relative overflow-x-hidden ${props.className || ''}`}>
+      {/* Atmospheric Background Elements */}
+      <div class="fixed inset-0 pointer-events-none">
+        {/* Animated background gradient */}
+        <div 
+          class="absolute inset-0 opacity-[0.02]"
+          style={{
+            background: `radial-gradient(circle at 50% ${50 + parallaxOffset()}%, rgba(34, 211, 238, 0.1) 0%, transparent 50%)`,
+          }}
+        ></div>
+        
+        {/* Grid pattern overlay */}
+        <div 
+          class="absolute inset-0 opacity-[0.03]"
+          style={{
+            "background-image": `linear-gradient(rgba(34, 211, 238, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(34, 211, 238, 0.1) 1px, transparent 1px)`,
             "background-size": "50px 50px",
-            "animation": "drift 60s ease-in-out infinite"
-        }}
+            transform: `translateY(${parallaxOffset()}px)`
+          }}
         ></div>
 
-        {/* Floating orbs for atmosphere */}
-        <div class="absolute top-1/4 left-1/6 w-64 h-64 bg-blue-900/5 rounded-full blur-3xl animate-pulse" style="animation-duration: 8s"></div>
-        <div class="absolute bottom-1/3 right-1/5 w-48 h-48 bg-purple-900/5 rounded-full blur-3xl animate-pulse" style="animation-duration: 12s; animation-delay: 4s"></div>
-        <div class="absolute top-2/3 left-2/3 w-32 h-32 bg-cyan-900/5 rounded-full blur-3xl animate-pulse" style="animation-duration: 10s; animation-delay: 2s"></div>
+        {/* Floating particles */}
+        <div class="absolute inset-0">
+          {Array.from({ length: 20 }, (_, i) => (
+            <div
+              class="absolute w-1 h-1 bg-cyan-400/20 rounded-full animate-pulse"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+                'animation-delay': `${Math.random() * 10}s`,
+                'animation-duration': `${3 + Math.random() * 4}s`,
+                transform: `translateY(${parallaxOffset() * (1 + Math.random())}px)`
+              }}
+            ></div>
+          ))}
         </div>
+      </div>
 
-        {/* Scroll progress indicator */}
-        <div
-        class="fixed top-0 left-0 h-0.5 bg-gradient-to-r from-blue-500 via-purple-500 to-cyan-500 z-50 transition-all duration-300"
-        style={{ width: `${scrollProgress()}%` }}
-        ></div>
+      {/* Offline Indicator */}
+      <Show when={!isOnline()}>
+        <div class="fixed top-0 left-0 right-0 bg-red-900/90 text-red-100 text-center py-2 text-sm font-mono z-50">
+          <span class="animate-pulse">●</span> OFFLINE MODE - Limited functionality available
+        </div>
+      </Show>
 
-        {/* Main application structure */}
-        <div class="relative z-10 flex flex-col min-h-screen">
+      {/* Main Layout Structure */}
+      <div class={`relative z-10 flex flex-col min-h-screen transition-opacity duration-1000 ${isLoaded() ? 'opacity-100' : 'opacity-0'}`}>
+        
         {/* Header */}
         <Show when={props.showHeader !== false}>
-        <Header isScrolled={isScrolled()} />
+          <ErrorBoundary context="Header">
+            <Header />
+          </ErrorBoundary>
         </Show>
 
-        {/* Main content area */}
-        <main
-        class={`flex-1 ${props.fullWidth ? '' : 'container mx-auto px-6'} ${props.className || ''}`}
-        role="main"
-        >
-        {/* Skip to content link for accessibility */}
-        <a
-        href="#main-content"
-        class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-neutral-100 text-black px-4 py-2 rounded-sm font-mono text-sm z-50"
-        >
-        Skip to main content
-        </a>
-
-        <div id="main-content" tabindex="-1">
-        {props.children}
-        </div>
+        {/* Main Content Area */}
+        <main class={`flex-1 relative ${props.fullWidth ? '' : 'container mx-auto'}`}>
+          <ErrorBoundary context="Main Content" level="page">
+            {props.children}
+          </ErrorBoundary>
         </main>
 
         {/* Footer */}
         <Show when={props.showFooter !== false}>
-        <Footer />
+          <ErrorBoundary context="Footer">
+            <Footer />
+          </ErrorBoundary>
         </Show>
-        </div>
+      </div>
 
-        {/* Global styles and animations */}
-        <style jsx>{`
-            @keyframes drift {
-                0%, 100% { transform: translateX(0) translateY(0); }
-                25% { transform: translateX(2px) translateY(-2px); }
-                50% { transform: translateX(-1px) translateY(1px); }
-                75% { transform: translateX(1px) translateY(-1px); }
-            }
-
-            /* Smooth scrolling behavior */
-            html {
-                scroll-behavior: smooth;
-            }
-
-            /* Custom scrollbar styling */
-            ::-webkit-scrollbar {
-                width: 8px;
-            }
-
-            ::-webkit-scrollbar-track {
-                background: #0a0a0a;
-            }
-
-            ::-webkit-scrollbar-thumb {
-                background: #404040;
-                border-radius: 4px;
-            }
-
-            ::-webkit-scrollbar-thumb:hover {
-                background: #525252;
-            }
-
-            /* Focus styles for accessibility */
-            *:focus-visible {
-                outline: 2px solid #3b82f6;
-                outline-offset: 2px;
-            }
-
-            /* Enhanced text rendering */
-            body {
-                text-rendering: optimizeLegibility;
-                -webkit-font-smoothing: antialiased;
-                -moz-osx-font-smoothing: grayscale;
-            }
-            `}</style>
+      {/* Loading Overlay */}
+      <Show when={!isLoaded()}>
+        <div class="fixed inset-0 bg-black z-50 flex items-center justify-center">
+          <div class="text-center">
+            <div class="w-16 h-16 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin mb-4"></div>
+            <div class="text-cyan-400 font-mono text-sm tracking-wider">
+              INITIALIZING PERFORMANCE SHOWCASE
             </div>
-    );
+            <div class="text-neutral-600 font-mono text-xs mt-2">
+              Loading computational precision...
+            </div>
+          </div>
+        </div>
+      </Show>
+
+      {/* Scroll Progress Indicator */}
+      <div class="fixed top-0 left-0 right-0 h-0.5 bg-neutral-900 z-40">
+        <div 
+          class="h-full bg-gradient-to-r from-cyan-400 to-indigo-400 transition-all duration-100 ease-out"
+          style={{
+            width: `${Math.min(100, (scrollY() / (document.documentElement.scrollHeight - window.innerHeight)) * 100)}%`
+          }}
+        ></div>
+      </div>
+
+      {/* Debug Performance Panel (Development Only) */}
+      <Show when={import.meta.env.DEV}>
+        <PerformanceDebugPanel />
+      </Show>
+    </div>
+  );
+};
+
+// I'm creating a development-only performance debug panel
+const PerformanceDebugPanel: Component = () => {
+  const [isOpen, setIsOpen] = createSignal(false);
+  const [metrics, setMetrics] = createSignal<any>({});
+
+  onMount(() => {
+    const updateMetrics = () => {
+      const memoryUsage = performanceMonitor.getMemoryUsage();
+      const recentMetrics = performanceMonitor.getMetrics({ limit: 10 });
+      
+      setMetrics({
+        memory: memoryUsage,
+        recentMetrics: recentMetrics.slice(-5),
+        timestamp: Date.now()
+      });
+    };
+
+    updateMetrics();
+    const interval = setInterval(updateMetrics, 1000);
+
+    return () => clearInterval(interval);
+  });
+
+  return (
+    <div class="fixed bottom-4 right-4 z-50">
+      <button
+        onClick={() => setIsOpen(!isOpen())}
+        class="bg-neutral-900/90 border border-neutral-700 text-neutral-400 p-2 rounded-full hover:bg-neutral-800 transition-colors duration-200"
+        title="Performance Debug Panel"
+      >
+        📊
+      </button>
+
+      <Show when={isOpen()}>
+        <div class="absolute bottom-12 right-0 w-80 bg-black/95 border border-neutral-700 rounded-lg p-4 text-sm font-mono">
+          <div class="text-cyan-400 font-semibold mb-3">Performance Debug</div>
+          
+          <Show when={metrics().memory}>
+            <div class="mb-3">
+              <div class="text-neutral-500 text-xs">Memory Usage</div>
+              <div class="text-neutral-300">
+                {(metrics().memory.usedJSHeapSize / 1024 / 1024).toFixed(1)} MB
+              </div>
+              <div class="text-neutral-500 text-xs">
+                {metrics().memory.usage_percentage?.toFixed(1)}% of limit
+              </div>
+            </div>
+          </Show>
+
+          <div class="mb-3">
+            <div class="text-neutral-500 text-xs mb-1">Recent Metrics</div>
+            <div class="space-y-1">
+              {metrics().recentMetrics?.map((metric: any) => (
+                <div class="flex justify-between text-xs">
+                  <span class="text-neutral-400 truncate">
+                    {metric.name}
+                  </span>
+                  <span class="text-neutral-300">
+                    {metric.value.toFixed(1)}{metric.unit}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div class="flex justify-between text-xs">
+            <button
+              onClick={() => performanceMonitor.getSnapshot()}
+              class="text-cyan-400 hover:text-cyan-300"
+            >
+              Snapshot
+            </button>
+            <button
+              onClick={() => console.log('Performance Metrics:', performanceMonitor.getMetrics())}
+              class="text-cyan-400 hover:text-cyan-300"
+            >
+              Log All
+            </button>
+          </div>
+        </div>
+      </Show>
+    </div>
+  );
+};
+
+// I'm creating layout variants for different page types
+export const PageLayout: Component<{
+  children: JSX.Element;
+  title: string;
+  description?: string;
+  maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
+}> = (props) => {
+  const maxWidthClasses = {
+    sm: 'max-w-2xl',
+    md: 'max-w-4xl',
+    lg: 'max-w-6xl',
+    xl: 'max-w-7xl',
+    full: 'max-w-none'
+  };
+
+  return (
+    <Layout title={props.title} description={props.description}>
+      <div class={`${maxWidthClasses[props.maxWidth || 'lg']} mx-auto px-6 py-12`}>
+        {props.children}
+      </div>
+    </Layout>
+  );
+};
+
+export const FullscreenLayout: Component<{
+  children: JSX.Element;
+  title?: string;
+}> = (props) => {
+  return (
+    <Layout 
+      title={props.title} 
+      showHeader={false} 
+      showFooter={false} 
+      fullWidth={true}
+    >
+      {props.children}
+    </Layout>
+  );
+};
+
+export const MinimalLayout: Component<{
+  children: JSX.Element;
+  title?: string;
+}> = (props) => {
+  return (
+    <div class="min-h-screen bg-black text-neutral-100 flex items-center justify-center p-6">
+      <ErrorBoundary context="Minimal Layout" level="page">
+        {props.children}
+      </ErrorBoundary>
+    </div>
+  );
 };

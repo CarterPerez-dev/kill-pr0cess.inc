@@ -1,435 +1,456 @@
 /*
- * Performance monitoring hook providing reactive access to system metrics, benchmarks, and real-time performance data throughout the application.
- * I'm implementing comprehensive performance tracking with SolidJS reactivity, WebSocket integration, and intelligent caching for smooth real-time monitoring experiences.
+ * Performance monitoring hook providing reactive state management for real-time system metrics, benchmarks, and performance analysis throughout the application.
+ * I'm implementing comprehensive performance tracking with WebSocket connections, historical data management, and intelligent alerting that integrates seamlessly with the dark aesthetic's focus on computational precision.
  */
 
-import { createSignal, createEffect, onMount, onCleanup } from 'solid-js';
+import { createSignal, createResource, createMemo, createEffect, onMount, onCleanup } from 'solid-js';
 import { createStore, produce } from 'solid-js/store';
-import { performanceService, SystemMetrics } from '../services/performance';
+import { performanceMonitor, performanceUtils } from '../utils/performance';
+
+interface SystemMetrics {
+  timestamp: string;
+  cpu_usage_percent: number;
+  memory_usage_percent: number;
+  memory_total_gb: number;
+  memory_available_gb: number;
+  disk_usage_percent: number;
+  load_average_1m: number;
+  load_average_5m: number;
+  load_average_15m: number;
+  cpu_cores: number;
+  cpu_threads: number;
+  cpu_model: string;
+  uptime_seconds: number;
+  active_processes: number;
+  network_rx_bytes_per_sec?: number;
+  network_tx_bytes_per_sec?: number;
+}
+
+interface BenchmarkResult {
+  benchmark_id: string;
+  timestamp: string;
+  total_duration_ms: number;
+  benchmarks: {
+    cpu: {
+      single_thread: { duration_ms: number; primes_per_second: number };
+      multi_thread: { duration_ms: number; primes_per_second: number };
+      parallel_efficiency: number;
+    };
+    memory: {
+      allocation: { duration_ms: number; mb_per_second: number };
+      sequential_read: { duration_ms: number; mb_per_second: number };
+      sequential_write: { duration_ms: number; mb_per_second: number };
+    };
+  };
+  performance_rating: string;
+  system_info: any;
+}
+
+interface Alert {
+  id: string;
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  message: string;
+  timestamp: string;
+  resolved: boolean;
+  metric?: string;
+  value?: number;
+  threshold?: number;
+}
 
 interface PerformanceState {
   currentMetrics: SystemMetrics | null;
-  historicalData: SystemMetrics[];
-  isConnected: boolean;
-  isLoading: boolean;
+  benchmarkResults: BenchmarkResult | null;
+  alerts: Alert[];
+  isMonitoring: boolean;
+  isRunningBenchmark: boolean;
   error: string | null;
-  benchmarkResults: any | null;
-  alerts: any[];
-  lastUpdated: Date | null;
-}
-
-interface PerformanceAnalysis {
-  overall_health: 'excellent' | 'good' | 'fair' | 'poor';
-  bottlenecks: string[];
-  recommendations: string[];
-  score: number;
-  trends: {
-    cpu: 'improving' | 'stable' | 'degrading';
-    memory: 'improving' | 'stable' | 'degrading';
-    performance_delta: number;
-  };
+  connectionStatus: 'connected' | 'disconnected' | 'reconnecting';
+  metricsHistory: SystemMetrics[];
+  webVitals: any;
 }
 
 export function usePerformance() {
-  // I'm setting up reactive state management for performance data
+  // I'm setting up comprehensive performance state management
   const [state, setState] = createStore<PerformanceState>({
     currentMetrics: null,
-    historicalData: [],
-    isConnected: false,
-    isLoading: true,
-    error: null,
     benchmarkResults: null,
     alerts: [],
-    lastUpdated: null,
+    isMonitoring: false,
+    isRunningBenchmark: false,
+    error: null,
+    connectionStatus: 'disconnected',
+    metricsHistory: [],
+    webVitals: null,
   });
 
-  // I'm creating additional reactive signals for computed values
-  const [refreshInterval, setRefreshInterval] = createSignal<number | null>(null);
-  const [autoRefreshEnabled, setAutoRefreshEnabled] = createSignal(true);
+  // I'm implementing real-time metrics fetching
+  const [metricsResource] = createResource(
+    () => ({ monitoring: state.isMonitoring }),
+    async () => {
+      try {
+        setState('error', null);
+        
+        const response = await fetch('/api/performance/system');
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: Failed to fetch system metrics`);
+        }
 
-  let unsubscribeMetrics: (() => void) | null = null;
-  let unsubscribeAlerts: (() => void) | null = null;
-  let intervalId: number | null = null;
+        const metrics: SystemMetrics = await response.json();
+        
+        setState('currentMetrics', metrics);
+        setState('connectionStatus', 'connected');
+        
+        // I'm updating metrics history
+        setState('metricsHistory', produce(history => {
+          history.push(metrics);
+          // Keep only last 100 entries for performance
+          if (history.length > 100) {
+            history.shift();
+          }
+        }));
+
+        // I'm checking for alerts
+        checkForAlerts(metrics);
+
+        return metrics;
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Failed to fetch metrics';
+        setState('error', errorMessage);
+        setState('connectionStatus', 'disconnected');
+        throw error;
+      }
+    }
+  );
+
+  // I'm implementing benchmark execution
+  const [benchmarkResource] = createResource(
+    () => ({ running: state.isRunningBenchmark }),
+    async () => {
+      if (!state.isRunningBenchmark) return null;
+
+      try {
+        setState('error', null);
+        
+        const response = await fetch('/api/performance/benchmark', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: Benchmark failed`);
+        }
+
+        const results: BenchmarkResult = await response.json();
+        setState('benchmarkResults', results);
+        return results;
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Benchmark failed';
+        setState('error', errorMessage);
+        throw error;
+      } finally {
+        setState('isRunningBenchmark', false);
+      }
+    }
+  );
+
+  // I'm implementing periodic metrics collection
+  let metricsInterval: number | null = null;
+  let webVitalsInterval: number | null = null;
 
   onMount(() => {
-    initializePerformanceMonitoring();
+    // I'm collecting initial Web Vitals
+    collectWebVitals();
+
+    // I'm setting up periodic Web Vitals collection
+    webVitalsInterval = setInterval(collectWebVitals, 30000); // Every 30 seconds
   });
 
   onCleanup(() => {
-    cleanup();
+    if (metricsInterval) clearInterval(metricsInterval);
+    if (webVitalsInterval) clearInterval(webVitalsInterval);
   });
 
-  const initializePerformanceMonitoring = async () => {
+  // I'm implementing Web Vitals collection
+  const collectWebVitals = async () => {
     try {
-      setState('isLoading', true);
-      setState('error', null);
-
-      // I'm subscribing to real-time performance updates
-      unsubscribeMetrics = performanceService.subscribe('metrics', (metrics: SystemMetrics) => {
-        setState('currentMetrics', metrics);
-        setState('lastUpdated', new Date());
-        setState('isConnected', true);
-        setState('error', null);
-
-        // I'm updating historical data
-        setState('historicalData', produce(history => {
-          history.push(metrics);
-          if (history.length > 100) {
-            history.shift(); // Keep last 100 entries
-          }
-        }));
-      });
-
-      // I'm subscribing to alert notifications
-      unsubscribeAlerts = performanceService.subscribe('alert', (alert) => {
-        setState('alerts', produce(alerts => {
-          alerts.unshift(alert);
-          if (alerts.length > 10) {
-            alerts.splice(10); // Keep last 10 alerts
-          }
-        }));
-      });
-
-      // I'm fetching initial metrics
-      const initialSnapshot = await performanceService.getCurrentMetrics();
-      setState('currentMetrics', initialSnapshot.system);
-      setState('isConnected', true);
-
-      // I'm setting up auto-refresh if enabled
-      if (autoRefreshEnabled()) {
-        startAutoRefresh();
-      }
-
+      const vitals = await performanceUtils.getWebVitals();
+      setState('webVitals', vitals);
+      
+      // I'm adding Web Vitals to performance monitoring
+      performanceMonitor.addMetric('web_vitals_fcp', vitals.fcp, 'ms', 'web_vitals');
+      performanceMonitor.addMetric('web_vitals_lcp', vitals.lcp, 'ms', 'web_vitals');
+      performanceMonitor.addMetric('web_vitals_fid', vitals.fid, 'ms', 'web_vitals');
+      performanceMonitor.addMetric('web_vitals_cls', vitals.cls, 'score', 'web_vitals');
+      performanceMonitor.addMetric('web_vitals_ttfb', vitals.ttfb, 'ms', 'web_vitals');
     } catch (error) {
-      setState('error', error instanceof Error ? error.message : 'Failed to initialize performance monitoring');
-      setState('isConnected', false);
-    } finally {
-      setState('isLoading', false);
+      console.warn('Failed to collect Web Vitals:', error);
     }
   };
 
-  const startAutoRefresh = () => {
-    if (intervalId) clearInterval(intervalId);
+  // I'm implementing alert checking logic
+  const checkForAlerts = (metrics: SystemMetrics) => {
+    const newAlerts: Alert[] = [];
 
-    intervalId = setInterval(async () => {
-      try {
-        const snapshot = await performanceService.getCurrentMetrics();
-        setState('currentMetrics', snapshot.system);
-        setState('lastUpdated', new Date());
-        setState('isConnected', true);
-        setState('error', null);
-      } catch (error) {
-        setState('error', 'Connection lost - attempting to reconnect...');
-        setState('isConnected', false);
-      }
-    }, 5000); // Refresh every 5 seconds
+    // CPU usage alerts
+    if (metrics.cpu_usage_percent > 90) {
+      newAlerts.push({
+        id: `cpu_high_${Date.now()}`,
+        severity: 'critical',
+        message: `CPU usage critically high: ${metrics.cpu_usage_percent.toFixed(1)}%`,
+        timestamp: new Date().toISOString(),
+        resolved: false,
+        metric: 'cpu_usage_percent',
+        value: metrics.cpu_usage_percent,
+        threshold: 90
+      });
+    } else if (metrics.cpu_usage_percent > 75) {
+      newAlerts.push({
+        id: `cpu_warning_${Date.now()}`,
+        severity: 'high',
+        message: `CPU usage high: ${metrics.cpu_usage_percent.toFixed(1)}%`,
+        timestamp: new Date().toISOString(),
+        resolved: false,
+        metric: 'cpu_usage_percent',
+        value: metrics.cpu_usage_percent,
+        threshold: 75
+      });
+    }
 
-    setRefreshInterval(intervalId);
-  };
+    // Memory usage alerts
+    if (metrics.memory_usage_percent > 85) {
+      newAlerts.push({
+        id: `memory_high_${Date.now()}`,
+        severity: 'critical',
+        message: `Memory usage critically high: ${metrics.memory_usage_percent.toFixed(1)}%`,
+        timestamp: new Date().toISOString(),
+        resolved: false,
+        metric: 'memory_usage_percent',
+        value: metrics.memory_usage_percent,
+        threshold: 85
+      });
+    } else if (metrics.memory_usage_percent > 70) {
+      newAlerts.push({
+        id: `memory_warning_${Date.now()}`,
+        severity: 'medium',
+        message: `Memory usage elevated: ${metrics.memory_usage_percent.toFixed(1)}%`,
+        timestamp: new Date().toISOString(),
+        resolved: false,
+        metric: 'memory_usage_percent',
+        value: metrics.memory_usage_percent,
+        threshold: 70
+      });
+    }
 
-  const stopAutoRefresh = () => {
-    if (intervalId) {
-      clearInterval(intervalId);
-      intervalId = null;
-      setRefreshInterval(null);
+    // Load average alerts
+    if (metrics.load_average_1m > metrics.cpu_cores * 2) {
+      newAlerts.push({
+        id: `load_high_${Date.now()}`,
+        severity: 'high',
+        message: `Load average high: ${metrics.load_average_1m.toFixed(2)} (${metrics.cpu_cores} cores)`,
+        timestamp: new Date().toISOString(),
+        resolved: false,
+        metric: 'load_average_1m',
+        value: metrics.load_average_1m,
+        threshold: metrics.cpu_cores * 2
+      });
+    }
+
+    // I'm adding new alerts to the state
+    if (newAlerts.length > 0) {
+      setState('alerts', produce(alerts => {
+        alerts.push(...newAlerts);
+        // Keep only last 50 alerts
+        if (alerts.length > 50) {
+          alerts.splice(0, alerts.length - 50);
+        }
+      }));
     }
   };
 
-  const cleanup = () => {
-    if (unsubscribeMetrics) unsubscribeMetrics();
-    if (unsubscribeAlerts) unsubscribeAlerts();
-    stopAutoRefresh();
-  };
+  // I'm implementing computed values for enhanced analytics
+  const performanceInsights = createMemo(() => {
+    const metrics = state.currentMetrics;
+    if (!metrics) return null;
 
-  // I'm implementing performance analysis functions
-  const analyzePerformance = (): PerformanceAnalysis | null => {
-    const current = state.currentMetrics;
-    const history = state.historicalData;
+    const cpuScore = Math.max(0, 100 - metrics.cpu_usage_percent);
+    const memoryScore = Math.max(0, 100 - metrics.memory_usage_percent);
+    const loadScore = Math.max(0, 100 - (metrics.load_average_1m / metrics.cpu_cores) * 50);
+    
+    const overallScore = (cpuScore + memoryScore + loadScore) / 3;
+    
+    let grade = 'F';
+    if (overallScore >= 90) grade = 'A';
+    else if (overallScore >= 80) grade = 'B';
+    else if (overallScore >= 70) grade = 'C';
+    else if (overallScore >= 60) grade = 'D';
 
-    if (!current) return null;
+    return {
+      overallScore,
+      grade,
+      cpuScore,
+      memoryScore,
+      loadScore,
+      recommendations: generateRecommendations(metrics)
+    };
+  });
 
-    let score = 100;
-    const bottlenecks: string[] = [];
+  const metricsHistory = createMemo(() => {
+    return state.metricsHistory.map(metrics => ({
+      timestamp: metrics.timestamp,
+      cpu: metrics.cpu_usage_percent,
+      memory: metrics.memory_usage_percent,
+      load: metrics.load_average_1m,
+    }));
+  });
+
+  const activeAlerts = createMemo(() => {
+    return state.alerts.filter(alert => !alert.resolved);
+  });
+
+  const criticalAlerts = createMemo(() => {
+    return activeAlerts().filter(alert => alert.severity === 'critical');
+  });
+
+  // I'm implementing helper functions
+  const generateRecommendations = (metrics: SystemMetrics): string[] => {
     const recommendations: string[] = [];
 
-    // I'm analyzing CPU performance
-    if (current.cpu_usage_percent > 80) {
-      score -= 20;
-      bottlenecks.push('High CPU usage');
-      recommendations.push('Consider optimizing CPU-intensive operations or scaling resources');
-    } else if (current.cpu_usage_percent > 60) {
-      score -= 10;
-      recommendations.push('Monitor CPU usage trends for potential optimization');
+    if (metrics.cpu_usage_percent > 80) {
+      recommendations.push('Consider optimizing CPU-intensive processes');
     }
 
-    // I'm analyzing memory performance
-    if (current.memory_usage_percent > 85) {
-      score -= 15;
-      bottlenecks.push('High memory usage');
-      recommendations.push('Review memory usage patterns and consider cleanup or scaling');
-    } else if (current.memory_usage_percent > 70) {
-      score -= 5;
-      recommendations.push('Monitor memory usage for potential leaks');
+    if (metrics.memory_usage_percent > 80) {
+      recommendations.push('Review memory usage and consider cleanup');
     }
 
-    // I'm analyzing disk usage
-    if (current.disk_usage_percent && current.disk_usage_percent > 90) {
-      score -= 10;
-      bottlenecks.push('Low disk space');
-      recommendations.push('Clean up disk space or add more storage');
+    if (metrics.load_average_1m > metrics.cpu_cores) {
+      recommendations.push('System load is high - consider load balancing');
     }
 
-    // I'm analyzing load average
-    if (current.load_average_1m > current.cpu_cores * 2) {
-      score -= 15;
-      bottlenecks.push('High system load');
-      recommendations.push('Reduce concurrent processes or scale resources');
+    if (metrics.disk_usage_percent > 85) {
+      recommendations.push('Disk space is running low - cleanup recommended');
     }
 
-    // I'm calculating trends from historical data
-    let trends = {
-      cpu: 'stable' as const,
-      memory: 'stable' as const,
-      performance_delta: 0,
-    };
+    return recommendations;
+  };
 
-    if (history.length >= 10) {
-      const recent = history.slice(-5);
-      const older = history.slice(-10, -5);
+  // I'm implementing actions for performance management
+  const actions = {
+    // Start/stop monitoring
+    startMonitoring() {
+      setState('isMonitoring', true);
+      
+      // I'm setting up periodic metrics collection
+      metricsInterval = setInterval(() => {
+        metricsResource.refetch();
+      }, 5000); // Every 5 seconds
+    },
 
-      const recentCpuAvg = recent.reduce((sum, m) => sum + m.cpu_usage_percent, 0) / recent.length;
-      const olderCpuAvg = older.reduce((sum, m) => sum + m.cpu_usage_percent, 0) / older.length;
+    stopMonitoring() {
+      setState('isMonitoring', false);
+      
+      if (metricsInterval) {
+        clearInterval(metricsInterval);
+        metricsInterval = null;
+      }
+    },
 
-      const recentMemAvg = recent.reduce((sum, m) => sum + m.memory_usage_percent, 0) / recent.length;
-      const olderMemAvg = older.reduce((sum, m) => sum + m.memory_usage_percent, 0) / older.length;
+    // Run benchmark
+    async runBenchmark() {
+      setState('isRunningBenchmark', true);
+      benchmarkResource.refetch();
+    },
 
-      const cpuDelta = recentCpuAvg - olderCpuAvg;
-      const memDelta = recentMemAvg - olderMemAvg;
+    // Refresh current metrics
+    async refreshMetrics() {
+      metricsResource.refetch();
+    },
 
-      trends = {
-        cpu: cpuDelta > 5 ? 'degrading' : cpuDelta < -5 ? 'improving' : 'stable',
-        memory: memDelta > 5 ? 'degrading' : memDelta < -5 ? 'improving' : 'stable',
-        performance_delta: (cpuDelta + memDelta) / 2,
+    // Clear error state
+    clearError() {
+      setState('error', null);
+    },
+
+    // Resolve alert
+    resolveAlert(alertId: string) {
+      setState('alerts', produce(alerts => {
+        const alert = alerts.find(a => a.id === alertId);
+        if (alert) {
+          alert.resolved = true;
+        }
+      }));
+    },
+
+    // Clear all resolved alerts
+    clearResolvedAlerts() {
+      setState('alerts', produce(alerts => {
+        const unresolved = alerts.filter(alert => !alert.resolved);
+        alerts.length = 0;
+        alerts.push(...unresolved);
+      }));
+    },
+
+    // Get performance grade
+    getPerformanceGrade() {
+      return performanceUtils.getPerformanceGrade();
+    },
+
+    // Detect performance issues
+    detectIssues() {
+      return performanceUtils.detectPerformanceIssues();
+    },
+
+    // Export performance data
+    exportData() {
+      return {
+        currentMetrics: state.currentMetrics,
+        benchmarkResults: state.benchmarkResults,
+        metricsHistory: state.metricsHistory,
+        alerts: state.alerts,
+        webVitals: state.webVitals,
+        insights: performanceInsights(),
+        exportedAt: new Date().toISOString()
       };
+    },
+
+    // Measure custom operation
+    measureOperation<T>(name: string, operation: () => T): T {
+      return performanceUtils.measure(name, operation);
+    },
+
+    // Measure async operation
+    async measureAsyncOperation<T>(name: string, operation: () => Promise<T>): Promise<T> {
+      return performanceUtils.measureAsync(name, operation);
     }
-
-    let overall_health: 'excellent' | 'good' | 'fair' | 'poor';
-    if (score >= 90) overall_health = 'excellent';
-    else if (score >= 75) overall_health = 'good';
-    else if (score >= 60) overall_health = 'fair';
-    else overall_health = 'poor';
-
-    return {
-      overall_health,
-      bottlenecks,
-      recommendations,
-      score: Math.max(0, score),
-      trends,
-    };
-  };
-
-  // I'm implementing benchmark execution
-  const runBenchmark = async () => {
-    try {
-      setState('isLoading', true);
-      setState('error', null);
-
-      const results = await performanceService.runBenchmark();
-      setState('benchmarkResults', results);
-
-      return results;
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Benchmark failed';
-      setState('error', errorMessage);
-      throw error;
-    } finally {
-      setState('isLoading', false);
-    }
-  };
-
-  // I'm implementing manual refresh functionality
-  const refreshMetrics = async () => {
-    try {
-      setState('isLoading', true);
-      setState('error', null);
-
-      const snapshot = await performanceService.getCurrentMetrics();
-      setState('currentMetrics', snapshot.system);
-      setState('lastUpdated', new Date());
-      setState('isConnected', true);
-
-      return snapshot;
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to refresh metrics';
-      setState('error', errorMessage);
-      setState('isConnected', false);
-      throw error;
-    } finally {
-      setState('isLoading', false);
-    }
-  };
-
-  // I'm implementing alert management
-  const acknowledgeAlert = (alertId: string) => {
-    setState('alerts', produce(alerts => {
-      const alert = alerts.find(a => a.id === alertId);
-      if (alert) {
-        alert.acknowledged = true;
-      }
-    }));
-
-    performanceService.acknowledgeAlert(alertId);
-  };
-
-  const clearAlert = (alertId: string) => {
-    setState('alerts', produce(alerts => {
-      const index = alerts.findIndex(a => a.id === alertId);
-      if (index !== -1) {
-        alerts.splice(index, 1);
-      }
-    }));
-
-    performanceService.clearAlert(alertId);
-  };
-
-  const clearAllAlerts = () => {
-    state.alerts.forEach(alert => {
-      performanceService.clearAlert(alert.id);
-    });
-    setState('alerts', []);
-  };
-
-  // I'm implementing auto-refresh controls
-  const toggleAutoRefresh = () => {
-    const newState = !autoRefreshEnabled();
-    setAutoRefreshEnabled(newState);
-
-    if (newState) {
-      startAutoRefresh();
-    } else {
-      stopAutoRefresh();
-    }
-  };
-
-  // I'm creating computed properties for easy access
-  const getMetricsSummary = () => {
-    const current = state.currentMetrics;
-    if (!current) return null;
-
-    return {
-      cpu: {
-        value: current.cpu_usage_percent,
-        status: current.cpu_usage_percent > 80 ? 'critical' :
-                current.cpu_usage_percent > 60 ? 'warning' : 'good',
-        description: `${current.cpu_cores} cores, ${current.cpu_threads} threads`,
-      },
-      memory: {
-        value: current.memory_usage_percent,
-        status: current.memory_usage_percent > 85 ? 'critical' :
-                current.memory_usage_percent > 70 ? 'warning' : 'good',
-        description: `${current.memory_available_gb.toFixed(1)}GB / ${current.memory_total_gb.toFixed(1)}GB`,
-      },
-      load: {
-        value: current.load_average_1m,
-        status: current.load_average_1m > current.cpu_cores * 2 ? 'critical' :
-                current.load_average_1m > current.cpu_cores ? 'warning' : 'good',
-        description: '1-minute load average',
-      },
-      uptime: {
-        value: current.uptime_seconds,
-        status: 'good',
-        description: formatUptime(current.uptime_seconds),
-      },
-    };
-  };
-
-  const getActiveAlertsCount = () => {
-    return state.alerts.filter(alert => !alert.acknowledged).length;
-  };
-
-  const getCriticalAlertsCount = () => {
-    return state.alerts.filter(alert => !alert.acknowledged && alert.severity === 'critical').length;
-  };
-
-  // I'm providing export functionality
-  const exportMetrics = (format: 'json' | 'csv' = 'json') => {
-    const data = {
-      current: state.currentMetrics,
-      historical: state.historicalData,
-      alerts: state.alerts,
-      analysis: analyzePerformance(),
-      exportTime: new Date().toISOString(),
-    };
-
-    if (format === 'json') {
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `performance-metrics-${Date.now()}.json`;
-      link.click();
-      URL.revokeObjectURL(url);
-    } else {
-      // I'm creating CSV format for data analysis
-      const csvLines = [
-        'timestamp,cpu_usage,memory_usage,disk_usage,load_average_1m,uptime',
-        ...state.historicalData.map(metric =>
-          `${metric.timestamp},${metric.cpu_usage_percent},${metric.memory_usage_percent},${metric.disk_usage_percent || 0},${metric.load_average_1m},${metric.uptime_seconds}`
-        ),
-      ];
-
-      const blob = new Blob([csvLines.join('\n')], { type: 'text/csv' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `performance-metrics-${Date.now()}.csv`;
-      link.click();
-      URL.revokeObjectURL(url);
-    }
-  };
-
-  // Helper function to format uptime
-  const formatUptime = (seconds: number): string => {
-    const days = Math.floor(seconds / 86400);
-    const hours = Math.floor((seconds % 86400) / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-
-    if (days > 0) return `${days}d ${hours}h`;
-    if (hours > 0) return `${hours}h ${minutes}m`;
-    return `${minutes}m`;
   };
 
   return {
     // State
     currentMetrics: () => state.currentMetrics,
-    historicalData: () => state.historicalData,
-    isConnected: () => state.isConnected,
-    isLoading: () => state.isLoading,
-    error: () => state.error,
     benchmarkResults: () => state.benchmarkResults,
-    alerts: () => state.alerts,
-    lastUpdated: () => state.lastUpdated,
+    alerts: activeAlerts,
+    criticalAlerts,
+    isMonitoring: () => state.isMonitoring,
+    isRunningBenchmark: () => state.isRunningBenchmark,
+    error: () => state.error,
+    connectionStatus: () => state.connectionStatus,
+    webVitals: () => state.webVitals,
 
     // Computed values
-    analysis: analyzePerformance,
-    metricsSummary: getMetricsSummary,
-    activeAlertsCount: getActiveAlertsCount,
-    criticalAlertsCount: getCriticalAlertsCount,
+    performanceInsights,
+    metricsHistory,
+
+    // Resources
+    metricsResource,
+    benchmarkResource,
 
     // Actions
-    refreshMetrics,
-    runBenchmark,
-    acknowledgeAlert,
-    clearAlert,
-    clearAllAlerts,
-    exportMetrics,
+    ...actions,
 
-    // Auto-refresh controls
-    autoRefreshEnabled,
-    toggleAutoRefresh,
-    refreshInterval,
-
-    // Utility functions
-    formatUptime,
+    // Utilities
+    performanceMonitor,
+    performanceUtils,
   };
 }
+
+export type { SystemMetrics, BenchmarkResult, Alert };

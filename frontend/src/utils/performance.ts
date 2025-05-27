@@ -1,6 +1,6 @@
 /*
- * Performance monitoring utilities providing comprehensive web vitals tracking, resource monitoring, and optimization recommendations.
- * I'm implementing client-side performance measurement with real-time metrics collection, historical analysis, and integration with the backend performance service for holistic monitoring.
+ * Comprehensive performance monitoring utilities providing real-time metrics collection, analysis, and optimization insights for the showcase application.
+ * I'm implementing client-side performance tracking, system resource monitoring, and computational efficiency analysis that aligns with the philosophical focus on precision and measurement inherent in the dark aesthetic.
  */
 
 interface PerformanceMetric {
@@ -8,528 +8,545 @@ interface PerformanceMetric {
   value: number;
   unit: string;
   timestamp: number;
-  rating: 'good' | 'needs-improvement' | 'poor';
-  threshold: {
-    good: number;
-    poor: number;
-  };
+  context?: string;
 }
 
-interface WebVitals {
-  cls: PerformanceMetric | null; // Cumulative Layout Shift
-  fid: PerformanceMetric | null; // First Input Delay
-  fcp: PerformanceMetric | null; // First Contentful Paint
-  lcp: PerformanceMetric | null; // Largest Contentful Paint
-  ttfb: PerformanceMetric | null; // Time to First Byte
+interface SystemResources {
+  cpuUsage?: number;
+  memoryUsage?: number;
+  networkLatency?: number;
+  diskIO?: number;
+  gpuUsage?: number;
 }
 
-interface ResourceTiming {
+interface PerformanceSnapshot {
+  timestamp: number;
+  metrics: PerformanceMetric[];
+  resources: SystemResources;
+  userAgent: string;
+  url: string;
+}
+
+interface BenchmarkResult {
   name: string;
   duration: number;
-  size: number;
-  type: string;
-  cached: boolean;
+  iterations: number;
+  averageTime: number;
+  minTime: number;
+  maxTime: number;
+  standardDeviation: number;
+  samples: number[];
 }
 
-interface PerformanceObservation {
-  timestamp: number;
-  webVitals: WebVitals;
-  resources: ResourceTiming[];
-  memoryUsage: MemoryInfo | null;
-  navigationTiming: PerformanceNavigationTiming | null;
-}
-
-// I'm defining performance thresholds based on web vitals standards
-const PERFORMANCE_THRESHOLDS = {
-  cls: { good: 0.1, poor: 0.25 },
-  fid: { good: 100, poor: 300 },
-  fcp: { good: 1800, poor: 3000 },
-  lcp: { good: 2500, poor: 4000 },
-  ttfb: { good: 800, poor: 1800 },
-};
-
-// I'm creating a performance monitoring class for comprehensive tracking
 class PerformanceMonitor {
-  private observations: PerformanceObservation[] = [];
+  private metrics: PerformanceMetric[] = [];
   private observers: PerformanceObserver[] = [];
-  private vitals: WebVitals = {
-    cls: null,
-    fid: null,
-    fcp: null,
-    lcp: null,
-    ttfb: null,
-  };
+  private benchmarks: Map<string, number[]> = new Map();
+  private isMonitoring: boolean = false;
 
   constructor() {
     this.initializeObservers();
-    this.startPeriodicCollection();
   }
 
+  // I'm setting up comprehensive performance observers
   private initializeObservers() {
-    // I'm setting up observers for different performance entry types
-    if ('PerformanceObserver' in window) {
-      this.observeWebVitals();
-      this.observeResourceTiming();
-      this.observeNavigationTiming();
+    if (typeof PerformanceObserver === 'undefined') {
+      console.warn('PerformanceObserver not supported');
+      return;
     }
-  }
 
-  private observeWebVitals() {
     try {
-      // Largest Contentful Paint observer
-      const lcpObserver = new PerformanceObserver((entryList) => {
-        for (const entry of entryList.getEntries()) {
-          this.vitals.lcp = this.createMetric('lcp', entry.startTime, 'ms', PERFORMANCE_THRESHOLDS.lcp);
-        }
-      });
-      lcpObserver.observe({ entryTypes: ['largest-contentful-paint'] });
-      this.observers.push(lcpObserver);
-
-      // First Contentful Paint observer
-      const fcpObserver = new PerformanceObserver((entryList) => {
-        for (const entry of entryList.getEntries()) {
-          if (entry.name === 'first-contentful-paint') {
-            this.vitals.fcp = this.createMetric('fcp', entry.startTime, 'ms', PERFORMANCE_THRESHOLDS.fcp);
+      // Navigation timing observer
+      const navigationObserver = new PerformanceObserver((list) => {
+        const entries = list.getEntries();
+        entries.forEach((entry) => {
+          if (entry.entryType === 'navigation') {
+            this.recordNavigationMetrics(entry as PerformanceNavigationTiming);
           }
-        }
-      });
-      fcpObserver.observe({ entryTypes: ['paint'] });
-      this.observers.push(fcpObserver);
-
-      // Cumulative Layout Shift observer
-      const clsObserver = new PerformanceObserver((entryList) => {
-        let clsValue = 0;
-        for (const entry of entryList.getEntries()) {
-          if (!(entry as any).hadRecentInput) {
-            clsValue += (entry as any).value;
-          }
-        }
-        if (clsValue > 0) {
-          this.vitals.cls = this.createMetric('cls', clsValue, 'score', PERFORMANCE_THRESHOLDS.cls);
-        }
-      });
-      clsObserver.observe({ entryTypes: ['layout-shift'] });
-      this.observers.push(clsObserver);
-
-      // First Input Delay observer
-      const fidObserver = new PerformanceObserver((entryList) => {
-        for (const entry of entryList.getEntries()) {
-          const fid = (entry as any).processingStart - entry.startTime;
-          this.vitals.fid = this.createMetric('fid', fid, 'ms', PERFORMANCE_THRESHOLDS.fid);
-        }
-      });
-      fidObserver.observe({ entryTypes: ['first-input'] });
-      this.observers.push(fidObserver);
-
-    } catch (error) {
-      console.warn('Failed to setup web vitals observers:', error);
-    }
-  }
-
-  private observeResourceTiming() {
-    try {
-      const resourceObserver = new PerformanceObserver((entryList) => {
-        // I'm processing resource timing data for analysis
-        const resources = entryList.getEntries().map(entry => {
-          const resource = entry as PerformanceResourceTiming;
-          return {
-            name: resource.name,
-            duration: resource.duration,
-            size: resource.transferSize || 0,
-            type: this.getResourceType(resource.name),
-            cached: resource.transferSize === 0 && resource.decodedBodySize > 0,
-          };
-        });
-
-        // Store latest resource timings
-        this.observations.push({
-          timestamp: Date.now(),
-          webVitals: { ...this.vitals },
-          resources,
-          memoryUsage: this.getMemoryInfo(),
-          navigationTiming: this.getNavigationTiming(),
         });
       });
+      navigationObserver.observe({ entryTypes: ['navigation'] });
+      this.observers.push(navigationObserver);
 
+      // Resource timing observer
+      const resourceObserver = new PerformanceObserver((list) => {
+        const entries = list.getEntries();
+        entries.forEach((entry) => {
+          if (entry.entryType === 'resource') {
+            this.recordResourceMetric(entry as PerformanceResourceTiming);
+          }
+        });
+      });
       resourceObserver.observe({ entryTypes: ['resource'] });
       this.observers.push(resourceObserver);
+
+      // Measure observer for custom metrics
+      const measureObserver = new PerformanceObserver((list) => {
+        const entries = list.getEntries();
+        entries.forEach((entry) => {
+          if (entry.entryType === 'measure') {
+            this.recordMeasure(entry as PerformanceMeasure);
+          }
+        });
+      });
+      measureObserver.observe({ entryTypes: ['measure'] });
+      this.observers.push(measureObserver);
+
+      // Paint timing observer
+      const paintObserver = new PerformanceObserver((list) => {
+        const entries = list.getEntries();
+        entries.forEach((entry) => {
+          this.recordPaintMetric(entry as PerformancePaintTiming);
+        });
+      });
+      paintObserver.observe({ entryTypes: ['paint'] });
+      this.observers.push(paintObserver);
+
     } catch (error) {
-      console.warn('Failed to setup resource timing observer:', error);
+      console.warn('Failed to initialize performance observers:', error);
     }
   }
 
-  private observeNavigationTiming() {
-    // I'm collecting navigation timing data for page load analysis
-    if (performance.getEntriesByType && performance.getEntriesByType('navigation').length > 0) {
-      const navTiming = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
-      const ttfb = navTiming.responseStart - navTiming.requestStart;
+  // I'm recording navigation timing metrics
+  private recordNavigationMetrics(entry: PerformanceNavigationTiming) {
+    const metrics = [
+      { name: 'dns_lookup', value: entry.domainLookupEnd - entry.domainLookupStart, unit: 'ms' },
+      { name: 'tcp_connect', value: entry.connectEnd - entry.connectStart, unit: 'ms' },
+      { name: 'request_response', value: entry.responseEnd - entry.requestStart, unit: 'ms' },
+      { name: 'dom_content_loaded', value: entry.domContentLoadedEventEnd - entry.domContentLoadedEventStart, unit: 'ms' },
+      { name: 'load_complete', value: entry.loadEventEnd - entry.loadEventStart, unit: 'ms' },
+      { name: 'total_load_time', value: entry.loadEventEnd - entry.navigationStart, unit: 'ms' }
+    ];
 
-      this.vitals.ttfb = this.createMetric('ttfb', ttfb, 'ms', PERFORMANCE_THRESHOLDS.ttfb);
-    }
+    metrics.forEach(metric => this.addMetric(metric.name, metric.value, metric.unit, 'navigation'));
   }
 
-  private createMetric(name: string, value: number, unit: string, threshold: { good: number; poor: number }): PerformanceMetric {
-    let rating: 'good' | 'needs-improvement' | 'poor';
+  // I'm recording resource loading metrics
+  private recordResourceMetric(entry: PerformanceResourceTiming) {
+    const resourceType = this.getResourceType(entry.name);
+    const duration = entry.responseEnd - entry.startTime;
 
-    if (value <= threshold.good) {
-      rating = 'good';
-    } else if (value <= threshold.poor) {
-      rating = 'needs-improvement';
-    } else {
-      rating = 'poor';
-    }
+    this.addMetric(
+      `resource_load_${resourceType}`,
+      duration,
+      'ms',
+      `resource: ${entry.name}`
+    );
+  }
 
-    return {
+  // I'm recording custom measurements
+  private recordMeasure(entry: PerformanceMeasure) {
+    this.addMetric(
+      entry.name,
+      entry.duration,
+      'ms',
+      'custom_measure'
+    );
+  }
+
+  // I'm recording paint timing metrics
+  private recordPaintMetric(entry: PerformancePaintTiming) {
+    this.addMetric(
+      entry.name.replace('-', '_'),
+      entry.startTime,
+      'ms',
+      'paint'
+    );
+  }
+
+  // I'm providing utility to determine resource type
+  private getResourceType(url: string): string {
+    if (url.includes('.js')) return 'script';
+    if (url.includes('.css')) return 'stylesheet';
+    if (url.match(/\.(png|jpg|jpeg|gif|svg|webp)$/)) return 'image';
+    if (url.includes('.woff')) return 'font';
+    if (url.includes('/api/')) return 'api';
+    return 'other';
+  }
+
+  // I'm adding metrics to the collection
+  addMetric(name: string, value: number, unit: string, context?: string) {
+    const metric: PerformanceMetric = {
       name,
       value,
       unit,
       timestamp: Date.now(),
-      rating,
-      threshold,
+      context
+    };
+
+    this.metrics.push(metric);
+
+    // Keep only last 1000 metrics to prevent memory bloat
+    if (this.metrics.length > 1000) {
+      this.metrics = this.metrics.slice(-1000);
+    }
+  }
+
+  // I'm implementing timing utilities for custom measurements
+  time(name: string): () => void {
+    const startTime = performance.now();
+    
+    return () => {
+      const duration = performance.now() - startTime;
+      this.addMetric(name, duration, 'ms', 'custom_timing');
     };
   }
 
-  private getResourceType(url: string): string {
-    const extension = url.split('.').pop()?.toLowerCase();
-
-    switch (extension) {
-      case 'js': return 'script';
-      case 'css': return 'stylesheet';
-      case 'png':
-      case 'jpg':
-      case 'jpeg':
-      case 'gif':
-      case 'svg':
-      case 'webp': return 'image';
-      case 'woff':
-      case 'woff2':
-      case 'ttf': return 'font';
-      default: return 'other';
+  // I'm providing async timing wrapper
+  async timeAsync<T>(name: string, operation: () => Promise<T>): Promise<T> {
+    const startTime = performance.now();
+    
+    try {
+      const result = await operation();
+      const duration = performance.now() - startTime;
+      this.addMetric(name, duration, 'ms', 'async_operation');
+      return result;
+    } catch (error) {
+      const duration = performance.now() - startTime;
+      this.addMetric(`${name}_error`, duration, 'ms', 'async_operation_error');
+      throw error;
     }
   }
 
-  private getMemoryInfo(): MemoryInfo | null {
-    // I'm accessing memory information when available
-    return (performance as any).memory || null;
-  }
-
-  private getNavigationTiming(): PerformanceNavigationTiming | null {
-    const entries = performance.getEntriesByType('navigation');
-    return entries.length > 0 ? entries[0] as PerformanceNavigationTiming : null;
-  }
-
-  private startPeriodicCollection() {
-    // I'm collecting performance snapshots periodically
-    setInterval(() => {
-      this.collectSnapshot();
-    }, 30000); // Every 30 seconds
-  }
-
-  private collectSnapshot() {
-    this.observations.push({
-      timestamp: Date.now(),
-      webVitals: { ...this.vitals },
-      resources: [],
-      memoryUsage: this.getMemoryInfo(),
-      navigationTiming: this.getNavigationTiming(),
-    });
-
-    // Keep only the last 100 observations
-    if (this.observations.length > 100) {
-      this.observations = this.observations.slice(-100);
-    }
-  }
-
-  // Public API methods
-  getCurrentVitals(): WebVitals {
-    return { ...this.vitals };
-  }
-
-  getObservations(): PerformanceObservation[] {
-    return [...this.observations];
-  }
-
-  getPerformanceScore(): number {
-    const vitals = Object.values(this.vitals).filter(v => v !== null) as PerformanceMetric[];
-
-    if (vitals.length === 0) return 0;
-
-    const scores = vitals.map(vital => {
-      switch (vital.rating) {
-        case 'good': return 100;
-        case 'needs-improvement': return 60;
-        case 'poor': return 20;
-        default: return 0;
-      }
-    });
-
-    return Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length);
-  }
-
-  getRecommendations(): string[] {
-    const recommendations: string[] = [];
-
-    if (this.vitals.lcp && this.vitals.lcp.rating !== 'good') {
-      recommendations.push('Optimize Largest Contentful Paint by reducing server response times and optimizing resource loading');
+  // I'm implementing benchmark utilities
+  benchmark(name: string, iterations: number, operation: () => void): BenchmarkResult {
+    const samples: number[] = [];
+    
+    // Warm up
+    for (let i = 0; i < Math.min(iterations, 10); i++) {
+      operation();
     }
 
-    if (this.vitals.cls && this.vitals.cls.rating !== 'good') {
-      recommendations.push('Reduce Cumulative Layout Shift by setting dimensions on images and avoiding dynamic content insertion');
+    // Actual benchmarking
+    for (let i = 0; i < iterations; i++) {
+      const start = performance.now();
+      operation();
+      const duration = performance.now() - start;
+      samples.push(duration);
     }
 
-    if (this.vitals.fid && this.vitals.fid.rating !== 'good') {
-      recommendations.push('Improve First Input Delay by reducing JavaScript execution time and splitting long tasks');
-    }
+    // Calculate statistics
+    const totalDuration = samples.reduce((sum, sample) => sum + sample, 0);
+    const averageTime = totalDuration / samples.length;
+    const minTime = Math.min(...samples);
+    const maxTime = Math.max(...samples);
+    
+    // Calculate standard deviation
+    const variance = samples.reduce((sum, sample) => sum + Math.pow(sample - averageTime, 2), 0) / samples.length;
+    const standardDeviation = Math.sqrt(variance);
 
-    const memoryInfo = this.getMemoryInfo();
-    if (memoryInfo && memoryInfo.usedJSHeapSize > 50 * 1024 * 1024) { // 50MB
-      recommendations.push('High memory usage detected - consider reducing JavaScript heap size');
-    }
+    const result: BenchmarkResult = {
+      name,
+      duration: totalDuration,
+      iterations,
+      averageTime,
+      minTime,
+      maxTime,
+      standardDeviation,
+      samples
+    };
 
-    return recommendations;
+    // Store benchmark results
+    this.benchmarks.set(name, samples);
+    this.addMetric(`benchmark_${name}`, averageTime, 'ms', 'benchmark');
+
+    return result;
   }
 
-  destroy() {
-    // I'm cleaning up all observers
-    this.observers.forEach(observer => observer.disconnect());
-    this.observers = [];
-  }
-}
-
-// I'm creating utility functions for performance analysis
-export const performanceUtils = {
-  // Measure function execution time
-  measureFunction: async <T>(fn: () => Promise<T> | T, label?: string): Promise<{ result: T; duration: number }> => {
-    const start = performance.now();
-    const result = await fn();
-    const duration = performance.now() - start;
-
-    if (label) {
-      console.log(`${label}: ${duration.toFixed(2)}ms`);
-    }
-
-    return { result, duration };
-  },
-
-  // Measure React component render time
-  measureRender: (componentName: string, renderFn: () => void) => {
-    const start = performance.now();
-    renderFn();
-    const duration = performance.now() - start;
-
-    console.log(`${componentName} render: ${duration.toFixed(2)}ms`);
-    return duration;
-  },
-
-  // Debounce function for performance optimization
-  debounce: <T extends (...args: any[]) => void>(fn: T, delay: number): T => {
-    let timeoutId: number;
-
-    return ((...args: any[]) => {
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => fn(...args), delay);
-    }) as T;
-  },
-
-  // Throttle function for performance optimization
-  throttle: <T extends (...args: any[]) => void>(fn: T, delay: number): T => {
-    let lastCallTime = 0;
-
-    return ((...args: any[]) => {
-      const currentTime = Date.now();
-      if (currentTime - lastCallTime >= delay) {
-        fn(...args);
-        lastCallTime = currentTime;
-      }
-    }) as T;
-  },
-
-  // Lazy loading utility
-  createIntersectionObserver: (
-    callback: (entries: IntersectionObserverEntry[]) => void,
-    options?: IntersectionObserverInit
-  ) => {
-    if (!('IntersectionObserver' in window)) {
-      // Fallback for browsers without IntersectionObserver
+  // I'm implementing memory usage monitoring
+  getMemoryUsage(): any {
+    if ('memory' in performance) {
+      const memory = (performance as any).memory;
       return {
-        observe: () => {},
-        unobserve: () => {},
-        disconnect: () => {},
+        usedJSHeapSize: memory.usedJSHeapSize,
+        totalJSHeapSize: memory.totalJSHeapSize,
+        jsHeapSizeLimit: memory.jsHeapSizeLimit,
+        usage_percentage: (memory.usedJSHeapSize / memory.jsHeapSizeLimit) * 100
       };
     }
+    return null;
+  }
 
-    return new IntersectionObserver(callback, {
-      root: null,
-      rootMargin: '50px',
-      threshold: 0.1,
-      ...options,
-    });
-  },
+  // I'm implementing Web Vitals monitoring
+  getWebVitals(): Promise<any> {
+    return new Promise((resolve) => {
+      const vitals = {
+        fcp: 0,
+        lcp: 0,
+        fid: 0,
+        cls: 0,
+        ttfb: 0
+      };
 
-  // Resource preloading utilities
-  preloadResource: (href: string, as: string, crossorigin?: string) => {
-    const link = document.createElement('link');
-    link.rel = 'preload';
-    link.href = href;
-    link.as = as;
-    if (crossorigin) link.crossOrigin = crossorigin;
+      // First Contentful Paint
+      const paintEntries = performance.getEntriesByType('paint');
+      const fcpEntry = paintEntries.find(entry => entry.name === 'first-contentful-paint');
+      if (fcpEntry) {
+        vitals.fcp = fcpEntry.startTime;
+      }
 
-    document.head.appendChild(link);
+      // Time to First Byte
+      const navigationEntries = performance.getEntriesByType('navigation');
+      if (navigationEntries.length > 0) {
+        const navEntry = navigationEntries[0] as PerformanceNavigationTiming;
+        vitals.ttfb = navEntry.responseStart - navEntry.requestStart;
+      }
 
-    return () => document.head.removeChild(link);
-  },
-
-  // Prefetch resources for better navigation
-  prefetchResource: (href: string) => {
-    const link = document.createElement('link');
-    link.rel = 'prefetch';
-    link.href = href;
-
-    document.head.appendChild(link);
-
-    return () => document.head.removeChild(link);
-  },
-
-  // Bundle analysis helper
-  analyzeBundle: () => {
-    if ('PerformanceObserver' in window) {
-      const observer = new PerformanceObserver((entryList) => {
-        const entries = entryList.getEntries();
-        const scripts = entries.filter(entry => entry.name.includes('.js'));
-        const totalScriptSize = scripts.reduce((total, script) =>
-          total + ((script as PerformanceResourceTiming).transferSize || 0), 0
-        );
-
-        console.log('Bundle Analysis:', {
-          totalScripts: scripts.length,
-          totalSize: `${(totalScriptSize / 1024).toFixed(2)}KB`,
-          scripts: scripts.map(s => ({
-            name: s.name.split('/').pop(),
-            size: `${(((s as PerformanceResourceTiming).transferSize || 0) / 1024).toFixed(2)}KB`,
-            duration: `${s.duration.toFixed(2)}ms`
-          }))
+      // Observer for LCP
+      if ('PerformanceObserver' in window) {
+        const lcpObserver = new PerformanceObserver((list) => {
+          const entries = list.getEntries();
+          const lastEntry = entries[entries.length - 1];
+          vitals.lcp = lastEntry.startTime;
         });
-      });
 
-      observer.observe({ entryTypes: ['resource'] });
+        try {
+          lcpObserver.observe({ entryTypes: ['largest-contentful-paint'] });
+        } catch (e) {
+          console.warn('LCP observer not supported');
+        }
 
-      return () => observer.disconnect();
-    }
+        // Observer for FID
+        const fidObserver = new PerformanceObserver((list) => {
+          const entries = list.getEntries();
+          entries.forEach((entry) => {
+            vitals.fid = entry.processingStart - entry.startTime;
+          });
+        });
 
-    return () => {};
-  }
-};
+        try {
+          fidObserver.observe({ entryTypes: ['first-input'] });
+        } catch (e) {
+          console.warn('FID observer not supported');
+        }
 
-// I'm creating specific utilities for fractal performance monitoring
-export const fractalPerformanceUtils = {
-  measureFractalGeneration: (
-    generationFn: () => Promise<any>,
-    parameters: { width: number; height: number; zoom: number; iterations: number }
-  ) => {
-    return performanceUtils.measureFunction(async () => {
-      const result = await generationFn();
+        // Observer for CLS
+        const clsObserver = new PerformanceObserver((list) => {
+          const entries = list.getEntries();
+          entries.forEach((entry: any) => {
+            if (!entry.hadRecentInput) {
+              vitals.cls += entry.value;
+            }
+          });
+        });
 
-      // Calculate pixels per second
-      const pixelsPerSecond = (parameters.width * parameters.height) / (result.computationTime / 1000);
-
-      return {
-        ...result,
-        pixelsPerSecond,
-        parameters,
-        efficiency: pixelsPerSecond / (parameters.width * parameters.height), // Normalized efficiency
-      };
-    }, 'Fractal Generation');
-  },
-
-  trackCanvasPerformance: (canvas: HTMLCanvasElement) => {
-    let frameCount = 0;
-    let lastTime = performance.now();
-    let fps = 0;
-
-    const measureFPS = () => {
-      frameCount++;
-      const currentTime = performance.now();
-
-      if (currentTime - lastTime >= 1000) {
-        fps = Math.round((frameCount * 1000) / (currentTime - lastTime));
-        frameCount = 0;
-        lastTime = currentTime;
-
-        // Log performance warnings
-        if (fps < 30) {
-          console.warn(`Canvas FPS is low: ${fps}fps`);
+        try {
+          clsObserver.observe({ entryTypes: ['layout-shift'] });
+        } catch (e) {
+          console.warn('CLS observer not supported');
         }
       }
 
-      requestAnimationFrame(measureFPS);
-    };
+      setTimeout(() => {
+        resolve(vitals);
+      }, 100);
+    });
+  }
 
-    measureFPS();
+  // I'm providing metrics querying utilities
+  getMetrics(filter?: {
+    name?: string;
+    context?: string;
+    since?: number;
+    limit?: number;
+  }): PerformanceMetric[] {
+    let filtered = this.metrics;
 
+    if (filter) {
+      if (filter.name) {
+        filtered = filtered.filter(m => m.name.includes(filter.name!));
+      }
+      if (filter.context) {
+        filtered = filtered.filter(m => m.context?.includes(filter.context!));
+      }
+      if (filter.since) {
+        filtered = filtered.filter(m => m.timestamp > filter.since!);
+      }
+      if (filter.limit) {
+        filtered = filtered.slice(-filter.limit);
+      }
+    }
+
+    return filtered;
+  }
+
+  // I'm providing performance snapshot functionality
+  getSnapshot(): PerformanceSnapshot {
     return {
-      getFPS: () => fps,
-      getCanvasMetrics: () => ({
-        width: canvas.width,
-        height: canvas.height,
-        fps,
-        pixelCount: canvas.width * canvas.height,
-      })
+      timestamp: Date.now(),
+      metrics: [...this.metrics],
+      resources: {
+        memoryUsage: this.getMemoryUsage()?.usage_percentage,
+        // Other resources would be populated by system monitoring
+      },
+      userAgent: navigator.userAgent,
+      url: window.location.href
     };
+  }
+
+  // I'm implementing cleanup
+  dispose() {
+    this.observers.forEach(observer => observer.disconnect());
+    this.observers = [];
+    this.metrics = [];
+    this.benchmarks.clear();
+  }
+}
+
+// I'm creating a global performance monitor instance
+export const performanceMonitor = new PerformanceMonitor();
+
+// I'm providing utility functions for common performance tasks
+export const performanceUtils = {
+  // Measure function execution time
+  measure: <T>(name: string, fn: () => T): T => {
+    const stop = performanceMonitor.time(name);
+    const result = fn();
+    stop();
+    return result;
+  },
+
+  // Measure async function execution time
+  measureAsync: async <T>(name: string, fn: () => Promise<T>): Promise<T> => {
+    return performanceMonitor.timeAsync(name, fn);
+  },
+
+  // Monitor frame rate
+  monitorFPS: (callback: (fps: number) => void, duration: number = 1000) => {
+    let frameCount = 0;
+    let lastTime = performance.now();
+
+    const measureFrame = () => {
+      frameCount++;
+      const currentTime = performance.now();
+      
+      if (currentTime - lastTime >= duration) {
+        const fps = Math.round((frameCount * 1000) / (currentTime - lastTime));
+        callback(fps);
+        frameCount = 0;
+        lastTime = currentTime;
+      }
+      
+      requestAnimationFrame(measureFrame);
+    };
+
+    requestAnimationFrame(measureFrame);
+  },
+
+  // Monitor memory usage
+  monitorMemory: (callback: (usage: any) => void, interval: number = 1000) => {
+    const monitor = () => {
+      const usage = performanceMonitor.getMemoryUsage();
+      if (usage) {
+        callback(usage);
+      }
+    };
+
+    monitor();
+    const intervalId = setInterval(monitor, interval);
+    return () => clearInterval(intervalId);
+  },
+
+  // Detect performance issues
+  detectPerformanceIssues: (): string[] => {
+    const issues: string[] = [];
+    const metrics = performanceMonitor.getMetrics({ limit: 100 });
+
+    // Check for slow API calls
+    const apiMetrics = metrics.filter(m => m.context === 'api');
+    const slowAPICalls = apiMetrics.filter(m => m.value > 1000);
+    if (slowAPICalls.length > 0) {
+      issues.push(`Slow API calls detected: ${slowAPICalls.length} calls > 1000ms`);
+    }
+
+    // Check for memory issues
+    const memoryUsage = performanceMonitor.getMemoryUsage();
+    if (memoryUsage && memoryUsage.usage_percentage > 80) {
+      issues.push(`High memory usage: ${memoryUsage.usage_percentage.toFixed(1)}%`);
+    }
+
+    // Check for slow render times
+    const renderMetrics = metrics.filter(m => m.name.includes('render'));
+    const slowRenders = renderMetrics.filter(m => m.value > 16); // 60fps = 16ms per frame
+    if (slowRenders.length > 5) {
+      issues.push(`Slow rendering detected: ${slowRenders.length} renders > 16ms`);
+    }
+
+    return issues;
+  },
+
+  // Get performance grade
+  getPerformanceGrade: (): { grade: string; score: number; details: any } => {
+    const metrics = performanceMonitor.getMetrics({ limit: 100 });
+    
+    // Calculate scores for different aspects
+    const scores = {
+      loading: 100,
+      rendering: 100,
+      memory: 100,
+      network: 100
+    };
+
+    // Adjust scores based on metrics
+    const loadMetrics = metrics.filter(m => m.name.includes('load'));
+    const avgLoadTime = loadMetrics.reduce((sum, m) => sum + m.value, 0) / loadMetrics.length;
+    if (avgLoadTime > 1000) scores.loading = Math.max(0, 100 - (avgLoadTime - 1000) / 10);
+
+    const renderMetrics = metrics.filter(m => m.name.includes('render'));
+    const avgRenderTime = renderMetrics.reduce((sum, m) => sum + m.value, 0) / renderMetrics.length;
+    if (avgRenderTime > 16) scores.rendering = Math.max(0, 100 - (avgRenderTime - 16) * 2);
+
+    const memoryUsage = performanceMonitor.getMemoryUsage();
+    if (memoryUsage) {
+      scores.memory = Math.max(0, 100 - memoryUsage.usage_percentage);
+    }
+
+    const totalScore = Object.values(scores).reduce((sum, score) => sum + score, 0) / 4;
+    
+    let grade = 'F';
+    if (totalScore >= 90) grade = 'A';
+    else if (totalScore >= 80) grade = 'B';
+    else if (totalScore >= 70) grade = 'C';
+    else if (totalScore >= 60) grade = 'D';
+
+    return { grade, score: totalScore, details: scores };
   }
 };
 
-// I'm exporting the main performance monitor instance
-export const performanceMonitor = new PerformanceMonitor();
+// I'm providing React/SolidJS integration utilities
+export const usePerformanceMonitoring = () => {
+  return {
+    monitor: performanceMonitor,
+    utils: performanceUtils,
+    
+    // Hook for measuring component render time
+    measureRender: (componentName: string) => {
+      const startTime = performance.now();
+      
+      return () => {
+        const duration = performance.now() - startTime;
+        performanceMonitor.addMetric(
+          `render_${componentName}`,
+          duration,
+          'ms',
+          'component_render'
+        );
+      };
+    },
 
-// I'm creating initialization function for the performance monitoring system
-export const initializePerformanceMonitoring = () => {
-  // Start monitoring immediately
-  const monitor = performanceMonitor;
-
-  // Send performance data to backend periodically
-  const sendMetricsToBackend = performanceUtils.throttle(async () => {
-    try {
-      const vitals = monitor.getCurrentVitals();
-      const score = monitor.getPerformanceScore();
-
-      // Only send if we have meaningful data
-      if (score > 0) {
-        await fetch('/api/performance/web-vitals', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            vitals,
-            score,
-            timestamp: Date.now(),
-            userAgent: navigator.userAgent,
-          })
-        });
-      }
-    } catch (error) {
-      console.warn('Failed to send metrics to backend:', error);
+    // Hook for measuring effect execution time
+    measureEffect: (effectName: string, fn: () => void) => {
+      const stop = performanceMonitor.time(`effect_${effectName}`);
+      fn();
+      stop();
     }
-  }, 60000); // Send every minute
-
-  // Set up periodic reporting
-  setInterval(sendMetricsToBackend, 60000);
-
-  // Report on page visibility change
-  document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'hidden') {
-      sendMetricsToBackend();
-    }
-  });
-
-  // Report on page unload
-  window.addEventListener('beforeunload', sendMetricsToBackend);
-
-  return monitor;
+  };
 };
 
-// Export types for use in other modules
+// I'm exporting types and interfaces
 export type {
   PerformanceMetric,
-  WebVitals,
-  ResourceTiming,
-  PerformanceObservation
+  SystemResources,
+  PerformanceSnapshot,
+  BenchmarkResult
 };
