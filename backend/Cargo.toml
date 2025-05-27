@@ -184,7 +184,7 @@ rate-limiting = []
 
 # Optimization features
 jemalloc = ["tikv-jemallocator"]
-mimalloc = ["mimalloc"]
+mimalloc = ["dep:mimalloc"]
 
 # Optional memory allocators for performance
 [target.'cfg(not(target_env = "msvc"))'.dependencies]
