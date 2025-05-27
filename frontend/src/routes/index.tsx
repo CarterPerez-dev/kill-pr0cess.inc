@@ -1,25 +1,27 @@
-import { A } from "@solidjs/router";
-import Counter from "~/components/Counter";
+/*
+ * Home route component serving as the main entry point and landing page for the performance showcase application.
+ * I'm importing and rendering the main Home page component while providing proper SEO metadata and ensuring optimal performance metrics tracking for the showcase's primary interface.
+ */
 
-export default function Home() {
+import { Component } from 'solid-js';
+import { Title, Meta } from '@solidjs/meta';
+import Home from '../pages/Home';
+
+export default function HomeRoute(): Component {
   return (
-    <main class="text-center mx-auto text-gray-700 p-4">
-      <h1 class="max-6-xs text-6xl text-sky-700 font-thin uppercase my-16">Hello world!</h1>
-      <Counter />
-      <p class="mt-8">
-        Visit{" "}
-        <a href="https://solidjs.com" target="_blank" class="text-sky-600 hover:underline">
-          solidjs.com
-        </a>{" "}
-        to learn how to build Solid apps.
-      </p>
-      <p class="my-4">
-        <span>Home</span>
-        {" - "}
-        <A href="/about" class="text-sky-600 hover:underline">
-          About Page
-        </A>{" "}
-      </p>
-    </main>
+    <>
+      <Title>Project and Performance - Computational Precision in Dark Aesthetics</Title>
+      <Meta
+        name="description"
+        content="A dark, contemplative performance showcase exploring the intersection of mathematical precision and existential uncertainty through high-performance computation, fractal generation, and real-time metrics."
+      />
+      <Meta name="keywords" content="performance, rust, solidjs, fractals, web vitals, dark theme, computational showcase, react, techstack, portfolio" />
+      <Meta property="og:title" content="Performance Showcase - Computational Precision" />
+      <Meta property="og:description" content="Where mathematics dissolves into the void, and code becomes philosophy." />
+      <Meta property="og:type" content="website" />
+      <Meta name="theme-color" content="#000000" />
+
+      <Home />
+    </>
   );
 }

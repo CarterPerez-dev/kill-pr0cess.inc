@@ -1,6 +1,6 @@
 /*
- * Main application component that orchestrates the dark, performance-focused UI.
- * I'm using SolidJS for fine-grained reactivity and implementing the eerie Mr. Robot aesthetic throughout.
+ * Main application component.
+ * I'm using SolidJS for fine-grained reactivity
  */
 
 import { Component, createSignal, onMount } from 'solid-js';
@@ -16,19 +16,17 @@ import './styles/global.css';
 
 const App: Component = () => {
   const [isLoading, setIsLoading] = createSignal(true);
-  
-  // I'm tracking web vitals from the start to showcase real-time performance
+
   useWebVitals();
 
   onMount(() => {
-    // Simulating a brief loading state for that dramatic entrance effect
-    setTimeout(() => setIsLoading(false), 1000);
+    // Simulating a brief loading state
+    setTimeout(() => setIsLoading(false), 500);
   });
 
   return (
     <div class="min-h-screen bg-black text-gray-100 overflow-x-hidden">
-      {/* Loading overlay with eerie animation */}
-      <div 
+      <div
         class={`fixed inset-0 bg-black z-50 transition-opacity duration-1000 ${
           isLoading() ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}
@@ -42,9 +40,8 @@ const App: Component = () => {
       <Router>
         <div class="flex flex-col min-h-screen">
           <Header />
-          
+
           <main class="flex-1 relative">
-            {/* Subtle background pattern for that tech noir feel */}
             <div class="absolute inset-0 opacity-5">
               <div class="absolute inset-0 bg-gradient-to-br from-blue-900/20 to-transparent"></div>
               <div class="absolute inset-0" style={{
@@ -52,7 +49,7 @@ const App: Component = () => {
                 "background-size": "20px 20px"
               }}></div>
             </div>
-            
+
             <Routes>
               <Route path="/" component={Home} />
               <Route path="/projects" component={Projects} />
@@ -60,7 +57,7 @@ const App: Component = () => {
               <Route path="/about" component={About} />
             </Routes>
           </main>
-          
+
           <Footer />
         </div>
       </Router>

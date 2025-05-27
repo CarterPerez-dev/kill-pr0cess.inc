@@ -1,18 +1,173 @@
 @import "tailwindcss";
 
+/* I'm setting up CSS custom properties for the dark, eerie theme */
 :root {
-  --background-rgb: 214, 219, 220;
-  --foreground-rgb: 0, 0, 0;
+  --background-rgb: 0, 0, 0;
+  --foreground-rgb: 245, 245, 245;
+  --accent-rgb: 34, 211, 238;
+  --secondary-rgb: 99, 102, 241;
+
+  /* I'm defining the color palette for consistent theming */
+  --color-primary: rgb(var(--accent-rgb));
+  --color-secondary: rgb(var(--secondary-rgb));
+
+  --bg-primary: rgb(var(--background-rgb));
+  --bg-secondary: rgb(10, 10, 10);
+  --bg-tertiary: rgb(23, 23, 23);
+
+  --text-primary: rgb(var(--foreground-rgb));
+  --text-secondary: rgb(163, 163, 163);
+  --text-tertiary: rgb(115, 115, 115);
+  --text-muted: rgb(82, 82, 82);
+
+  --border-primary: rgb(38, 38, 38);
+  --border-secondary: rgb(64, 64, 64);
+
+  /* I'm defining font stacks for the technical aesthetic */
+  --font-mono: 'JetBrains Mono', 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background-rgb: 0, 0, 0;
-    --foreground-rgb: 255, 255, 255;
-  }
-}
-
+/* I'm establishing the dark theme foundation */
 body {
   background: rgb(var(--background-rgb));
   color: rgb(var(--foreground-rgb));
+  font-family: var(--font-sans);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* I'm ensuring all elements follow the dark theme */
+* {
+  box-sizing: border-box;
+}
+
+/* I'm creating smooth focus states for accessibility */
+*:focus {
+  outline: none;
+}
+
+*:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* I'm defining selection colors for the theme */
+::selection {
+  background-color: var(--color-primary);
+  color: var(--bg-primary);
+}
+
+::-moz-selection {
+  background-color: var(--color-primary);
+  color: var(--bg-primary);
+}
+
+/* I'm styling scrollbars to match the dark theme */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-secondary);
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* I'm creating utility classes for the performance showcase */
+.text-mono {
+  font-family: var(--font-mono);
+}
+
+.text-gradient {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.glass-effect {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* I'm defining performance-focused animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-slow {
+  0%, 100% {
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+@keyframes matrix-glow {
+  0%, 100% {
+    box-shadow: 0 0 5px var(--color-primary);
+  }
+  50% {
+    box-shadow: 0 0 20px var(--color-primary), 0 0 30px var(--color-primary);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.8s ease-out;
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 3s ease-in-out infinite;
+}
+
+.animate-matrix-glow {
+  animation: matrix-glow 2s ease-in-out infinite;
+}
+
+/* I'm handling reduced motion preferences for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* I'm ensuring proper dark theme for form elements */
+input, textarea, select {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  color: var(--text-primary);
+}
+
+input:focus, textarea:focus, select:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(34, 211, 238, 0.2);
+}
+
+input::placeholder, textarea::placeholder {
+  color: var(--text-muted);
 }

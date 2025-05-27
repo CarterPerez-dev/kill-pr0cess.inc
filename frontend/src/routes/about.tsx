@@ -1,25 +1,23 @@
-import { A } from "@solidjs/router";
-import Counter from "~/components/Counter";
+/*
+ * About route component providing technical architecture information and philosophical foundations of the performance showcase application.
+ * I'm importing and rendering the main About page component while maintaining the SolidStart routing structure and ensuring proper SEO and navigation integration.
+ */
 
-export default function About() {
+import { Component } from 'solid-js';
+import { Title, Meta } from '@solidjs/meta';
+import About from '../pages/About';
+
+export default function AboutRoute(): Component {
   return (
-    <main class="text-center mx-auto text-gray-700 p-4">
-      <h1 class="max-6-xs text-6xl text-sky-700 font-thin uppercase my-16">About Page</h1>
-      <Counter />
-      <p class="mt-8">
-        Visit{" "}
-        <a href="https://solidjs.com" target="_blank" class="text-sky-600 hover:underline">
-          solidjs.com
-        </a>{" "}
-        to learn how to build Solid apps.
-      </p>
-      <p class="my-4">
-        <A href="/" class="text-sky-600 hover:underline">
-          Home
-        </A>
-        {" - "}
-        <span>About Page</span>
-      </p>
-    </main>
+    <>
+      <Title>Architecture - Performance Showcase</Title>
+      <Meta
+        name="description"
+        content="Deep dive into the technical architecture and design principles behind the performance showcase application. Explore the intersection of Rust, SolidJS, and computational precision."
+      />
+      <Meta name="keywords" content="rust, solidjs, architecture, performance, web development, technical design" />
+
+      <About />
+    </>
   );
 }
