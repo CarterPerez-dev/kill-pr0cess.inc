@@ -2,7 +2,7 @@
 # I'm implementing comprehensive optimization including static linking, minimal base images, and security hardening for production deployment.
 
 # Build stage with full development environment
-FROM rust:1.81-slim as builder
+FROM rust:1.82-slim as builder
 
 # I'm setting up the build environment with necessary system dependencies
 RUN apt-get update && apt-get install -y \

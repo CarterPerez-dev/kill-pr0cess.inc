@@ -1,7 +1,7 @@
 # Development Dockerfile for the Rust backend with hot reload and debugging capabilities.
 # I'm optimizing for development speed with volume mounting and cargo watch for automatic rebuilds.
 
-FROM rust:1.81-slim
+FROM rust:1.82-slim
 
 # I'm installing development dependencies including cargo-watch for hot reload
 RUN apt-get update && apt-get install -y \
@@ -20,6 +20,7 @@ RUN cargo install cargo-watch
 
 # I'm creating a development user for security
 RUN useradd -m -u 1001 -s /bin/bash developer
+RUN chown -R developer:developer /usr/local/cargo
 USER developer
 WORKDIR /app
 
