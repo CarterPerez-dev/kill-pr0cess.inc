@@ -695,7 +695,7 @@ impl MetricsCollector {
             .collect();
         summary.insert("timers".to_string(), timer_data.into());
 
-        summary.insert("timestamp".to_string(), chrono::Utc::now().into());
+        summary.insert("timestamp".to_string(), serde_json::json!(chrono::Utc::now()));
         summary.insert("uptime_seconds".to_string(), self.inner.start_time.elapsed().as_secs().into());
 
         Ok(summary.into())
@@ -756,15 +756,6 @@ impl MetricsCollector {
     }
 }
 
-/// Macro for convenient timing measurements
-/// I'm providing syntactic sugar for common timing patterns
-#[macro_export]
-macro_rules! time_operation {
-    ($collector:expr, $name:expr, $block:block) => {{
-        let _timer = $collector.start_timing($name);
-        $block
-    }};
-}
 
 /// Macro for recording metrics with error handling
 /// I'm providing safe metrics recording with automatic error handling

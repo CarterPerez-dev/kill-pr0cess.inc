@@ -13,6 +13,7 @@ pub use error::{AppError, Result, ErrorContext, ResultExt};
 pub use metrics::{MetricsCollector, PerformanceTimer, TimingGuard};
 
 use serde::{Deserialize, Serialize};
+use tracing::{info, warn};
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 use chrono::{DateTime, Utc};
 
@@ -361,7 +362,7 @@ where
 
 /// Circuit breaker pattern implementation
 /// I'm implementing circuit breaker for service resilience
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum CircuitState {
     Closed,
     Open,
@@ -392,49 +393,72 @@ impl CircuitBreaker {
         F: FnOnce() -> std::result::Result<T, E>,
         E: From<AppError>,
     {
-        let state = {
-            let mut current_state_guard = self.state.lock().unwrap();
-            let mut failure_count = self.failure_count.lock().unwrap();
-            let mut last_failure_time = self.last_failure_time.lock().unwrap();
-
-            match *state {
+        // First, check the current state and decide if we can proceed or need to transition
+        let can_proceed = {
+            let mut current_state_guard = self.state.lock().unwrap(); // Lock to read and potentially modify
+            match *current_state_guard {
+                CircuitState::Closed => true,
+                CircuitState::HalfOpen => true, // Allow one attempt in HalfOpen
                 CircuitState::Open => {
-                    if let Some(last_failure) = *last_failure_time {
+                    let last_failure_time_guard = self.last_failure_time.lock().unwrap();
+                    if let Some(last_failure) = *last_failure_time_guard {
                         if Instant::now().duration_since(last_failure) > self.timeout {
-                            *state = CircuitState::HalfOpen;
-                            CircuitState::HalfOpen
+                            // Timeout has passed, transition to HalfOpen
+                            info!("CircuitBreaker: Timeout elapsed, transitioning from Open to HalfOpen.");
+                            *current_state_guard = CircuitState::HalfOpen;
+                            true // Allow this call as the first attempt in HalfOpen
                         } else {
-                            return Err(AppError::ServiceUnavailableError(
-                                "Circuit breaker is OPEN".to_string()
-                            ).into());
+                            // Still in Open state, timeout not elapsed
+                            false
                         }
                     } else {
-                        CircuitState::Open
+                        // Should not happen if last_failure_time is always set on failure
+                        // but if it does, stay open.
+                        warn!("CircuitBreaker: In Open state but no last_failure_time recorded.");
+                        false
                     }
                 }
-                _ => state.clone(),
             }
         };
 
+        if !can_proceed {
+            return Err(AppError::ServiceUnavailableError(
+                "Circuit breaker is OPEN".to_string(),
+            )
+            .into());
+        }
+
+        // If we can proceed, attempt the operation
         match operation() {
             Ok(result) => {
-                // Reset on success
+                // Operation succeeded
+                let mut current_state_guard = self.state.lock().unwrap();
+                if *current_state_guard == CircuitState::HalfOpen {
+                    info!("CircuitBreaker: Successful call in HalfOpen state, transitioning to Closed.");
+                }
+                *current_state_guard = CircuitState::Closed;
                 *self.failure_count.lock().unwrap() = 0;
-                *self.state.lock().unwrap() = CircuitState::Closed;
+                *self.last_failure_time.lock().unwrap() = None; // Clear last failure time
                 Ok(result)
             }
             Err(error) => {
-                let mut failure_count = self.failure_count.lock().unwrap();
-                let mut state = self.state.lock().unwrap();
-                let mut last_failure_time = self.last_failure_time.lock().unwrap();
+                // Operation failed
+                let mut failure_count_guard = self.failure_count.lock().unwrap();
+                let mut current_state_guard = self.state.lock().unwrap();
+                let mut last_failure_time_guard = self.last_failure_time.lock().unwrap();
 
-                *failure_count += 1;
-                *last_failure_time = Some(Instant::now());
+                *failure_count_guard += 1;
+                *last_failure_time_guard = Some(Instant::now());
 
-                if *failure_count >= self.failure_threshold {
-                    *state = CircuitState::Open;
+                if *current_state_guard == CircuitState::HalfOpen {
+                    // Failure in HalfOpen state, trip back to Open
+                    info!("CircuitBreaker: Failure in HalfOpen state, transitioning back to Open.");
+                    *current_state_guard = CircuitState::Open;
+                } else if *failure_count_guard >= self.failure_threshold {
+                    // Failure threshold reached in Closed state, trip to Open
+                    info!("CircuitBreaker: Failure threshold reached, transitioning from Closed to Open.");
+                    *current_state_guard = CircuitState::Open;
                 }
-
                 Err(error)
             }
         }

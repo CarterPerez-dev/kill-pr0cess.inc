@@ -13,7 +13,7 @@ use chrono::{DateTime, Utc};
 pub struct Repository {
     pub id: i64,
     pub github_id: i64,
-    pub owner: String,
+    pub owner_login: String,
     pub name: String,
     pub full_name: String,
     pub description: Option<String>,

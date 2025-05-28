@@ -76,6 +76,8 @@ CREATE TABLE fractal_computations (
     computation_time_ms INTEGER NOT NULL,
     memory_used_bytes BIGINT,
     cpu_cores_used INTEGER,
+    cpu_usage_percent DOUBLE PRECISION,
+    memory_usage_mb DOUBLE PRECISION,
     parallel_threads INTEGER,
     pixels_computed BIGINT GENERATED ALWAYS AS (width * height) STORED,
     pixels_per_ms DOUBLE PRECISION GENERATED ALWAYS AS (

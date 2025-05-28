@@ -9,6 +9,9 @@ use axum::{
     middleware,
     http::{header, Method},
 };
+
+use tower::ServiceBuilder;
+
 use tower_http::{
     cors::{Any, CorsLayer},
     compression::CompressionLayer,
@@ -307,26 +310,13 @@ fn create_api_router() -> Router<AppState> {
 
 /// Create comprehensive middleware stack for production deployment
 /// I'm implementing security, performance, and observability middleware
-fn create_middleware_stack(config: &Config) -> tower::ServiceBuilder<
-    tower::util::Stack<
-        tower::util::Stack<
-            tower::util::Stack<
-                TraceLayer<tower_http::classify::SharedClassifier<tower_http::classify::ServerErrorsAsFailures>>,
-                CompressionLayer,
-            >,
-            CorsLayer,
-        >,
-        tower::util::Identity,
-    >,
-> {
-    tower::ServiceBuilder::new()
-        // Request tracing for observability
+fn create_middleware_stack(config: &Config) -> ServiceBuilder<tower::layer::util::Identity> {
+    ServiceBuilder::new()
+
         .layer(TraceLayer::new_for_http())
 
-        // Response compression for performance
         .layer(CompressionLayer::new())
 
-        // CORS configuration
         .layer(create_cors_layer(config))
 }
 
@@ -389,7 +379,7 @@ async fn prometheus_metrics() -> Result<String, AppError> {
          # TYPE app_info gauge\n\
          app_info{{version=\"{}\",rust_version=\"{}\"}} 1\n",
         env!("CARGO_PKG_VERSION"),
-        env!("BUILD_RUST_VERSION").unwrap_or("unknown")
+        rust_version: option_env!("BUILD_RUST_VERSION").unwrap_or("unknown").to_string(),
     );
 
     Ok(metrics)

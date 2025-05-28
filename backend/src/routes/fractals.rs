@@ -286,9 +286,9 @@ pub async fn benchmark_generation(
     let benchmark_summary = serde_json::json!({
         "benchmark_results": benchmark_results,
         "system_context": {
-            "cpu_model": system_info.cpu_model,
-            "cpu_cores": system_info.cpu_cores,
-            "memory_total_gb": system_info.memory_total_mb / 1024,
+            "cpu_model": system_info["hardware"]["cpu"]["model"].as_str().unwrap_or_default(),
+            "cpu_cores": system_info["hardware"]["cpu"]["cores"].as_u64().unwrap_or_default(),
+            "memory_total_gb": system_info["hardware"]["memory"]["total_gb"].as_f64().unwrap_or_default(),
             "rust_version": env!("CARGO_PKG_VERSION"),
                                               "parallel_processing": true,
                                               "simd_optimized": cfg!(target_feature = "avx2")

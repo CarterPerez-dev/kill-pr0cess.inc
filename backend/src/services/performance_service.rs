@@ -5,7 +5,7 @@
 
 use serde::{Deserialize, Serialize};
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
-use sysinfo::{System, SystemExt, CpuExt, DiskExt, NetworkExt};
+use sysinfo::{System, SystemExt, CpuExt, DiskExt, NetworkExt, NetworksExt, ComponentExt};
 use tokio::sync::RwLock;
 use tracing::{info, warn, debug};
 use std::sync::Arc;
@@ -243,7 +243,7 @@ impl PerformanceService {
         sqlx::query!(
             r#"
             INSERT INTO performance_metrics (
-                metric_type, metric_value, metric_unit, timestamp, metadata
+                metric_type, metric_value, metric_unit, timestamp, tags
             ) VALUES
                 ('cpu_usage', $1, 'percent', $2, $3),
                 ('memory_usage', $4, 'percent', $2, $3),

@@ -1,6 +1,4 @@
-# Clean development Dockerfile for SolidJS frontend with vite-plugin-solid patch.
-# I'm creating a straightforward development environment that applies the necessary patches without complex scripting.
-
+# frontend/Dockerfile.dev
 FROM node:20-alpine
 
 # I'm installing essential development dependencies
@@ -12,24 +10,18 @@ RUN apk add --no-cache \
     g++ \
     && rm -rf /var/cache/apk/*
 
-# I'm creating a non-root user for security
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S frontend -u 1001 -G nodejs
-
-RUN mkdir -p /app && chown frontend:nodejs /app
-
-USER frontend
 WORKDIR /app
 
 # I'm copying package files for dependency installation
-COPY --chown=frontend:nodejs package*.json ./
+COPY package*.json ./
 
-# I'm installing dependencies
+# I'm installing dependencies (as root, since we are root now)
 RUN npm ci --legacy-peer-deps || npm install --legacy-peer-deps
 
 # I'm copying and applying the vite plugin patch
-COPY --chown=frontend:nodejs vite-plugin-solid-patch.js ./
+COPY vite-plugin-solid-patch.js ./
 RUN node vite-plugin-solid-patch.js
+COPY . .
 
 # I'm setting development environment variables
 ENV NODE_ENV=development
@@ -39,5 +31,5 @@ ENV VITE_API_URL=http://localhost:3001
 # I'm exposing the development server port
 EXPOSE 3000
 
-# I'm starting the development server
+# I'm starting the development server (as root)
 CMD ["npm", "run", "dev"]

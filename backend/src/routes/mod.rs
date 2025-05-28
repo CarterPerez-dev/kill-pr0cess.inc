@@ -16,8 +16,8 @@ pub use health::*;
 
 use axum::{
     Router,
-    routing::{get, post},
-    middleware,
+    response::IntoResponse,
+    routing::{get, post, Route},
     http::{Method, HeaderValue},
 };
 use tower_http::{
@@ -67,32 +67,25 @@ pub fn create_router() -> Router<AppState> {
     .layer(create_middleware_stack())
 }
 
-/// Create a comprehensive middleware stack for security, performance, and observability
-/// I'm implementing production-ready middleware with intelligent configuration
-fn create_middleware_stack() -> tower::util::Stack<
-impl tower::Layer<axum::routing::Router>,
-tower::util::Identity,
-> {
-    tower::ServiceBuilder::new()
-    // Request timeout to prevent hanging requests
-    .layer(TimeoutLayer::new(Duration::from_secs(30)))
+/// Build the common middleware stack applied to every route.
+///
+/// Layers included:
+/// - CORS
+/// - Compression
+/// - Timeout
+/// - Trace (high-level request/response logging)
+/// - Request body size limit
+///
+/// Additional layers (e.g. rate-limiting) can be appended later.
+fn create_middleware_stack() -> impl tower::Layer<Route> + Clone {
+    use tower::ServiceBuilder;
 
-    // Request body size limit for security
-    .layer(RequestBodyLimitLayer::new(10 * 1024 * 1024)) // 10MB limit
-
-    // Compression for performance
-    .layer(CompressionLayer::new())
-
-    // CORS configuration
-    .layer(create_cors_layer())
-
-    // Request tracing for observability
-    .layer(TraceLayer::new_for_http())
-
-    // Custom rate limiting middleware would go here
-    // .layer(middleware::from_fn(rate_limiting_middleware))
-
-    .into_inner()
+    ServiceBuilder::new()
+        .layer(create_cors_layer())
+        .layer(CompressionLayer::new())
+        .layer(TimeoutLayer::new(Duration::from_secs(30)))
+        .layer(RequestBodyLimitLayer::new(10 * 1024 * 1024)) // 10 MiB max body
+        .layer(TraceLayer::new_for_http())
 }
 
 /// Create CORS layer with appropriate configuration for different environments

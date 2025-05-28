@@ -102,6 +102,18 @@ fn main() {
 
         // Configure performance monitoring
         setup_performance_monitoring();
+
+    let rustc_version_output = std::process::Command::new("rustc")
+        .arg("--version")
+        .output()
+        .expect("Failed to get rustc version");
+    let rustc_version_str = String::from_utf8(rustc_version_output.stdout)
+        .expect("rustc --version output is not valid UTF-8");
+    let rust_version_short = rustc_version_str.split_whitespace().nth(1).unwrap_or("unknown");
+    println!("cargo:rustc-env=BUILD_RUST_VERSION={}", rust_version_short);
+
+    // Ensure build script reruns if it changes
+    println!("cargo:rerun-if-changed=build.rs");
 }
 
 /// Check if SIMD instructions are supported for the target architecture

@@ -67,10 +67,10 @@ struct GitHubLicense {
 
 #[derive(Debug, Deserialize)]
 struct GitHubRateLimit {
-    limit: u32,
-    remaining: u32,
-    reset: u64,
-    used: u32,
+    pub limit: u32,
+    pub remaining: u32,
+    pub reset: u64,
+    pub used: u32,
 }
 
 #[derive(Debug, Deserialize)]
@@ -191,7 +191,7 @@ impl GitHubService {
         info!("Fetched {} repositories for user: {}", all_repos.len(), username);
 
         // Cache the results with 1-hour TTL
-        if let Err(e) = self.cache_service.set(&cache_key, &all_repos, 3600).await {
+          if let Err(e) = self.cache_service.set(&cache_key, &all_repos, Some(3600)).await {
             warn!("Failed to cache repository data: {}", e);
         }
 
@@ -278,7 +278,7 @@ impl GitHubService {
                         if let Some(content) = content_response.get("content")
                             .and_then(|c| c.as_str()) {
                                 // Decode base64 content
-                                if let Ok(decoded) = base64::decode(content.replace('\n', "")) {
+                                if let Ok(decoded) = base64::decode(&content.replace('\n', "")) {
                                     if let Ok(readme_text) = String::from_utf8(decoded) {
                                         debug!("Found README: {} for {}/{}", readme_file, owner, name);
                                         return Ok(readme_text);
@@ -404,7 +404,7 @@ impl GitHubService {
         Repository {
             id: api_repo.id as i64,
             github_id: api_repo.id as i64,
-            owner: api_repo.owner.login,
+            owner_login: api_repo.owner.login,
             name: api_repo.name,
             full_name: api_repo.full_name,
             description: api_repo.description,
@@ -448,7 +448,7 @@ impl GitHubService {
             let result = sqlx::query!(
                 r#"
                 INSERT INTO repositories (
-                    github_id, owner, name, full_name, description, html_url, clone_url, ssh_url,
+                    github_id, owner_login, name, full_name, description, html_url, clone_url, ssh_url,
                     language, size_kb, stargazers_count, watchers_count, forks_count, open_issues_count,
                     created_at, updated_at, pushed_at, is_private, is_fork, is_archived, topics,
                     license_name, cached_at, cache_expires_at
@@ -471,7 +471,7 @@ impl GitHubService {
                 cache_expires_at = EXCLUDED.cache_expires_at
                 "#,
                 repo.github_id,
-                repo.owner,
+                repo.owner_login,
                 repo.name,
                 repo.full_name,
                 repo.description,
@@ -499,7 +499,7 @@ impl GitHubService {
             .await;
 
             if let Err(e) = result {
-                warn!("Failed to store repository {}/{} in database: {}", repo.owner, repo.name, e);
+                warn!("Failed to store repository {}/{} in database: {}", repo.owner_login, repo.name, e);
             }
         }
 

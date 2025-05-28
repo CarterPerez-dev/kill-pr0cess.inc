@@ -149,7 +149,7 @@ impl CacheService {
     /// I'm implementing intelligent cache retrieval with metadata tracking
     pub async fn get<T>(&self, key: &str) -> Result<Option<T>>
     where
-    T: DeserializeOwned + Send + Sync,
+    T: DeserializeOwned + Send + Sync + Serialize,
     {
         let full_key = self.build_key(key);
         let mut conn = self.get_connection().await?;
@@ -234,7 +234,7 @@ impl CacheService {
 
         debug!("Cache SET: {} (TTL: {}s)", full_key, ttl);
 
-        conn.set_ex(&full_key, serialized, ttl as usize).await // Using set_ex for value and TTL together
+        conn.set_ex(&full_key, serialized, ttl).await // Using set_ex for value and TTL together
         .map_err(|e| AppError::CacheError(format!("Failed to set cache entry: {}", e)))?;
 
         Ok(())
@@ -471,8 +471,8 @@ impl CacheService {
         // Set expiration for all keys in a pipeline for efficiency
         let mut pipe = redis::pipe();
         for (key, _) in entries { // Iterate original keys to avoid issues with kv_pairs_for_redis potentially being moved
-            let full_key = self.build_key(key);
-            pipe.expire(full_key, ttl as usize);
+            let full_key_for_expire = self.build_key(key);
+            pipe.expire(full_key_for_expire, ttl);
         }
         pipe.query_async(&mut conn).await
             .map_err(|e| AppError::CacheError(format!("Failed to set expiration for multiple keys: {}", e)))?;

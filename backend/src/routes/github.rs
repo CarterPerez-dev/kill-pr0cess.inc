@@ -339,12 +339,12 @@ async fn get_repositories_from_db(app_state: &AppState, username: &str) -> Resul
         Repository,
         r#"
         SELECT
-        id, github_id, owner, name, full_name, description, html_url, clone_url, ssh_url,
+        id, github_id, owner_login, name, full_name, description, html_url, clone_url, ssh_url,
         language, size_kb, stargazers_count, watchers_count, forks_count, open_issues_count,
         created_at, updated_at, pushed_at, is_private, is_fork, is_archived, topics,
         license_name, readme_content, cached_at, cache_expires_at
         FROM repositories
-        WHERE owner = $1 AND cache_expires_at > NOW()
+        WHERE owner_login = $1 AND cache_expires_at > NOW()
     ORDER BY updated_at DESC
     "#,
     username
@@ -361,12 +361,12 @@ async fn get_single_repository(app_state: &AppState, owner: &str, name: &str) ->
         Repository,
         r#"
         SELECT
-        id, github_id, owner, name, full_name, description, html_url, clone_url, ssh_url,
+        id, github_id, owner_login, name, full_name, description, html_url, clone_url, ssh_url,
         language, size_kb, stargazers_count, watchers_count, forks_count, open_issues_count,
         created_at, updated_at, pushed_at, is_private, is_fork, is_archived, topics,
         license_name, readme_content, cached_at, cache_expires_at
         FROM repositories
-        WHERE owner = $1 AND name = $2
+        WHERE owner_login = $1 AND name = $2
         LIMIT 1
         "#,
         owner,
@@ -382,7 +382,7 @@ async fn get_single_repository(app_state: &AppState, owner: &str, name: &str) ->
 async fn record_repository_access(app_state: &AppState, owner: &str, name: &str) -> Result<()> {
     sqlx::query!(
         r#"
-        INSERT INTO performance_metrics (metric_type, metric_value, metric_unit, endpoint, metadata)
+        INSERT INTO performance_metrics (metric_type, metric_value, metric_unit, endpoint, tags)
     VALUES ('repository_access', 1, 'count', $1, $2)
     "#,
     format!("/api/github/repo/{}/{}", owner, name),

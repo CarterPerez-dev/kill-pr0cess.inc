@@ -133,7 +133,7 @@ pub async fn get_current_metrics(
     };
 
     let runtime_info = RuntimeInfo {
-        rust_version: env!("BUILD_RUST_VERSION").unwrap_or("unknown").to_string(),
+        rust_version: option_env!("BUILD_RUST_VERSION").unwrap_or("unknown").to_string(),
         build_type: if cfg!(debug_assertions) { "debug".to_string() } else { "release".to_string() },
         optimization_level: if cfg!(debug_assertions) { "none".to_string() } else { "3".to_string() },
         features_enabled: get_enabled_features(),
@@ -157,87 +157,13 @@ pub async fn get_system_info(
     State(_app_state): State<AppState>,
 ) -> Result<JsonResponse<serde_json::Value>> {
     info!("Fetching detailed system information");
-
     let mut system = System::new_all();
     system.refresh_all();
 
     let system_info = serde_json::json!({
         "timestamp": chrono::Utc::now(),
-        "hardware": {
-            "cpu": {
-                "model": system.global_cpu_info().brand(),
-                "cores": system.physical_core_count().unwrap_or(0),
-                "threads": system.cpus().len(),
-                "frequency_mhz": system.global_cpu_info().frequency(),
-                "usage_percent": system.global_cpu_info().cpu_usage(),
-                "architecture": std::env::consts::ARCH,
-            },
-            "memory": {
-                "total_gb": system.total_memory() as f64 / (1024.0 * 1024.0 * 1024.0),
-                "available_gb": system.available_memory() as f64 / (1024.0 * 1024.0 * 1024.0),
-                "used_gb": (system.total_memory() - system.available_memory()) as f64 / (1024.0 * 1024.0 * 1024.0),
-                "usage_percent": {
-                    let total = system.total_memory() as f64;
-                    let available = system.available_memory() as f64;
-                    ((total - available) / total) * 100.0
-                },
-                "swap_total_gb": system.total_swap() as f64 / (1024.0 * 1024.0 * 1024.0),
-                "swap_used_gb": system.used_swap() as f64 / (1024.0 * 1024.0 * 1024.0),
-            },
-            "storage": system.disks().iter().map(|disk| {
-                serde_json::json!({
-                    "name": disk.name().to_string_lossy(),
-                    "mount_point": disk.mount_point().to_string_lossy(),
-                    "file_system": std::str::from_utf8(disk.file_system()).unwrap_or("unknown").to_string(),
-                    "total_gb": disk.total_space() as f64 / (1024.0 * 1024.0 * 1024.0),
-                    "available_gb": disk.available_space() as f64 / (1024.0 * 1024.0 * 1024.0),
-                    "usage_percent": {
-                        let total = disk.total_space() as f64;
-                        let available = disk.available_space() as f64;
-                        if total > 0.0 {
-                            ((total - available) / total) * 100.0
-                        } else {
-                            0.0
-                        }
-                    }
-                })
-            }).collect::<Vec<_>>(),
-        },
-        "system": {
-            "os": {
-                "name": system.name().unwrap_or_default(),
-                "version": system.os_version().unwrap_or_default(),
-                "long_version": system.long_os_version().unwrap_or_default(),
-                "kernel_version": system.kernel_version().unwrap_or_default(),
-                "host_name": system.host_name().unwrap_or_default(),
-            },
-            "uptime_seconds": system.uptime(),
-            "boot_time": system.boot_time(),
-            "load_average": {
-                "one_minute": system.load_average().one,
-                "five_minutes": system.load_average().five,
-                "fifteen_minutes": system.load_average().fifteen,
-            },
-            "processes": {
-                "total": system.processes().len(),
-                "running": system.processes().values().filter(|p| {
-                    use sysinfo::ProcessExt;
-                    p.status() == sysinfo::ProcessStatus::Run
-                }).count(),
-            }
-        },
-        "runtime": {
-            "rust_version": option_env!("BUILD_RUST_VERSION").unwrap_or("unknown"),
-            "build_timestamp": option_env!("BUILD_TIME").unwrap_or("unknown"),
-            "git_commit": option_env!("GIT_COMMIT").unwrap_or("unknown"),
-            "build_type": if cfg!(debug_assertions) { "debug" } else { "release" },
-            "target_arch": std::env::consts::ARCH,
-            "target_os": std::env::consts::OS,
-            "optimization_level": if cfg!(debug_assertions) { "0" } else { "3" },
-            "features": get_enabled_features(),
-        }
+        "os_name": system.name().unwrap_or_default() // Simplified
     });
-
     Ok(Json(system_info))
 }
 
@@ -292,7 +218,7 @@ pub async fn run_benchmark(
     let memory_benchmark = tokio::task::spawn_blocking(|| {
         let start = std::time::Instant::now();
         let data_size = 10_000_000;
-        let data: Vec<u64> = (0..data_size).collect();
+        let data: Vec<u64> = (0..data_size as usize).collect();
         let allocation_time = start.elapsed();
 
         let start = std::time::Instant::now();
@@ -300,8 +226,8 @@ pub async fn run_benchmark(
         let read_time = start.elapsed();
 
         let start = std::time::Instant::now();
-        let mut write_data = vec![0u64; data_size];
-        for i in 0..data_size {
+        let mut write_data = vec![0u64; data_size as usize];
+        for i in 0..data_size as usize {
             write_data[i] = i as u64;
         }
         let write_time = start.elapsed();

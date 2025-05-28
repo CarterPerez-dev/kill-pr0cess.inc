@@ -4,6 +4,7 @@
  */
 
 use axum::{
+    response::IntoResponse,
     extract::State,
     http::StatusCode,
     Json,
@@ -12,6 +13,7 @@ use axum::{
 use serde::{Deserialize, Serialize};
 use std::time::{Duration, Instant};
 use tracing::{info, warn, error};
+use sqlx::Row;
 
 use crate::{
     utils::error::{AppError, Result},
@@ -128,7 +130,7 @@ pub async fn health_check(
         &redis_status.status,
         &github_status.status,
         &fractal_status.status,
-        &system_status,
+        &system_check.status,
     ]);
 
     // Collect performance metrics

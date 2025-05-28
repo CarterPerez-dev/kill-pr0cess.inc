@@ -57,7 +57,7 @@ sqlx = { version = "0.7", features = [ "runtime-tokio-rustls", "postgres", "chro
 redis = { version = "0.24", features = ["tokio-comp", "connection-manager", "streams"], optional = true }
 
 # HTTP client with full feature set
-reqwest = { version = "0.11", features = ["json", "stream", "multipart", "cookies"] }
+reqwest = { version = "0.11", default-features = false, features = ["json", "stream", "multipart", "cookies", "rustls-tls"] }
 
 # Async utilities and concurrency
 futures = "0.3"
@@ -91,7 +91,7 @@ ndarray = "0.15"
 
 # Performance monitoring and metrics
 metrics = { version = "0.22", optional = true }
-metrics-exporter-prometheus = { version = "0.13", features = ["push-gateway"], optional = true }
+metrics-exporter-prometheus = { version = "0.13", default-features = false, optional = true }
 metrics-util = "0.16"
 sysinfo = "0.29"
 
