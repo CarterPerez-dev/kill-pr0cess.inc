@@ -10,7 +10,7 @@
     "allowJs": true,
     "noEmit": true,
     "strict": true,
-    "types": ["vinxi/types/client"],
+    "types": ["vinxi/types/client", "vite/client"],
     "isolatedModules": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
@@ -41,7 +41,8 @@
     "src/**/*.tsx",
     "src/**/*.ts",
     "app.config.ts",
-    "tailwind.config.js"
+    "tailwind.config.js",
+    "postcss.config.js"
   ],
   "exclude": [
     "node_modules",
@@ -49,10 +50,5 @@
     ".solid",
     ".output",
     ".vinxi"
-  ],
-  "references": [
-    {
-      "path": "./tsconfig.server.json"
-    }
   ]
 }

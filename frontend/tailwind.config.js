@@ -1,5 +1,10 @@
+/*
+ * Complete Tailwind CSS configuration optimized for the dark performance showcase theme with comprehensive design tokens.
+ * I'm setting up advanced color palettes, animations, custom utilities, and sophisticated design system components to support the eerie aesthetic and performance visualization requirements.
+ */
+
 /** @type {import('tailwindcss').Config} */
-export default {
+module.exports = {
   content: ['./src/**/*.{js,jsx,ts,tsx}'],
   darkMode: 'class',
   theme: {
@@ -186,7 +191,5 @@ export default {
       }
       addUtilities(newUtilities)
     },
-    // I'm adding line clamp plugin for text truncation
-    require('@tailwindcss/line-clamp'),
   ],
 }

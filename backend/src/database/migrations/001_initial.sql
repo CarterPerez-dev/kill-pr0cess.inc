@@ -41,7 +41,7 @@ CREATE TABLE repositories (
 
 -- Performance metrics table for system and application monitoring
 CREATE TABLE performance_metrics (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID DEFAULT uuid_generate_v4(),
     metric_type VARCHAR(100) NOT NULL, -- 'cpu', 'memory', 'disk', 'network', 'response_time', 'throughput'
     metric_name VARCHAR(255) NOT NULL,
     metric_value DOUBLE PRECISION NOT NULL,
@@ -55,7 +55,8 @@ CREATE TABLE performance_metrics (
     session_id UUID,
     -- Performance context
     server_instance VARCHAR(100),
-    environment VARCHAR(50) DEFAULT 'production'
+    environment VARCHAR(50) DEFAULT 'production',
+    PRIMARY KEY (timestamp, id)
 );
 
 -- Fractal computations table for tracking generation performance and parameters

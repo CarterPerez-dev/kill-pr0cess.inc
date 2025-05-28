@@ -236,7 +236,9 @@ pub async fn get_system_info(
             "optimization_level": if cfg!(debug_assertions) { "0" } else { "3" },
             "features": get_enabled_features(),
         }
-    });
+    }));
+        Ok(Json(system_info))
+    }
 
 /// Run comprehensive performance benchmark
 /// I'm implementing a thorough benchmark suite for performance evaluation
