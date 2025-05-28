@@ -146,7 +146,7 @@ async fn rate_limiting_middleware<B>(
 
 /// Rate limiting configuration for different endpoint types
 /// I'm categorizing endpoints by their computational cost and security requirements
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize)]
 struct RateLimit {
     requests_per_minute: u32,
     burst_size: u32,

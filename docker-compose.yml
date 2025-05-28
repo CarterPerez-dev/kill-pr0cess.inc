@@ -61,7 +61,7 @@ services:
     networks:
       - dark_network
     volumes:
-      - ./backend:/app:cached
+      - ./backend:/app:delegated
       - backend_target:/app/target
       - backend_cargo_registry:/usr/local/cargo/registry
     restart: unless-stopped
@@ -82,7 +82,7 @@ services:
     networks:
       - dark_network
     volumes:
-      - ./frontend:/app:cached
+      - ./frontend:/app:delegated
       - frontend_node_modules:/app/node_modules
     restart: unless-stopped
 

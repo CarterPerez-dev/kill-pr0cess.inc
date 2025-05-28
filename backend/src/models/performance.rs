@@ -474,7 +474,7 @@ impl SystemInfo {
     /// Calculate overall system health score
     /// I'm implementing comprehensive system health assessment
     pub fn calculate_health_score(&self) -> f64 {
-        let mut score = 100.0;
+        let mut score: f64 = 100.0;
 
         // CPU usage impact
         if self.cpu_usage_percent > 90.0 {

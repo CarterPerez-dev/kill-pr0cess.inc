@@ -1,9 +1,6 @@
-/*
- * High-performance caching service with Redis integration, intelligent TTL management, and comprehensive error handling.
- * I'm implementing a robust caching layer that optimizes data access patterns while maintaining data consistency and reliability.
- */
+// backend/src/services/cache_service.rs
 
-use redis::{Client, Connection, AsyncCommands};
+use redis::{Client, AsyncCommands}; // Removed `Connection` as it wasn't directly used in the struct
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use tracing::{info, warn, error, debug};
@@ -14,12 +11,26 @@ use crate::utils::error::{AppError, Result};
 
 /// Cache service with Redis backend and intelligent key management
 /// I'm providing a comprehensive caching solution with performance optimization and reliability features
-#[derive(Debug, Clone)]
+#[derive(Clone)] // <<<< IMPORTANT: Removed `Debug` from here
 pub struct CacheService {
     client: Client,
     key_prefix: String,
     default_ttl: u64,
-        connection_pool: Arc<RwLock<Option<redis::aio::ConnectionManager>>>,
+    connection_pool: Arc<RwLock<Option<redis::aio::ConnectionManager>>>,
+}
+
+// Manually implement Debug for CacheService
+impl std::fmt::Debug for CacheService {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("CacheService")
+            .field("client", &"<RedisClient>") // Placeholder for client as it might not be Debug or simple to Debug
+            .field("key_prefix", &self.key_prefix)
+            .field("default_ttl", &self.default_ttl)
+            .field("connection_pool", &"<ConnectionPool>") // Placeholder for connection_pool
+            .finish()
+        // Or, if you want to indicate that some fields are not shown:
+        // .finish_non_exhaustive()
+    }
 }
 
 /// Cache entry with metadata for advanced cache management
@@ -67,7 +78,7 @@ impl CacheService {
             client: redis_client,
             key_prefix: "perf_showcase:".to_string(),
             default_ttl: 3600, // 1 hour default TTL
-                connection_pool: Arc::new(RwLock::new(None)),
+            connection_pool: Arc::new(RwLock::new(None)),
         }
     }
 
@@ -85,30 +96,29 @@ impl CacheService {
     /// Get a connection with automatic pool management
     /// I'm implementing intelligent connection pooling with automatic recovery
     async fn get_connection(&self) -> Result<redis::aio::ConnectionManager> {
-        let mut pool = self.connection_pool.write().await;
+        let mut pool_guard = self.connection_pool.write().await;
 
-        match pool.as_ref() {
-            Some(conn) => {
-                // Test connection health
-                match self.ping_connection(conn).await {
-                    Ok(_) => Ok(conn.clone()),
-                    Err(_) => {
-                        // Connection is stale, create new one
-                        warn!("Redis connection is stale, creating new connection");
-                        let new_conn = self.create_connection().await?;
-                        *pool = Some(new_conn.clone());
-                        Ok(new_conn)
-                    }
+        if let Some(conn_manager) = pool_guard.as_ref() {
+            // Test connection health
+            match self.ping_connection(conn_manager).await {
+                Ok(_) => return Ok(conn_manager.clone()),
+                Err(_) => {
+                    warn!("Redis connection is stale, creating new connection");
+                    // Connection is stale, drop it and create new one
                 }
             }
-            None => {
-                // Create initial connection
-                let new_conn = self.create_connection().await?;
-                *pool = Some(new_conn.clone());
-                Ok(new_conn)
-            }
         }
+
+        // Create initial or new connection
+        let new_conn_manager = redis::aio::ConnectionManager::new(self.client.clone())
+            .await
+            .map_err(|e| AppError::CacheError(format!("Failed to create Redis connection manager: {}", e)))?;
+
+        info!("Created new Redis connection manager");
+        *pool_guard = Some(new_conn_manager.clone());
+        Ok(new_conn_manager)
     }
+
 
     /// Create a new Redis connection with optimal settings
     /// I'm configuring Redis connections for maximum performance and reliability
@@ -123,10 +133,10 @@ impl CacheService {
 
     /// Test connection health with ping
     /// I'm implementing connection health verification
-    async fn ping_connection(&self, conn: &redis::aio::ConnectionManager) -> Result<()> {
-        let mut conn = conn.clone();
-        let response: String = conn.get("ping").await
-        .map_err(|e| AppError::CacheError(format!("Redis ping failed: {}", e)))?;
+    async fn ping_connection(&self, conn_manager: &redis::aio::ConnectionManager) -> Result<()> {
+        let mut conn = conn_manager.clone(); // Clone the manager to get a connection from its pool
+        let response: String = redis::cmd("PING").query_async(&mut conn).await
+            .map_err(|e| AppError::CacheError(format!("Redis ping failed: {}", e)))?;
 
         if response == "PONG" {
             Ok(())
@@ -156,7 +166,7 @@ impl CacheService {
                         if now > entry.expires_at {
                             debug!("Cache entry expired: {}", full_key);
                             // Asynchronously delete expired entry
-                            let _ = self.delete(key).await;
+                            let _ = self.delete(key).await; // Use existing delete method
                             return Ok(None);
                         }
 
@@ -164,10 +174,17 @@ impl CacheService {
                         entry.access_count += 1;
                         entry.last_accessed = now;
 
-                        // Update entry in cache (fire and forget)
-                        let updated_data = serde_json::to_string(&entry)
-                        .unwrap_or_else(|_| cached_data);
-                        let _ = conn.set::<_, _, ()>(&full_key, updated_data).await;
+                        // Update entry in cache (fire and forget, but handle potential errors)
+                        let updated_data_res = serde_json::to_string(&entry);
+                        if let Ok(updated_data) = updated_data_res {
+                           let set_result = conn.set::<_, _, ()>(&full_key, updated_data).await;
+                           if let Err(e) = set_result {
+                               warn!("Failed to update access metadata for cache key {}: {}", full_key, e);
+                           }
+                        } else if let Err(e) = updated_data_res {
+                             warn!("Failed to serialize updated metadata for cache key {}: {}", full_key, e);
+                        }
+
 
                         debug!("Cache HIT: {}", full_key);
                         Ok(Some(entry.data))
@@ -217,7 +234,7 @@ impl CacheService {
 
         debug!("Cache SET: {} (TTL: {}s)", full_key, ttl);
 
-        conn.setex(&full_key, ttl, serialized).await
+        conn.set_ex(&full_key, serialized, ttl as usize).await // Using set_ex for value and TTL together
         .map_err(|e| AppError::CacheError(format!("Failed to set cache entry: {}", e)))?;
 
         Ok(())
@@ -278,10 +295,10 @@ impl CacheService {
         let full_key = self.build_key(key);
         let mut conn = self.get_connection().await?;
 
-        let ttl: i64 = conn.ttl(&full_key).await
+        let ttl_val: Option<i64> = conn.ttl(&full_key).await // Changed to Option<i64> as per redis crate docs for non-existent keys or no expiry
         .map_err(|e| AppError::CacheError(format!("Failed to get cache TTL: {}", e)))?;
 
-        Ok(ttl)
+        Ok(ttl_val.unwrap_or(-2)) // Return -2 if key does not exist, -1 if no expiry, consistent with Redis TTL command
     }
 
     /// Flush all cache entries with the current prefix
@@ -314,8 +331,20 @@ impl CacheService {
         let mut conn = self.get_connection().await?;
 
         // Get Redis info
-        let info: redis::InfoDict = conn.info().await
-        .map_err(|e| AppError::CacheError(format!("Failed to get Redis info: {}", e)))?;
+        let info_str: String = redis::cmd("INFO").query_async(&mut conn).await
+            .map_err(|e| AppError::CacheError(format!("Failed to get Redis info: {}", e)))?;
+
+        // Parse INFO string manually or use a helper if available (redis::InfoDict is not directly async)
+        let mut info_map = std::collections::HashMap::new();
+        for line in info_str.lines() {
+            if line.starts_with('#') || line.is_empty() {
+                continue;
+            }
+            let parts: Vec<&str> = line.split(':').collect();
+            if parts.len() == 2 {
+                info_map.insert(parts[0].to_string(), parts[1].trim().to_string());
+            }
+        }
 
         // Get keys with our prefix
         let pattern = format!("{}*", self.key_prefix);
@@ -323,11 +352,10 @@ impl CacheService {
         .map_err(|e| AppError::CacheError(format!("Failed to get cache keys: {}", e)))?;
 
         let total_keys = keys.len() as u64;
-        let memory_usage_bytes = info.get("used_memory").unwrap_or(0u64);
+        let memory_usage_bytes = info_map.get("used_memory").and_then(|s| s.parse().ok()).unwrap_or(0u64);
 
-        // Calculate hit rate (simplified - in production you'd track this separately)
-        let keyspace_hits: u64 = info.get("keyspace_hits").unwrap_or(0);
-        let keyspace_misses: u64 = info.get("keyspace_misses").unwrap_or(0);
+        let keyspace_hits: u64 = info_map.get("keyspace_hits").and_then(|s| s.parse().ok()).unwrap_or(0);
+        let keyspace_misses: u64 = info_map.get("keyspace_misses").and_then(|s| s.parse().ok()).unwrap_or(0);
         let total_requests = keyspace_hits + keyspace_misses;
 
         let hit_rate = if total_requests > 0 {
@@ -337,7 +365,6 @@ impl CacheService {
         };
         let miss_rate = 1.0 - hit_rate;
 
-        // Get sample of most accessed keys (simplified implementation)
         let most_accessed_keys = keys.into_iter().take(10).collect();
 
         Ok(CacheStats {
@@ -345,10 +372,10 @@ impl CacheService {
             hit_rate,
             miss_rate,
             memory_usage_bytes,
-            expired_keys: info.get("expired_keys").unwrap_or(0),
-           evicted_keys: info.get("evicted_keys").unwrap_or(0),
-           average_ttl_seconds: self.default_ttl as f64, // Simplified
-           most_accessed_keys,
+            expired_keys: info_map.get("expired_keys").and_then(|s| s.parse().ok()).unwrap_or(0),
+            evicted_keys: info_map.get("evicted_keys").and_then(|s| s.parse().ok()).unwrap_or(0),
+            average_ttl_seconds: self.default_ttl as f64, // Simplified
+            most_accessed_keys,
         })
     }
 
@@ -417,8 +444,8 @@ impl CacheService {
 
         debug!("Cache MSET: {} entries (TTL: {}s)", entries.len(), ttl);
 
-        // Prepare entries
-        let mut kv_pairs = Vec::with_capacity(entries.len() * 2);
+        // Prepare entries as (key, value) tuples for mset_multiple
+        let mut kv_pairs_for_redis: Vec<(String, String)> = Vec::with_capacity(entries.len());
 
         for (key, value) in entries {
             let full_key = self.build_key(key);
@@ -434,19 +461,22 @@ impl CacheService {
             let serialized = serde_json::to_string(&entry)
             .map_err(|e| AppError::SerializationError(format!("Failed to serialize cache entry: {}", e)))?;
 
-            kv_pairs.push(full_key);
-            kv_pairs.push(serialized);
+            kv_pairs_for_redis.push((full_key, serialized));
         }
 
         // Set all entries
-        conn.mset(&kv_pairs).await
+        conn.mset(&kv_pairs_for_redis).await
         .map_err(|e| AppError::CacheError(format!("Failed to set multiple cache entries: {}", e)))?;
 
-        // Set expiration for all keys
-        for (key, _) in entries {
+        // Set expiration for all keys in a pipeline for efficiency
+        let mut pipe = redis::pipe();
+        for (key, _) in entries { // Iterate original keys to avoid issues with kv_pairs_for_redis potentially being moved
             let full_key = self.build_key(key);
-            let _ = conn.expire(&full_key, ttl as usize).await;
+            pipe.expire(full_key, ttl as usize);
         }
+        pipe.query_async(&mut conn).await
+            .map_err(|e| AppError::CacheError(format!("Failed to set expiration for multiple keys: {}", e)))?;
+
 
         Ok(())
     }
@@ -473,7 +503,7 @@ impl CacheService {
         let mut conn = self.get_connection().await?;
 
         // Test basic connectivity with ping
-        let ping_response: String = conn.ping().await
+        let ping_response: String = redis::cmd("PING").query_async(&mut conn).await
         .map_err(|e| AppError::CacheError(format!("Cache ping failed: {}", e)))?;
 
         if ping_response != "PONG" {
@@ -484,7 +514,7 @@ impl CacheService {
         let test_key = "health_check_test";
         let test_value = "test_data";
 
-        conn.setex(self.build_key(test_key), 10, test_value).await
+        conn.set_ex(self.build_key(test_key), test_value, 10).await // Use set_ex
         .map_err(|e| AppError::CacheError(format!("Cache set test failed: {}", e)))?;
 
         let retrieved: String = conn.get(self.build_key(test_key)).await
@@ -495,7 +525,8 @@ impl CacheService {
         }
 
         // Clean up test key
-        let _: i32 = conn.del(self.build_key(test_key)).await.unwrap_or(0);
+        let _: Option<i32> = conn.del(self.build_key(test_key)).await.map_err(|e| AppError::CacheError(format!("Cache del test failed: {}", e)))?;
+
 
         let response_time = start.elapsed().as_millis();
 
@@ -526,7 +557,7 @@ mod tests {
     #[tokio::test]
     #[ignore] // Requires Redis instance
     async fn test_cache_basic_operations() {
-        let client = redis::Client::open("redis://localhost:6379").unwrap();
+        let client = redis::Client::open("redis://127.0.0.1:6379").unwrap();
         let cache = CacheService::new(client);
 
         let test_data = TestData {

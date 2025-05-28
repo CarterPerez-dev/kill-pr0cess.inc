@@ -9,11 +9,7 @@ RUN apk add --no-cache \
     curl \
     && rm -rf /var/cache/apk/*
 
-# I'm creating a development user for security
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S developer -u 1001 -G nodejs
 
-USER developer
 WORKDIR /app
 
 # I'm copying package files for dependency installation

@@ -94,11 +94,11 @@ impl Utils {
 
     /// Parse size string (e.g., "1GB", "500MB") to bytes
     /// I'm implementing flexible size parsing for configuration
-    pub fn parse_size(size_str: &str) -> Result<u64, String> {
+     pub fn parse_size(size_str: &str) -> std::result::Result<u64, AppError> {
         let size_str = size_str.trim().to_uppercase();
 
         if size_str.is_empty() {
-            return Err("Empty size string".to_string());
+            return Err(AppError::ConfigurationError("Empty size string".to_string()));
         }
 
         // Extract number and unit
@@ -118,7 +118,7 @@ impl Utils {
         };
 
         let number: f64 = number_part.parse()
-            .map_err(|_| format!("Invalid number: {}", number_part))?;
+            .map_err(|_| AppError::ConfigurationError(format!("Invalid number: {}", number_part)))?;
 
         let multiplier = match unit_part {
             "" | "B" => 1,
@@ -127,7 +127,7 @@ impl Utils {
             "G" | "GB" => 1024 * 1024 * 1024,
             "T" | "TB" => 1024_u64.pow(4),
             "P" | "PB" => 1024_u64.pow(5),
-            _ => return Err(format!("Unknown unit: {}", unit_part)),
+            _ => return Err(AppError::ConfigurationError(format!("Unknown unit: {}", unit_part))),
         };
 
         Ok((number * multiplier as f64) as u64)
@@ -393,7 +393,7 @@ impl CircuitBreaker {
         E: From<AppError>,
     {
         let state = {
-            let mut state = self.state.lock().unwrap();
+            let mut current_state_guard = self.state.lock().unwrap();
             let mut failure_count = self.failure_count.lock().unwrap();
             let mut last_failure_time = self.last_failure_time.lock().unwrap();
 

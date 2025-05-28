@@ -50,9 +50,12 @@ export default defineConfig({
     // I'm configuring performance optimizations
     optimizeDeps: {
       include: ['solid-js', '@solidjs/router'],
-      exclude: ['@solidjs/start']
-    }
-  },
+             exclude: ['@solidjs/start'],
+         },
+         ssr: {
+             external: ["solid-js"],
+   }
+ },
   // I'm configuring SolidStart specific options
   start: {
     server: {

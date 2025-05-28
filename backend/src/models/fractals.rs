@@ -68,8 +68,8 @@ impl FractalType {
     }
 
     pub fn julia_constant(&self) -> Option<(f64, f64)> {
-        match self {
-            FractalType::Julia { c_real, c_imag } => Some(*c_real, *c_imag),
+        match *self {
+            FractalType::Julia { c_real, c_imag } => Some((c_real, c_imag)),
             _ => None,
         }
     }

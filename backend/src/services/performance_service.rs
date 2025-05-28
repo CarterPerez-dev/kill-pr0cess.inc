@@ -5,7 +5,7 @@
 
 use serde::{Deserialize, Serialize};
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
-use sysinfo::{System, SystemExt, CpuExt, DiskExt, NetworkExt, ProcessExt};
+use sysinfo::{System, SystemExt, CpuExt, DiskExt, NetworkExt};
 use tokio::sync::RwLock;
 use tracing::{info, warn, debug};
 use std::sync::Arc;
@@ -43,6 +43,7 @@ pub struct SystemMetrics {
 
 /// Performance monitoring service with comprehensive metrics collection
 /// I'm implementing real-time performance tracking with historical analysis
+#[derive(Clone)]
 pub struct PerformanceService {
     system: Arc<RwLock<System>>,
     metrics_history: Arc<RwLock<VecDeque<SystemMetrics>>>,

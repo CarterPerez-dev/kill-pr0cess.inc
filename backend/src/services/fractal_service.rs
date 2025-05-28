@@ -34,6 +34,7 @@ pub struct FractalResponse {
     pub zoom_level: f64,
 }
 
+#[derive(Clone)]
 pub struct FractalService;
 
 impl FractalService {

@@ -15,13 +15,9 @@ RUN apt-get update && apt-get install -y \
     redis-tools \
     && rm -rf /var/lib/apt/lists/*
 
-# I'm installing cargo-watch for automatic rebuilds during development
 RUN cargo install cargo-watch
 
-# I'm creating a development user for security
-RUN useradd -m -u 1001 -s /bin/bash developer
-RUN chown -R developer:developer /usr/local/cargo
-USER developer
+
 WORKDIR /app
 
 COPY --chown=developer:developer Cargo.toml ./Cargo.toml
