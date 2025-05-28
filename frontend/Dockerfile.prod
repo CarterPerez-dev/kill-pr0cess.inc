@@ -1,7 +1,3 @@
-# Production-optimized multi-stage Dockerfile for the SolidJS frontend with aggressive optimization and static serving.
-# I'm implementing comprehensive build optimization including tree-shaking, compression, and security hardening for maximum performance.
-
-# Build stage with Node.js development environment
 FROM node:20-alpine as builder
 
 # I'm setting up the build environment with necessary dependencies

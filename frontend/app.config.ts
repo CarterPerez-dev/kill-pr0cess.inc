@@ -4,15 +4,26 @@
  */
 
 import { defineConfig } from "@solidjs/start/config";
+import tailwindcss from "tailwindcss";
+import autoprefixer from "autoprefixer";
 
 export default defineConfig({
   server: {
     preset: "node",
+    // conditions: ["development", "browser", "worker", "solid", "solid-server"], // Removed as it's not a known property
+    // defaultServerConditions: [], // Removed as it's not a known property
     experimental: {
-      islands: false
+      // islands: false // Removed as it's not a known property
     }
   },
-  vite: {
+    vite: {
+      resolve: {
+        conditions: ['solid', 'development', 'browser', 'module', 'import', 'default', 'node'],
+        alias: {
+          '~': '/src',
+          '@': '/src',
+        }
+      },
     build: {
       target: 'esnext',
       minify: 'esbuild',
@@ -29,9 +40,7 @@ export default defineConfig({
       port: 3000,
       host: '0.0.0.0',
       open: false,
-      hmr: {
-        port: 3001,
-      },
+      hmr: false, // Re-enable HMR with default settings
     },
     define: {
       __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
@@ -40,16 +49,10 @@ export default defineConfig({
     css: {
       postcss: {
         plugins: [
-          require('tailwindcss'),
-          require('autoprefixer'),
+          tailwindcss(),
+          autoprefixer(),
         ],
       },
-    },
-    resolve: {
-      alias: {
-        '~': '/src',
-        '@': '/src',
-      }
     },
     optimizeDeps: {
       include: ['solid-js', '@solidjs/router', '@solidjs/meta'],
@@ -62,7 +65,7 @@ export default defineConfig({
   },
   solid: {
     ssr: true,
-    islands: false,
-    islandsRouter: false,
+    // islands: false, // Removed as it's not a known property
+    // islandsRouter: false, // Removed as it's not a known property
   },
 });
