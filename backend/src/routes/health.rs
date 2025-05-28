@@ -32,7 +32,7 @@ pub struct HealthCheckResponse {
     pub checks: Vec<HealthCheck>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Clone, Serialize)]
 pub enum ServiceStatus {
     Healthy,
     Degraded,

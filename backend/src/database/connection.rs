@@ -138,7 +138,7 @@ impl DatabaseManager {
            backend_count: result.try_get::<i64, _>("backend_count")? as u32,
            max_connections: result.try_get::<i32, _>("max_connections")? as u32,
            pool_size: self.pool.size(),
-           pool_idle: self.pool.num_idle(),
+           pool_idle: self.pool.num_idle() as u32,
         })
     }
 
@@ -426,7 +426,7 @@ impl ConnectionPoolMonitor {
     async fn collect_metrics(&self) -> Result<()> {
         let pool_size = self.pool.size();
         let idle_connections = self.pool.num_idle();
-        let active_connections = pool_size - idle_connections;
+        let active_connections = pool_size - (idle_connections as u32);
 
         // Log pool statistics
         debug!("Database pool stats - Total: {}, Active: {}, Idle: {}",

@@ -226,7 +226,7 @@ impl AppState {
             "environment": self.config.environment,
             "version": env!("CARGO_PKG_VERSION"),
             "build_info": {
-                "rust_version": env!("BUILD_RUST_VERSION").unwrap_or("unknown"),
+                "rust_version": env!("CARGO_PKG_RUST_VERSION"),
                 "build_time": env!("BUILD_TIME").unwrap_or("unknown"),
                 "git_commit": env!("GIT_COMMIT").unwrap_or("unknown"),
                 "debug_build": cfg!(debug_assertions),

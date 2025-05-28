@@ -8,7 +8,7 @@ use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::time::Instant;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct FractalRequest {
     pub width: u32,
     pub height: u32,

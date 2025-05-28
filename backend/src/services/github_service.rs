@@ -78,6 +78,16 @@ struct GitHubRateLimitResponse {
     rate: GitHubRateLimit,
 }
 
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RateLimitInfo {
+    pub limit: i32,
+    pub remaining: i32,
+    pub reset_at: chrono::DateTime<chrono::Utc>,
+    pub used: i32,
+    pub percentage_used: f64,
+}
+
 impl GitHubService {
     pub fn new(token: String, cache_service: CacheService) -> Self {
         // I'm setting up the HTTP client with optimal configuration for GitHub API

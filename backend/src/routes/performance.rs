@@ -186,9 +186,9 @@ pub async fn get_system_info(
             },
             "storage": system.disks().iter().map(|disk| {
                 serde_json::json!({
-                    "name": disk.name(),
-                    "mount_point": disk.mount_point(),
-                    "file_system": disk.file_system(),
+                    "name": disk.name().to_string_lossy(),
+                    "mount_point": disk.mount_point().to_string_lossy(),
+                    "file_system": std::str::from_utf8(disk.file_system()).unwrap_or("unknown"),
                     "total_gb": disk.total_space() as f64 / (1024.0 * 1024.0 * 1024.0),
                     "available_gb": disk.available_space() as f64 / (1024.0 * 1024.0 * 1024.0),
                     "usage_percent": {
@@ -205,11 +205,11 @@ pub async fn get_system_info(
         },
         "system": {
             "os": {
-                "name": system.name(),
-                "version": system.os_version(),
-                "long_version": system.long_os_version(),
-                "kernel_version": system.kernel_version(),
-                "host_name": system.host_name(),
+                "name": system.name().unwrap_or_default(),
+                "version": system.os_version().unwrap_or_default(),
+                "long_version": system.long_os_version().unwrap_or_default(),
+                "kernel_version": system.kernel_version().unwrap_or_default(),
+                "host_name": system.host_name().unwrap_or_default(),
             },
             "uptime_seconds": system.uptime(),
             "boot_time": system.boot_time(),
@@ -220,13 +220,16 @@ pub async fn get_system_info(
             },
             "processes": {
                 "total": system.processes().len(),
-                "running": system.processes().values().filter(|p| p.status() == sysinfo::ProcessStatus::Run).count(),
+                "running": system.processes().values().filter(|p| {
+                    use sysinfo::ProcessExt;
+                    p.status() == sysinfo::ProcessStatus::Run
+                }).count(),
             }
         },
         "runtime": {
             "rust_version": option_env!("BUILD_RUST_VERSION").unwrap_or("unknown"),
-            "build_timestamp": env!("BUILD_TIME").unwrap_or("unknown"),
-            "git_commit": env!("GIT_COMMIT").unwrap_or("unknown"),
+            "build_timestamp": option_env!("BUILD_TIME").unwrap_or("unknown"),
+            "git_commit": option_env!("GIT_COMMIT").unwrap_or("unknown"),
             "build_type": if cfg!(debug_assertions) { "debug" } else { "release" },
             "target_arch": std::env::consts::ARCH,
             "target_os": std::env::consts::OS,
@@ -234,10 +237,6 @@ pub async fn get_system_info(
             "features": get_enabled_features(),
         }
     });
-
-    info!("System information collected successfully");
-    Ok(Json(system_info))
-}
 
 /// Run comprehensive performance benchmark
 /// I'm implementing a thorough benchmark suite for performance evaluation
