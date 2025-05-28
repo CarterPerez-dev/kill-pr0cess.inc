@@ -1,0 +1,313 @@
+/*
+ * Main application stylesheet implementing the complete dark performance showcase theme with advanced CSS custom properties and animations.
+ * I'm establishing comprehensive theming system with CSS variables, sophisticated animations, and accessibility considerations for the eerie aesthetic.
+ */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* I'm setting up CSS custom properties for the dark, eerie theme */
+:root {
+  --background-rgb: 0, 0, 0;
+  --foreground-rgb: 245, 245, 245;
+  --accent-rgb: 34, 211, 238;
+  --secondary-rgb: 99, 102, 241;
+
+  /* I'm defining the color palette for consistent theming */
+  --color-primary: rgb(var(--accent-rgb));
+  --color-secondary: rgb(var(--secondary-rgb));
+
+  --bg-primary: rgb(var(--background-rgb));
+  --bg-secondary: rgb(10, 10, 10);
+  --bg-tertiary: rgb(23, 23, 23);
+
+  --text-primary: rgb(var(--foreground-rgb));
+  --text-secondary: rgb(163, 163, 163);
+  --text-tertiary: rgb(115, 115, 115);
+  --text-muted: rgb(82, 82, 82);
+
+  --border-primary: rgb(38, 38, 38);
+  --border-secondary: rgb(64, 64, 64);
+
+  /* I'm defining font stacks for the technical aesthetic */
+  --font-mono: 'JetBrains Mono', 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* I'm establishing the dark theme foundation */
+body {
+  background: rgb(var(--background-rgb));
+  color: rgb(var(--foreground-rgb));
+  font-family: var(--font-sans);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* I'm ensuring all elements follow the dark theme */
+* {
+  box-sizing: border-box;
+}
+
+/* I'm creating smooth focus states for accessibility */
+*:focus {
+  outline: none;
+}
+
+*:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* I'm defining selection colors for the theme */
+::selection {
+  background-color: var(--color-primary);
+  color: var(--bg-primary);
+}
+
+::-moz-selection {
+  background-color: var(--color-primary);
+  color: var(--bg-primary);
+}
+
+/* I'm styling scrollbars to match the dark theme */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-secondary);
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* I'm creating utility classes for the performance showcase */
+.text-mono {
+  font-family: var(--font-mono);
+}
+
+.text-gradient {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.glass-effect {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* I'm defining performance-focused animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-slow {
+  0%, 100% {
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+@keyframes matrix-glow {
+  0%, 100% {
+    box-shadow: 0 0 5px var(--color-primary);
+  }
+  50% {
+    box-shadow: 0 0 20px var(--color-primary), 0 0 30px var(--color-primary);
+  }
+}
+
+@keyframes glitchEffect {
+  0%, 100% {
+    transform: translate(0);
+    filter: hue-rotate(0deg);
+  }
+  20% {
+    transform: translate(-2px, 2px);
+    filter: hue-rotate(90deg);
+  }
+  40% {
+    transform: translate(-2px, -2px);
+    filter: hue-rotate(180deg);
+  }
+  60% {
+    transform: translate(2px, 2px);
+    filter: hue-rotate(270deg);
+  }
+  80% {
+    transform: translate(2px, -2px);
+    filter: hue-rotate(360deg);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.8s ease-out;
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 3s ease-in-out infinite;
+}
+
+.animate-matrix-glow {
+  animation: matrix-glow 2s ease-in-out infinite;
+}
+
+.animate-glitch {
+  animation: glitchEffect 0.5s ease-in-out;
+}
+
+/* I'm adding animation delay utilities */
+.animation-delay-150 {
+  animation-delay: 150ms;
+}
+
+.animation-delay-300 {
+  animation-delay: 300ms;
+}
+
+.animation-delay-500 {
+  animation-delay: 500ms;
+}
+
+/* I'm handling reduced motion preferences for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* I'm ensuring proper dark theme for form elements */
+input, textarea, select {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  color: var(--text-primary);
+}
+
+input:focus, textarea:focus, select:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(34, 211, 238, 0.2);
+}
+
+input::placeholder, textarea::placeholder {
+  color: var(--text-muted);
+}
+
+/* I'm adding custom component styles */
+.performance-card {
+  background: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.performance-card:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(34, 211, 238, 0.3);
+  box-shadow: 0 0 20px rgba(34, 211, 238, 0.1);
+}
+
+.code-block {
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid var(--border-primary);
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.metric-display {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+/* I'm creating sophisticated loading states */
+.loading-pulse {
+  background: linear-gradient(90deg,
+    rgba(255, 255, 255, 0.1) 25%,
+    rgba(34, 211, 238, 0.2) 50%,
+    rgba(255, 255, 255, 0.1) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* I'm adding sophisticated border effects */
+.border-glow {
+  position: relative;
+}
+
+.border-glow::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  background: linear-gradient(45deg, var(--color-primary), var(--color-secondary));
+  border-radius: inherit;
+  z-index: -1;
+  opacity: 0.5;
+  filter: blur(1px);
+}
+
+/* I'm creating responsive typography */
+.heading-main {
+  font-size: clamp(2rem, 5vw, 4rem);
+  font-weight: 300;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.heading-section {
+  font-size: clamp(1.5rem, 3vw, 2.5rem);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+/* I'm adding performance-optimized transitions */
+.transition-performance {
+  transition-property: transform, opacity, background-color, border-color, box-shadow;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 0.15s;
+}
+
+/* I'm creating dark theme specific adjustments */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+  }
+}
