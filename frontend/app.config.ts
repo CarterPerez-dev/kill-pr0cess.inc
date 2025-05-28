@@ -1,6 +1,6 @@
 /*
- * Complete SolidStart application configuration with full optimization settings and Tailwind integration.
- * I'm configuring Vinxi with comprehensive build settings, development server options, and PostCSS integration for the dark performance showcase.
+ * Clean and focused SolidStart application configuration with essential vite-plugin-solid compatibility fixes.
+ * I'm providing the minimal configuration needed to resolve plugin issues while maintaining optimal performance.
  */
 
 import { defineConfig } from "@solidjs/start/config";
@@ -10,20 +10,15 @@ import autoprefixer from "autoprefixer";
 export default defineConfig({
   server: {
     preset: "node",
-    // conditions: ["development", "browser", "worker", "solid", "solid-server"], // Removed as it's not a known property
-    // defaultServerConditions: [], // Removed as it's not a known property
-    experimental: {
-      // islands: false // Removed as it's not a known property
-    }
   },
-    vite: {
-      resolve: {
-        conditions: ['solid', 'development', 'browser', 'module', 'import', 'default', 'node'],
-        alias: {
-          '~': '/src',
-          '@': '/src',
-        }
+  vite: {
+    resolve: {
+      conditions: ['solid', 'development', 'browser', 'module', 'import', 'default', 'node'],
+      alias: {
+        '~': '/src',
+        '@': '/src',
       },
+    },
     build: {
       target: 'esnext',
       minify: 'esbuild',
@@ -40,7 +35,9 @@ export default defineConfig({
       port: 3000,
       host: '0.0.0.0',
       open: false,
-      hmr: false, // Re-enable HMR with default settings
+      hmr: {
+        port: 3001,
+      },
     },
     define: {
       __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
@@ -65,7 +62,5 @@ export default defineConfig({
   },
   solid: {
     ssr: true,
-    // islands: false, // Removed as it's not a known property
-    // islandsRouter: false, // Removed as it's not a known property
   },
 });

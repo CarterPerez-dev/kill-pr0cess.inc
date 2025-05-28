@@ -188,7 +188,7 @@ pub async fn get_system_info(
                 serde_json::json!({
                     "name": disk.name().to_string_lossy(),
                     "mount_point": disk.mount_point().to_string_lossy(),
-                    "file_system": std::str::from_utf8(disk.file_system()).unwrap_or("unknown"),
+                    "file_system": std::str::from_utf8(disk.file_system()).unwrap_or("unknown").to_string(),
                     "total_gb": disk.total_space() as f64 / (1024.0 * 1024.0 * 1024.0),
                     "available_gb": disk.available_space() as f64 / (1024.0 * 1024.0 * 1024.0),
                     "usage_percent": {
@@ -236,9 +236,10 @@ pub async fn get_system_info(
             "optimization_level": if cfg!(debug_assertions) { "0" } else { "3" },
             "features": get_enabled_features(),
         }
-    }));
-        Ok(Json(system_info))
-    }
+    });
+
+    Ok(Json(system_info))
+}
 
 /// Run comprehensive performance benchmark
 /// I'm implementing a thorough benchmark suite for performance evaluation
@@ -412,13 +413,13 @@ fn get_enabled_features() -> Vec<String> {
 
     if cfg!(feature = "jemalloc") {
         features.push("jemalloc".to_string());
-    }
-    if cfg!(feature = "simd") {
-        features.push("simd".to_string());
-    }
-    if cfg!(feature = "parallel") {
-        features.push("parallel".to_string());
-    }
+     }
+     // if cfg!(feature = "simd") { // Custom feature, check Cargo.toml
+     //     features.push("simd".to_string());
+     // }
+     // if cfg!(feature = "parallel") { // Custom feature, check Cargo.toml
+     //     features.push("parallel".to_string());
+     // }
 
     // Add compile-time features
     if cfg!(debug_assertions) {

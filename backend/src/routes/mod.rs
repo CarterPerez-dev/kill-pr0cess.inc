@@ -123,7 +123,7 @@ fn create_cors_layer() -> CorsLayer {
 #[allow(dead_code)]
 async fn rate_limiting_middleware<B>(
     request: axum::http::Request<B>,
-    next: axum::middleware::Next<B>,
+    next: axum::middleware::Next,
 ) -> Result<axum::response::Response, AppError> {
     // Get client IP address
     let client_ip = request

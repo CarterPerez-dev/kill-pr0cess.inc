@@ -22,6 +22,7 @@ WORKDIR /home/builder
 # I'm copying dependency manifests first for better Docker layer caching
 COPY --chown=builder:builder Cargo.toml Cargo.lock ./
 COPY --chown=builder:builder build.rs ./
+COPY --chown=builder:builder database ./database
 
 # I'm creating a dummy src directory to cache dependencies
 RUN mkdir src && echo "fn main() {}" > src/main.rs

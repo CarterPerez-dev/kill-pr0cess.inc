@@ -21,4 +21,7 @@ echo -e "${GREEN}→ Rebuilding...${NC}"
 docker-compose build --no-cache
 
 echo -e "${GREEN}→ Launching Sanitized...${NC}"
-docker-compose up
+docker-compose up 
+
+
+

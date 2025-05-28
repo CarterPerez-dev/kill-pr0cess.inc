@@ -126,10 +126,10 @@ impl AppState {
                 "fractal_engine": "healthy"
             },
             "system": {
-                "cpu_usage": system_info.cpu_usage_percent,
-                "memory_usage": system_info.memory_usage_percent,
-                "uptime_seconds": system_info.uptime_seconds,
-                "active_connections": system_info.active_connections
+                "cpu_usage": system_info["hardware"]["cpu"]["usage_percent"].as_f64().unwrap_or_default(),
+                "memory_usage": system_info["hardware"]["memory"]["usage_percent"].as_f64().unwrap_or_default(),
+                "uptime_seconds": system_info["system"]["uptime_seconds"].as_u64().unwrap_or_default(),
+                "active_connections": system_info["system"]["processes"]["total"].as_u64().unwrap_or_default()
             },
             "version": env!("CARGO_PKG_VERSION"),
             "build_time": env!("BUILD_TIME"),
