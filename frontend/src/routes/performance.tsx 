@@ -1,0 +1,16 @@
+import { Component } from "solid-js";
+import { Title, Meta } from "@solidjs/meta";
+import PerformancePageContent from "../pages/Performance";
+
+const PerformanceRoute: Component = () => {
+  console.log("[routes/performance.tsx] PerformanceRoute component function executed.");
+  return (
+    <>
+      <Title>Performance - Showcase</Title>
+      <Meta name="description" content="View real-time performance metrics and benchmarks." />
+      <PerformancePageContent />
+    </>
+  );
+};
+
+export default PerformanceRoute;

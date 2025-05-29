@@ -1,6 +1,5 @@
 FROM node:20-alpine as builder
 
-# I'm setting up the build environment with necessary dependencies
 RUN apk add --no-cache \
     git \
     python3 \
@@ -8,38 +7,30 @@ RUN apk add --no-cache \
     g++ \
     && rm -rf /var/cache/apk/*
 
-# I'm creating a non-root user for security
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S nextjs -u 1001 -G nodejs
 
 USER nextjs
 WORKDIR /app
 
-# I'm copying package files first for better Docker layer caching
 COPY --chown=nextjs:nodejs package*.json ./
 
-# I'm installing dependencies with production optimizations
 RUN npm ci --only=production --ignore-scripts --prefer-offline --no-audit && \
     npm cache clean --force
 
-# I'm copying the source code
 COPY --chown=nextjs:nodejs . .
 
-# I'm setting build-time environment variables for optimization
 ENV NODE_ENV=production
 ENV VITE_BUILD_MODE=production
 ENV VITE_OPTIMIZE_DEPS=true
 ENV VITE_MINIFY=true
 
-# I'm building the optimized production bundle
 RUN npm run build
 
-# I'm analyzing the build output
 RUN du -sh dist/ && \
     find dist/ -name "*.js" -exec wc -c {} + | tail -1 && \
     find dist/ -name "*.css" -exec wc -c {} + | tail -1
 
-# Compression stage for static assets
 FROM node:20-alpine as compressor
 
 RUN apk add --no-cache brotli gzip && \
@@ -47,17 +38,13 @@ RUN apk add --no-cache brotli gzip && \
 
 WORKDIR /app
 
-# I'm copying the built assets
 COPY --from=builder /app/dist ./dist
 
-# I'm pre-compressing static assets for nginx serving
 RUN find dist -type f \( -name "*.js" -o -name "*.css" -o -name "*.html" -o -name "*.svg" -o -name "*.json" \) -exec sh -c 'gzip -9 -k "$1" && brotli -q 11 "$1"' _ {} \;
 
-# I'm verifying compression ratios
 RUN echo "=== Compression Analysis ===" && \
     find dist -name "*.gz" -exec sh -c 'orig=$(echo "$1" | sed "s/.gz$//"); echo "$(basename "$orig"): $(stat -f%z "$orig") -> $(stat -f%z "$1") bytes ($(echo "scale=1; $(stat -f%z "$1") * 100 / $(stat -f%z "$orig")" | bc)%)"' _ {} \;
 
-# Production runtime stage with nginx for static serving
 FROM nginx:1.27-alpine
 
 # I'm installing additional tools for monitoring and debugging
@@ -198,7 +185,7 @@ LABEL org.opencontainers.image.description="High-performance SolidJS frontend wi
 LABEL org.opencontainers.image.created=${BUILD_DATE}
 LABEL org.opencontainers.image.revision=${GIT_COMMIT}
 LABEL org.opencontainers.image.version=${VERSION}
-LABEL org.opencontainers.image.source="https://github.com/yourusername/dark-performance-showcase"
+LABEL org.opencontainers.image.source="https://github.com/CarterPerez-dev/kill-pr0cess.inc"
 
 # I'm adding resource recommendations
 LABEL resource.cpu.min="0.25"

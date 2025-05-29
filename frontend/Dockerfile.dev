@@ -1,7 +1,5 @@
-# frontend/Dockerfile.dev
 FROM node:20-alpine
 
-# I'm installing essential development dependencies
 RUN apk add --no-cache \
     git \
     curl \
@@ -12,24 +10,18 @@ RUN apk add --no-cache \
 
 WORKDIR /app
 
-# I'm copying package files for dependency installation
 COPY package*.json ./
 
-# I'm installing dependencies (as root, since we are root now)
 RUN npm ci --legacy-peer-deps || npm install --legacy-peer-deps
 
-# I'm copying and applying the vite plugin patch
 COPY vite-plugin-solid-patch.js ./
 RUN node vite-plugin-solid-patch.js
 COPY . .
 
-# I'm setting development environment variables
 ENV NODE_ENV=development
 ENV VITE_DEV_MODE=true
 ENV VITE_API_URL=http://localhost:3001
 
-# I'm exposing the development server port
 EXPOSE 3000
 
-# I'm starting the development server (as root)
 CMD ["npm", "run", "dev"]

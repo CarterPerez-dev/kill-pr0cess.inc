@@ -1,18 +1,14 @@
-// frontend/src/pages/Home.tsx
 import { Component, onMount } from 'solid-js';
 
-const Home: Component = () => {
+const HomePageContent: Component = () => {
   onMount(() => {
-    console.log("SIMPLE Home.tsx onMount CALLED - THIS IS GOOD!");
+    console.log("pages/Home.tsx (HomePageContent) onMount CALLED - FileRoutes Target");
   });
-
-  console.log("SIMPLE Home.tsx COMPONENT FUNCTION EXECUTED - THIS IS GOOD!");
-
+  console.log("pages/Home.tsx (HomePageContent) COMPONENT FUNCTION EXECUTED - FileRoutes Target");
   return (
-    <div style="background-color: darkgoldenrod; color: black; padding: 40px; font-size: 28px; border: 2px solid red;">
-      SIMPLIFIED HOME PAGE (Standard SolidStart Structure Attempt)
+    <div style="background-color: #00695c; color: white; padding: 40px; font-size: 28px; border: 2px solid #ffeb3b;">
+      HOME PAGE CONTENT (Rendered by FileRoutes into App.tsx Router's root)
     </div>
   );
 };
-
-export default Home;
+export default HomePageContent;

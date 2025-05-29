@@ -1,15 +1,12 @@
-// frontend/src/entry-client.tsx
 // @refresh reload
 import { mount, StartClient } from "@solidjs/start/client";
-import './routes.tsx'; // This is key for StartClient to find your routes
 
-// Your performance tracking code
 if (typeof window !== 'undefined') {
   const hydrationStart = (window as any).__PERFORMANCE_START__ || Date.now();
   window.addEventListener('load', () => {
     const hydrationEnd = Date.now();
     const hydrationTime = hydrationEnd - hydrationStart;
-    console.log(`[Client] Hydration completed in ${hydrationTime}ms`);
+    console.log(`[Client] Hydration completed in ${hydrationTime}ms (Official Example Structure)`);
     if ((import.meta.env as any).VITE_PERFORMANCE_ENDPOINT) {
       fetch((import.meta.env as any).VITE_PERFORMANCE_ENDPOINT, {
         method: 'POST',
