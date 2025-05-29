@@ -199,7 +199,7 @@ impl MigrationManager {
     pub async fn run_migrations(pool: &DatabasePool) -> Result<()> {
         tracing::info!("Running database migrations");
 
-        match sqlx::migrate!("./database/migrations").run(pool).await {
+        match sqlx::migrate!("src/database/migrations").run(pool).await {
             Ok(_) => {
                 tracing::info!("Database migrations completed successfully");
                 Ok(())

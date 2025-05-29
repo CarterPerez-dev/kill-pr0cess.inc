@@ -114,7 +114,7 @@ impl AppState {
         };
 
         // Get system performance metrics
-        let system_info = self.performance_service.get_system_info().await?;
+        let system_info_json = self.performance_service.get_system_info().await?;
 
         Ok(serde_json::json!({
             "status": if db_status == "healthy" && redis_status == "healthy" { "healthy" } else { "unhealthy" },
@@ -126,16 +126,16 @@ impl AppState {
                 "fractal_engine": "healthy"
             },
             "system": {
-                "cpu_usage": system_info["hardware"]["cpu"]["usage_percent"].as_f64().unwrap_or_default(),
-                "memory_usage": system_info["hardware"]["memory"]["usage_percent"].as_f64().unwrap_or_default(),
-                "uptime_seconds": system_info["system"]["uptime_seconds"].as_u64().unwrap_or_default(),
-                "active_connections": system_info["system"]["processes"]["total"].as_u64().unwrap_or_default()
+                "cpu_usage": system_info_json["cpu_usage_percent"].as_f64().unwrap_or_default(),
+                "memory_usage": system_info_json["memory_usage_percent"].as_f64().unwrap_or_default(),
+                "uptime_seconds": system_info_json["uptime_seconds"].as_u64().unwrap_or_default(),
+                "active_processes": system_info_json["processes_count"].as_u64().unwrap_or_default()
             },
             "version": env!("CARGO_PKG_VERSION"),
             "build_time": env!("BUILD_TIME"),
             "git_commit": env!("GIT_COMMIT")
         }))
-    }
+}
 
     /// Graceful shutdown that cleans up resources and connections
     /// I'm ensuring all background tasks complete and connections are properly closed

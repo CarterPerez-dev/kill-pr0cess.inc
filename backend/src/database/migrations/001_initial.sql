@@ -28,6 +28,7 @@ CREATE TABLE repositories (
     is_fork BOOLEAN DEFAULT false,
     is_archived BOOLEAN DEFAULT false,
     license_name VARCHAR(255),
+    readme_content TEXT,
     created_at TIMESTAMPTZ NOT NULL,
     updated_at TIMESTAMPTZ NOT NULL,
     pushed_at TIMESTAMPTZ,
@@ -89,11 +90,12 @@ CREATE TABLE fractal_computations (
     session_id UUID,
     ip_address INET,
     user_agent TEXT,
-    timestamp TIMESTAMPTZ DEFAULT NOW(),
     -- Quality and optimization tracking
     iteration_efficiency DOUBLE PRECISION, -- average iterations per pixel
     cache_hit BOOLEAN DEFAULT false,
-    optimization_flags TEXT[]
+    optimization_flags TEXT[],
+    parameters JSONB,
+    timestamp TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- System statistics table for hardware and runtime information

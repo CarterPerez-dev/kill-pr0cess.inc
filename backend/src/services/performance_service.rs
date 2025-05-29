@@ -199,7 +199,7 @@ impl PerformanceService {
         // Simple memory benchmark
         let memory_benchmark = tokio::task::spawn_blocking(|| {
             let start = Instant::now();
-            let data_size = 10_000_000;
+            let data_size: u64 = 10_000_000;
             let data: Vec<u64> = (0..data_size).collect();
             let sum: u64 = data.iter().sum();
             (sum, start.elapsed())

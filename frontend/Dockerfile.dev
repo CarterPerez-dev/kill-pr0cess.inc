@@ -12,10 +12,10 @@ WORKDIR /app
 
 COPY package*.json ./
 
+COPY vite-plugin-solid-patch.js ./
+
 RUN npm ci --legacy-peer-deps || npm install --legacy-peer-deps
 
-COPY vite-plugin-solid-patch.js ./
-RUN node vite-plugin-solid-patch.js
 COPY . .
 
 ENV NODE_ENV=development

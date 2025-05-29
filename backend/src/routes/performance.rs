@@ -162,7 +162,7 @@ pub async fn get_system_info(
 
     let system_info = serde_json::json!({
         "timestamp": chrono::Utc::now(),
-        "os_name": system.name().unwrap_or_default() // Simplified
+        "os_name": system.name().unwrap_or_default()
     });
     Ok(Json(system_info))
 }
@@ -218,7 +218,7 @@ pub async fn run_benchmark(
     let memory_benchmark = tokio::task::spawn_blocking(|| {
         let start = std::time::Instant::now();
         let data_size = 10_000_000;
-        let data: Vec<u64> = (0..data_size as usize).collect();
+        let data: Vec<u64> = (0..data_size as u64).collect();
         let allocation_time = start.elapsed();
 
         let start = std::time::Instant::now();

@@ -35,7 +35,7 @@ pub struct Repository {
     pub topics: Vec<String>,
     pub license_name: Option<String>,
     pub readme_content: Option<String>,
-    pub cached_at: DateTime<Utc>,
+    pub cache_updated_at: DateTime<Utc>,
     pub cache_expires_at: DateTime<Utc>,
 }
 

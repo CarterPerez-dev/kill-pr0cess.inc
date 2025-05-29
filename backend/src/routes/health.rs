@@ -83,8 +83,7 @@ pub struct PerformanceMetrics {
     pub fractal_computations_last_hour: u32,
     pub github_api_calls_last_hour: u32,
 }
-
-#[derive(Debug, Serialize)]
+#[derive(Debug, Clone, Serialize)]
 pub struct HealthCheck {
     pub name: String,
     pub status: ServiceStatus,
@@ -121,8 +120,8 @@ pub async fn health_check(
     checks.push(fractal_check);
 
     // System resources check
-    let (system_status, system_check) = check_system_health(&app_state).await;
-    checks.push(system_check);
+    let (system_health_struct, system_check_item) = check_system_health(&app_state).await;
+    checks.push(system_check_item.clone());
 
     // Determine overall service status
     overall_status = determine_overall_status(&[
@@ -130,7 +129,7 @@ pub async fn health_check(
         &redis_status.status,
         &github_status.status,
         &fractal_status.status,
-        &system_check.status,
+        &system_check_item.status,
     ]);
 
     // Collect performance metrics

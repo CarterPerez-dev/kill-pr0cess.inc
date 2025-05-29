@@ -14,11 +14,14 @@ pub use fractals::*;
 pub use performance::*;
 pub use health::*;
 
+use crate::utils::config::Config;
+use axum::http::header;
+
 use axum::{
     Router,
     response::IntoResponse,
     routing::{get, post, Route},
-    http::{Method, HeaderValue},
+    http::{Method, HeaderValue, header}
 };
 use tower_http::{
     cors::{CorsLayer, Any},
@@ -38,80 +41,68 @@ use crate::{
 /// Create the complete application router with all endpoints and middleware
 /// I'm implementing a comprehensive routing structure with performance optimization and security
 pub fn create_router() -> Router<AppState> {
-    info!("Creating application router with all endpoints");
+    info!("Defining core application routes");
 
     Router::new()
-    // Health and monitoring endpoints
-    .route("/health", get(health::health_check))
-    .route("/health/ready", get(health::readiness_check))
-    .route("/health/live", get(health::liveness_check))
+        .route("/health", get(health::health_check))
+        .route("/health/ready", get(health::readiness_check))
+        .route("/health/live", get(health::liveness_check))
 
-    // GitHub API integration endpoints
-    .route("/api/github/repos", get(github::get_repositories))
-    .route("/api/github/repo/:owner/:name", get(github::get_repository_details))
-    .route("/api/github/repo/:owner/:name/stats", get(github::get_repository_stats))
-    .route("/api/github/language-distribution", get(github::get_language_distribution))
+        .route("/api/github/repos", get(github::get_repositories))
+        .route("/api/github/repo/:owner/:name", get(github::get_repository_details))
+        .route("/api/github/repo/:owner/:name/stats", get(github::get_repository_stats))
+        .route("/api/github/language-distribution", get(github::get_language_distribution))
 
-    // Fractal generation endpoints
-    .route("/api/fractals/mandelbrot", post(fractals::generate_mandelbrot))
-    .route("/api/fractals/julia", post(fractals::generate_julia))
-    .route("/api/fractals/benchmark", post(fractals::benchmark_generation))
+        .route("/api/fractals/mandelbrot", post(fractals::generate_mandelbrot))
+        .route("/api/fractals/julia", post(fractals::generate_julia))
+        .route("/api/fractals/benchmark", post(fractals::benchmark_generation))
 
-    // Performance monitoring endpoints
-    .route("/api/performance/metrics", get(performance::get_current_metrics))
-    .route("/api/performance/system", get(performance::get_system_info))
-    .route("/api/performance/benchmark", post(performance::run_benchmark))
-    .route("/api/performance/history", get(performance::get_metrics_history))
-
-    // Apply middleware stack in order of importance
-    .layer(create_middleware_stack())
+        .route("/api/performance/metrics", get(performance::get_current_metrics))
+        .route("/api/performance/system", get(performance::get_system_info))
+        .route("/api/performance/benchmark", post(performance::run_benchmark))
+        .route("/api/performance/history", get(performance::get_metrics_history))
 }
 
-/// Build the common middleware stack applied to every route.
-///
-/// Layers included:
-/// - CORS
-/// - Compression
-/// - Timeout
-/// - Trace (high-level request/response logging)
-/// - Request body size limit
-///
-/// Additional layers (e.g. rate-limiting) can be appended later.
-fn create_middleware_stack() -> impl tower::Layer<Route> + Clone {
+
+pub fn create_middleware_stack(config: &Config) -> impl tower::Layer<Route> + Clone {
     use tower::ServiceBuilder;
 
     ServiceBuilder::new()
-        .layer(create_cors_layer())
+        .layer(create_cors_layer(config))
         .layer(CompressionLayer::new())
         .layer(TimeoutLayer::new(Duration::from_secs(30)))
-        .layer(RequestBodyLimitLayer::new(10 * 1024 * 1024)) // 10 MiB max body
+        .layer(RequestBodyLimitLayer::new(10 * 1024 * 1024))
         .layer(TraceLayer::new_for_http())
 }
 
-/// Create CORS layer with appropriate configuration for different environments
 /// I'm implementing flexible CORS that supports development while maintaining security in production
-fn create_cors_layer() -> CorsLayer {
-    CorsLayer::new()
-    .allow_methods([
-        Method::GET,
-        Method::POST,
-        Method::PUT,
-        Method::DELETE,
-        Method::HEAD,
-        Method::OPTIONS,
-    ])
-    .allow_headers([
-        axum::http::header::CONTENT_TYPE,
-        axum::http::header::AUTHORIZATION,
-        axum::http::header::ACCEPT,
-        axum::http::header::USER_AGENT,
-    ])
-    .allow_origin(Any) // In production, this should be more restrictive
-    .allow_credentials(false)
-    .max_age(Duration::from_secs(3600))
+fn create_cors_layer(config: &Config) -> CorsLayer {
+
+    let mut cors = CorsLayer::new()
+        .allow_methods([
+            Method::GET, Method::POST, Method::PUT, Method::DELETE, Method::HEAD, Method::OPTIONS,
+        ])
+        .allow_headers([
+            header::CONTENT_TYPE, header::AUTHORIZATION, header::ACCEPT, header::USER_AGENT,
+        ]);
+
+    if config.is_development() {
+        cors = cors.allow_origin(Any);
+    } else {
+        let origins: Vec<_> = config.cors_allowed_origins
+            .iter()
+            .filter_map(|origin| origin.parse().ok())
+            .collect();
+        if !origins.is_empty() {
+            cors = cors.allow_origin(origins);
+        } else {
+            cors = cors.allow_origin(Any);
+        }
+    }
+    cors.allow_credentials(false).max_age(Duration::from_secs(3600))
 }
 
-/// Custom rate limiting middleware (example implementation)
+/// Custom rate limiting middleware
 /// I'm providing a foundation for rate limiting that can be expanded based on requirements
 #[allow(dead_code)]
 async fn rate_limiting_middleware<B>(
@@ -130,8 +121,8 @@ async fn rate_limiting_middleware<B>(
     let path = request.uri().path();
     let rate_limit = get_rate_limit_for_path(path);
 
-    // In a real implementation, you'd check against a rate limiting store (Redis, in-memory, etc.)
-    // For now, we'll just pass through
+    // Check against a rate limiting store
+    // For now, I'll just pass through
     tracing::debug!("Rate limiting check for {} accessing {}: {:?}", client_ip, path, rate_limit);
 
     Ok(next.run(request).await)
@@ -204,22 +195,13 @@ pub async fn handle_404() -> axum::response::Response {
 }
 
 /// Create router with API versioning support
-/// I'm implementing API versioning for backward compatibility and evolution
 pub fn create_versioned_router() -> Router<AppState> {
     Router::new()
-    // Mount current API version
-    .nest("/v1", create_router())
+        .nest("/v1", create_router())
 
-    // Health endpoints at root level (no versioning needed)
-    .route("/health", get(health::health_check))
-    .route("/health/ready", get(health::readiness_check))
-    .route("/health/live", get(health::liveness_check))
+        .nest("/api", create_api_routes())
 
-    // Default to current version for convenience
-    .nest("/api", create_api_routes())
-
-    // Fallback handler for undefined routes
-    .fallback(handle_404)
+        .fallback(handle_404)
 }
 
 /// Create just the API routes without health endpoints

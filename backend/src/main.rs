@@ -10,6 +10,7 @@ use axum::{
     http::{header, Method},
 };
 
+use crate::utils::config::Config;
 use tower::ServiceBuilder;
 
 use tower_http::{
@@ -109,7 +110,7 @@ impl AppState {
     pub async fn migrate_database(&self) -> Result<()> {
         info!("Running database migrations");
 
-        match sqlx::migrate!("./database/migrations").run(&self.db_pool).await {
+        match sqlx::migrate!("src/database/migrations").run(&self.db_pool).await {
             Ok(_) => {
                 info!("Database migrations completed successfully");
                 Ok(())
@@ -266,102 +267,18 @@ impl AppState {
 /// I'm implementing the full routing structure with comprehensive middleware stack
 pub fn create_app_router(app_state: AppState) -> Router {
     info!("Creating application router");
-
-    Router::new()
-        // Health check endpoints (no authentication required)
-        .route("/health", get(routes::health::health_check))
-        .route("/health/ready", get(routes::health::readiness_check))
-        .route("/health/live", get(routes::health::liveness_check))
-
-        // API routes with authentication and rate limiting
-        .nest("/api", create_api_router())
-
-        // Metrics endpoint for monitoring
+    routes::create_versioned_router()
+        .layer(routes::create_middleware_stack(&app_state.config))
         .route("/metrics", get(prometheus_metrics))
-
-        // Add comprehensive middleware stack
-        .layer(create_middleware_stack(&app_state.config))
-
-        // Share application state with all handlers
         .with_state(app_state)
 }
 
-/// Create API router with all endpoints
-/// I'm organizing API routes for clean structure and easy maintenance
-fn create_api_router() -> Router<AppState> {
-    Router::new()
-        // GitHub integration endpoints
-        .route("/github/repos", get(routes::github::get_repositories))
-        .route("/github/repo/:owner/:name", get(routes::github::get_repository_details))
-        .route("/github/repo/:owner/:name/stats", get(routes::github::get_repository_stats))
-        .route("/github/language-distribution", get(routes::github::get_language_distribution))
 
-        // Fractal generation endpoints
-        .route("/fractals/mandelbrot", post(routes::fractals::generate_mandelbrot))
-        .route("/fractals/julia", post(routes::fractals::generate_julia))
-        .route("/fractals/benchmark", post(routes::fractals::benchmark_generation))
 
-        // Performance monitoring endpoints
-        .route("/performance/metrics", get(routes::performance::get_current_metrics))
-        .route("/performance/system", get(routes::performance::get_system_info))
-        .route("/performance/benchmark", post(routes::performance::run_benchmark))
-        .route("/performance/history", get(routes::performance::get_metrics_history))
-}
-
-/// Create comprehensive middleware stack for production deployment
-/// I'm implementing security, performance, and observability middleware
-fn create_middleware_stack(config: &Config) -> ServiceBuilder<tower::layer::util::Identity> {
-    ServiceBuilder::new()
-
-        .layer(TraceLayer::new_for_http())
-
-        .layer(CompressionLayer::new())
-
-        .layer(create_cors_layer(config))
-}
-
-/// Create CORS layer with environment-appropriate configuration
-/// I'm implementing flexible CORS for development and production environments
-fn create_cors_layer(config: &Config) -> CorsLayer {
-    let mut cors = CorsLayer::new()
-        .allow_methods([
-            Method::GET,
-            Method::POST,
-            Method::PUT,
-            Method::DELETE,
-            Method::HEAD,
-            Method::OPTIONS,
-        ])
-        .allow_headers([
-            header::CONTENT_TYPE,
-            header::AUTHORIZATION,
-            header::ACCEPT,
-            header::USER_AGENT,
-        ]);
-
-    // Configure origins based on environment
-    if config.is_development() {
-        cors = cors.allow_origin(Any);
-    } else {
-        // In production, restrict to specific origins
-        let origins: Vec<_> = config.cors_allowed_origins
-            .iter()
-            .filter_map(|origin| origin.parse().ok())
-            .collect();
-
-        if !origins.is_empty() {
-            cors = cors.allow_origin(origins);
-        }
-    }
-
-    cors
-}
 
 /// Prometheus metrics endpoint
 /// I'm providing metrics in Prometheus format for monitoring integration
 async fn prometheus_metrics() -> Result<String, AppError> {
-    // In a real implementation, this would collect and format actual metrics
-    // For now, providing a basic metrics structure
     let metrics = format!(
         "# HELP app_requests_total Total number of requests\n\
          # TYPE app_requests_total counter\n\

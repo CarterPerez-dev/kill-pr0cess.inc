@@ -19,7 +19,7 @@ pub struct FractalRequest {
     pub fractal_type: FractalType,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum FractalType {
     Mandelbrot,
     Julia { c_real: f64, c_imag: f64 },

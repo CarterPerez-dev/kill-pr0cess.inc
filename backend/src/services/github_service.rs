@@ -257,27 +257,28 @@ impl GitHubService {
         Ok(detailed_repo)
     }
 
-    /// Get repository README content with fallback handling
-    /// I'm implementing intelligent README detection for various formats
-    async fn get_repository_readme(&self, owner: &str, name: &str) -> Result<String> {
-        let readme_variants = vec!["README.md", "readme.md", "README", "readme", "README.txt"];
 
-        for readme_file in readme_variants {
-            self.check_rate_limit().await?;
+// In src/services/github_service.rs
+async fn get_repository_readme(&self, owner: &str, name: &str) -> Result<String> {
+    let readme_variants = vec!["README.md", "readme.md", "README", "readme", "README.txt"];
 
-            let url = format!(
-                "{}/repos/{}/{}/contents/{}",
-                self.base_url, owner, name, readme_file
-            );
+    for readme_file in readme_variants {
+        self.check_rate_limit().await?;
 
-            let response = self.client.get(&url).send().await;
+        let url = format!(
+            "{}/repos/{}/{}/contents/{}",
+            self.base_url, owner, name, readme_file
+        );
+        let response_result = self.client.get(&url).send().await;
 
-            match response {
-                Ok(resp) if resp.status().is_success() => {
-                    if let Ok(content_response) = resp.json::<serde_json::Value>().await {
-                        if let Some(content) = content_response.get("content")
-                            .and_then(|c| c.as_str()) {
-                                // Decode base64 content
+        match response_result {
+            Ok(mut resp) => {
+                self.update_rate_limit_from_headers(&resp).await;
+                if resp.status().is_success() {
+                    match resp.json::<serde_json::Value>().await {
+                        Ok(content_response_val) => {
+                            if let Some(content) = content_response_val.get("content")
+                                .and_then(|c| c.as_str()) {
                                 if let Ok(decoded) = base64::decode(&content.replace('\n', "")) {
                                     if let Ok(readme_text) = String::from_utf8(decoded) {
                                         debug!("Found README: {} for {}/{}", readme_file, owner, name);
@@ -285,17 +286,23 @@ impl GitHubService {
                                     }
                                 }
                             }
+                        }
+                        Err(e) => {
+                            warn!("Failed to parse JSON for README {}: {}", readme_file, e);
+                        }
                     }
                 }
-                _ => continue, // Try next variant
             }
-
-            self.update_rate_limit_from_headers(&response.ok().as_ref().unwrap()).await;
+            Err(e) => {
+                warn!("Failed to send request for README {}: {}", readme_file, e);
+                // Continue to next variant if sending request fails
+            }
         }
-
-        debug!("No README found for {}/{}", owner, name);
-        Ok(String::new())
     }
+
+    debug!("No README found for {}/{}", owner, name);
+    Ok(String::new())
+}
 
     /// Get repository statistics and performance metrics
     /// I'm calculating comprehensive repository health and activity metrics
@@ -432,7 +439,7 @@ impl GitHubService {
                 topics: api_repo.topics,
                 license_name: api_repo.license.map(|l| l.name),
                 readme_content: None,
-                cached_at: chrono::Utc::now(),
+                cache_updated_at: chrono::Utc::now(),
                 cache_expires_at: chrono::Utc::now() + chrono::Duration::hours(1),
         }
     }
@@ -451,7 +458,7 @@ impl GitHubService {
                     github_id, owner_login, name, full_name, description, html_url, clone_url, ssh_url,
                     language, size_kb, stargazers_count, watchers_count, forks_count, open_issues_count,
                     created_at, updated_at, pushed_at, is_private, is_fork, is_archived, topics,
-                    license_name, cached_at, cache_expires_at
+                    license_name, cache_updated_at, cache_expires_at
             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24)
             ON CONFLICT (github_id) DO UPDATE SET
             description = EXCLUDED.description,
@@ -467,7 +474,7 @@ impl GitHubService {
                 is_archived = EXCLUDED.is_archived,
                 topics = EXCLUDED.topics,
                 license_name = EXCLUDED.license_name,
-                cached_at = EXCLUDED.cached_at,
+                cache_updated_at = EXCLUDED.cache_updated_at,
                 cache_expires_at = EXCLUDED.cache_expires_at
                 "#,
                 repo.github_id,
@@ -492,7 +499,7 @@ impl GitHubService {
                 repo.is_archived,
                 &repo.topics,
                 repo.license_name,
-                repo.cached_at,
+                repo.cache_updated_at,
                 repo.cache_expires_at
             )
             .execute(db_pool)
