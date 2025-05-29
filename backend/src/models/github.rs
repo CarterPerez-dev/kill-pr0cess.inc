@@ -6,12 +6,13 @@
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 use chrono::{DateTime, Utc};
+use uuid::Uuid; // Add this import
 
 /// Core repository model representing GitHub repository data with caching metadata
 /// I'm including all essential fields for showcase purposes plus performance tracking
 #[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
 pub struct Repository {
-    pub id: i64,
+    pub id: Uuid, // Change type to Uuid
     pub github_id: i64,
     pub owner_login: String,
     pub name: String,
@@ -32,7 +33,7 @@ pub struct Repository {
     pub is_private: bool,
     pub is_fork: bool,
     pub is_archived: bool,
-    pub topics: Vec<String>,
+    pub topics: Option<Vec<String>>,
     pub license_name: Option<String>,
     pub readme_content: Option<String>,
     pub cache_updated_at: DateTime<Utc>,
@@ -242,8 +243,10 @@ impl Repository {
         if self.description.is_some() {
             score += 5.0;
         }
-        if !self.topics.is_empty() {
-            score += self.topics.len() as f64 * 2.0;
+        if let Some(topics) = &self.topics {
+            if !topics.is_empty() {
+                score += topics.len() as f64 * 2.0;
+            }
         }
 
         // License indicates maturity
@@ -385,7 +388,8 @@ impl RepositoryFilter {
         }
 
         if let Some(has_topics) = self.has_topics {
-            if repo.topics.is_empty() == has_topics {
+            let empty = repo.topics.as_ref().map(|t| t.is_empty()).unwrap_or(true);
+            if empty == has_topics {
                 return false;
             }
         }
@@ -425,7 +429,10 @@ impl RepositoryFilter {
                 "{} {} {}",
                 repo.name,
                 repo.description.as_deref().unwrap_or(""),
-                                      repo.topics.join(" ")
+                                      repo.topics
+                                          .as_ref()
+                                          .map(|v| v.join(" "))
+                                          .unwrap_or_default()
             ).to_lowercase();
 
             if !search_text.contains(&query.to_lowercase()) {
@@ -492,10 +499,10 @@ pub fn calculate_collection_stats(repositories: &[Repository]) -> CollectionStat
     .collect();
 
     let all_topics: std::collections::HashSet<String> = repositories
-    .iter()
-    .flat_map(|r| r.topics.iter())
-    .cloned()
-    .collect();
+        .iter()
+        .flat_map(|r| r.topics.as_deref().unwrap_or(&[]))
+        .cloned()
+        .collect();
 
     let archived_count = repositories.iter().filter(|r| r.is_archived).count() as i32;
     let fork_count = repositories.iter().filter(|r| r.is_fork).count() as i32;

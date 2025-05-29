@@ -1,54 +1,68 @@
-/*
- * Simplified and focused patch for vite-plugin-solid to fix the "defaultServerConditions is not iterable" error.
- * I'm implementing a targeted fix that directly addresses the core issue without over-complicating the solution.
- */
-
 import fs from 'fs';
+import path from 'path';
 
 console.log('🔧 Applying vite-plugin-solid patch...');
+const scriptCwd = process.cwd();
+console.log('Script CWD:', scriptCwd);
 
-// I'm finding the plugin file
-const pluginPath = './node_modules/vite-plugin-solid/dist/esm/index.mjs';
+const pluginPath = path.resolve(scriptCwd, './node_modules/vite-plugin-solid/dist/esm/index.mjs');
+console.log('Attempting to patch file at:', pluginPath);
 
 if (!fs.existsSync(pluginPath)) {
-  console.log('ℹ️  Plugin file not found, patch may not be needed');
-  process.exit(0);
+  console.log('❌ Plugin file not found at path:', pluginPath);
+  process.exit(1); // Exit with error if file not found
 }
 
 try {
-  // I'm reading the current content
   let content = fs.readFileSync(pluginPath, 'utf8');
+  let madeChanges = false;
 
-  // I'm checking if patch is already applied
-  if (content.includes('Array.isArray') && content.includes('defaultClientConditions')) {
-    console.log('✅ Patch already applied');
-    process.exit(0);
+  // --- Client Conditions Patch ---
+  const clientOriginal = 'config.resolve.conditions = [...defaultClientConditions];';
+  const clientPatched = "config.resolve.conditions = Array.isArray(defaultClientConditions) ? [...defaultClientConditions] : ['browser', 'module', 'import', 'default'];";
+
+  if (content.includes(clientOriginal)) {
+    console.log('🎯 Found original client conditions. Patching...');
+    content = content.replace(clientOriginal, clientPatched);
+    madeChanges = true;
+  } else if (content.includes(clientPatched)) {
+    console.log('ℹ️ Client conditions already patched.');
+  } else {
+    console.log('⚠️ Client conditions pattern not found. Original or Patched. Check vite-plugin-solid version/content.');
+    // Optional: console.log a snippet for debugging
+    // const clientSnippetIndex = content.indexOf('defaultClientConditions');
+    // if (clientSnippetIndex > -1) {
+    //     console.log("Client snippet:", content.substring(Math.max(0, clientSnippetIndex - 70), clientSnippetIndex + 120));
+    // }
   }
 
-  // I'm applying the core fix for the spread operator issue
-  const originalPattern = /config\.resolve\.conditions = \[\.\.\.default(Client|Server)Conditions\]/g;
+  // --- Server Conditions Patch ---
+  const serverOriginal = 'config.resolve.conditions = [...defaultServerConditions];';
+  const serverPatched = "config.resolve.conditions = Array.isArray(defaultServerConditions) ? [...defaultServerConditions] : ['node', 'module', 'import', 'default'];";
 
-  if (content.match(originalPattern)) {
-    console.log('🎯 Found problematic spread patterns, fixing...');
-
-    content = content.replace(
-      /config\.resolve\.conditions = \[\.\.\.defaultClientConditions\]/g,
-      'config.resolve.conditions = Array.isArray(defaultClientConditions) ? [...defaultClientConditions] : [\'browser\', \'module\', \'import\', \'default\']'
-    );
-
-    content = content.replace(
-      /config\.resolve\.conditions = \[\.\.\.defaultServerConditions\]/g,
-      'config.resolve.conditions = Array.isArray(defaultServerConditions) ? [...defaultServerConditions] : [\'node\', \'module\', \'import\', \'default\']'
-    );
-
-    // I'm writing the fixed content
-    fs.writeFileSync(pluginPath, content);
-    console.log('✅ Successfully patched vite-plugin-solid!');
+  if (content.includes(serverOriginal)) {
+    console.log('🎯 Found original server conditions. Patching...');
+    content = content.replace(serverOriginal, serverPatched);
+    madeChanges = true;
+  } else if (content.includes(serverPatched)) {
+    console.log('ℹ️ Server conditions already patched.');
   } else {
-    console.log('ℹ️  No problematic patterns found, patch may not be needed');
+    console.log('⚠️ Server conditions pattern not found. Original or Patched. Check vite-plugin-solid version/content.');
+    // Optional: console.log a snippet for debugging
+    // const serverSnippetIndex = content.indexOf('defaultServerConditions');
+    // if (serverSnippetIndex > -1) {
+    //     console.log("Server snippet:", content.substring(Math.max(0, serverSnippetIndex - 70), serverSnippetIndex + 120));
+    // }
+  }
+
+  if (madeChanges) {
+    fs.writeFileSync(pluginPath, content, 'utf8');
+    console.log('✅ Successfully wrote changes to vite-plugin-solid!');
+  } else {
+    console.log('ℹ️ No changes were made to the file (either already patched or patterns not found).');
   }
 
 } catch (error) {
-  console.error('❌ Error applying patch:', error.message);
+  console.error('❌ Error applying patch:', error.message, error.stack);
   process.exit(1);
 }

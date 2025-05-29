@@ -233,7 +233,7 @@ impl CacheService {
 
         debug!("Cache SET: {} (TTL: {}s)", full_key, ttl);
 
-        conn.set_ex(&full_key, serialized, ttl).await // Using set_ex for value and TTL together
+        conn.set_ex::<_, _, ()>(&full_key, serialized, ttl).await // Using set_ex for value and TTL together
         .map_err(|e| AppError::CacheError(format!("Failed to set cache entry: {}", e)))?;
 
         Ok(())
@@ -282,7 +282,7 @@ impl CacheService {
 
         debug!("Cache EXPIRE: {} (TTL: {}s)", full_key, ttl_seconds);
 
-        let expired: bool = conn.expire(&full_key, ttl_seconds as usize).await
+        let expired: bool = conn.expire::<_, _>(&full_key, ttl_seconds as i64).await
         .map_err(|e| AppError::CacheError(format!("Failed to set cache expiration: {}", e)))?;
 
         Ok(expired)
@@ -471,7 +471,7 @@ impl CacheService {
         let mut pipe = redis::pipe();
         for (key, _) in entries { // Iterate original keys to avoid issues with kv_pairs_for_redis potentially being moved
             let full_key_for_expire = self.build_key(key);
-            pipe.expire(full_key_for_expire, ttl);
+            pipe.expire(full_key_for_expire, ttl as i64);
         }
         pipe.query_async(&mut conn).await
             .map_err(|e| AppError::CacheError(format!("Failed to set expiration for multiple keys: {}", e)))?;
@@ -513,7 +513,7 @@ impl CacheService {
         let test_key = "health_check_test";
         let test_value = "test_data";
 
-        conn.set_ex(self.build_key(test_key), test_value, 10).await // Use set_ex
+        conn.set_ex::<_, _, ()>(self.build_key(test_key), test_value, 10).await // Use set_ex
         .map_err(|e| AppError::CacheError(format!("Cache set test failed: {}", e)))?;
 
         let retrieved: String = conn.get(self.build_key(test_key)).await

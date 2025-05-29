@@ -1,0 +1,37 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                INSERT INTO repositories (\n                    github_id, owner_login, name, full_name, description, html_url, clone_url, ssh_url,\n                    language, size_kb, stargazers_count, watchers_count, forks_count, open_issues_count,\n                    created_at, updated_at, pushed_at, is_private, is_fork, is_archived, topics,\n                    license_name, cache_updated_at, cache_expires_at\n            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24)\n            ON CONFLICT (github_id) DO UPDATE SET\n            description = EXCLUDED.description,\n            html_url = EXCLUDED.html_url,\n            language = EXCLUDED.language,\n            size_kb = EXCLUDED.size_kb,\n            stargazers_count = EXCLUDED.stargazers_count,\n            watchers_count = EXCLUDED.watchers_count,\n            forks_count = EXCLUDED.forks_count,\n                open_issues_count = EXCLUDED.open_issues_count,\n                updated_at = EXCLUDED.updated_at,\n                pushed_at = EXCLUDED.pushed_at,\n                is_archived = EXCLUDED.is_archived,\n                topics = EXCLUDED.topics,\n                license_name = EXCLUDED.license_name,\n                cache_updated_at = EXCLUDED.cache_updated_at,\n                cache_expires_at = EXCLUDED.cache_expires_at\n                ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int8",
+        "Varchar",
+        "Varchar",
+        "Varchar",
+        "Text",
+        "Text",
+        "Text",
+        "Text",
+        "Varchar",
+        "Int4",
+        "Int4",
+        "Int4",
+        "Int4",
+        "Int4",
+        "Timestamptz",
+        "Timestamptz",
+        "Timestamptz",
+        "Bool",
+        "Bool",
+        "Bool",
+        "TextArray",
+        "Varchar",
+        "Timestamptz",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "a4280467c60d7d9a5d7b735093f27feef5a5b0ed7411d7ce4ef3972970808d1a"
+}

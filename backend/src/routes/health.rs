@@ -151,7 +151,7 @@ pub async fn health_check(
             github_api: github_status,
             fractal_engine: fractal_status,
         },
-        system: system_status,
+        system: system_health_struct,
         performance: performance_metrics,
         checks,
     };

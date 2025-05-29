@@ -12,6 +12,8 @@ echo "╚═══════════════════════�
 echo -e "${NC}"
 
 echo -e "${RED}→ Bringing everything down...${NC}"
+docker-compose down -v
+
 docker-compose down --remove-orphans
 
 echo -e "${RED}→ Sanitizing...${NC}"

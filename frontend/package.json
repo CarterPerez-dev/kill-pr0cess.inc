@@ -4,7 +4,6 @@
   "description": "High-performance SolidJS frontend for computational showcase",
   "type": "module",
   "scripts": {
-    "postinstall": "node ./vite-plugin-solid-patch.js",
     "dev": "vinxi dev --host 0.0.0.0 --port 3000",
     "build": "vinxi build",
     "start": "vinxi start",

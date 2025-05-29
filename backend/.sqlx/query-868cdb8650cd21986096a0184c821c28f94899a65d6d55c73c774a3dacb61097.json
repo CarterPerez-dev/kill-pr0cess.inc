@@ -1,0 +1,173 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT\n            id, github_id, owner_login, name, full_name, description, html_url, clone_url, ssh_url,\n            language, size_kb, stargazers_count, watchers_count, forks_count, open_issues_count,\n            created_at, updated_at, pushed_at, is_private, is_fork, is_archived, topics,\n            license_name, readme_content, cache_updated_at, cache_expires_at\n        FROM repositories\n        WHERE owner_login = $1 AND name = $2\n        LIMIT 1\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "github_id",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 2,
+        "name": "owner_login",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 3,
+        "name": "name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 4,
+        "name": "full_name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 5,
+        "name": "description",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 6,
+        "name": "html_url",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 7,
+        "name": "clone_url",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 8,
+        "name": "ssh_url",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 9,
+        "name": "language",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 10,
+        "name": "size_kb",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 11,
+        "name": "stargazers_count",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 12,
+        "name": "watchers_count",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 13,
+        "name": "forks_count",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 14,
+        "name": "open_issues_count",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 15,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 16,
+        "name": "updated_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 17,
+        "name": "pushed_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 18,
+        "name": "is_private",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 19,
+        "name": "is_fork",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 20,
+        "name": "is_archived",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 21,
+        "name": "topics",
+        "type_info": "TextArray"
+      },
+      {
+        "ordinal": 22,
+        "name": "license_name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 23,
+        "name": "readme_content",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 24,
+        "name": "cache_updated_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 25,
+        "name": "cache_expires_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      false,
+      false,
+      false,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      false,
+      false,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+    ]
+  },
+  "hash": "868cdb8650cd21986096a0184c821c28f94899a65d6d55c73c774a3dacb61097"
+}

@@ -11,16 +11,13 @@ export default createHandler(() => (
           <meta name="theme-color" content="#000000" />
           <meta name="color-scheme" content="dark" />
           <link rel="icon" href="/favicon.ico" />
-          {/* JetBrains Mono font link from your original _layout.tsx */}
-          <link rel="preconnect" href="https://fonts.googleapis.com" />
-          <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-          <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+          <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400&display=swap" />
           {assets}
         </head>
-        <body class="bg-black text-neutral-100 antialiased" style="margin: 0;">
+        <body>
           <div id="app">{children}</div>
           {scripts}
-          <script textContent="window.__PERFORMANCE_START__ = Date.now();" />
+          <script>window.__PERFORMANCE_START__ = Date.now();</script>
         </body>
       </html>
     )}

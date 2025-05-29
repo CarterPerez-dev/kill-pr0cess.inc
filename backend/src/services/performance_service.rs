@@ -161,18 +161,18 @@ impl PerformanceService {
             "cpu_threads": system.cpus().len(),
             "memory_total_gb": system.total_memory() as f64 / (1024.0 * 1024.0 * 1024.0),
             "memory_available_gb": system.available_memory() as f64 / (1024.0 * 1024.0 * 1024.0),
-            "memory_usage_percent": {
+            let mem_usage_perc = {
                 let total = system.total_memory() as f64;
                 let available = system.available_memory() as f64;
-                ((total - available) / total) * 100.0
+                if total > 0.0 { ((total - available) / total) * 100.0 } else { 0.0 }
             },
             "cpu_usage_percent": system.global_cpu_info().cpu_usage(),
             "uptime_seconds": system.uptime(),
             "load_average_1m": system.load_average().one,
             "load_average_5m": system.load_average().five,
             "load_average_15m": system.load_average().fifteen,
-            "os_version": system.long_os_version(),
-            "processes_count": system.processes().len(),
+            "os_version": system.long_os_version().unwrap_or_default(),
+            "processes_count": system.processes().len()
         });
 
         Ok(info)
@@ -240,31 +240,57 @@ impl PerformanceService {
     /// Store system metrics in database for persistence
     /// I'm implementing persistent storage for long-term analysis
     async fn store_system_metrics(&self, metrics: &SystemMetrics) -> Result<()> {
+        let json_tags = serde_json::json!({
+            "cpu_cores": metrics.cpu_cores,
+            "cpu_threads": metrics.cpu_threads,
+            "memory_total_gb": metrics.memory_total_gb,
+            "uptime_seconds": metrics.uptime_seconds
+        });
+    
         sqlx::query!(
-            r#"
-            INSERT INTO performance_metrics (
-                metric_type, metric_value, metric_unit, timestamp, tags
-            ) VALUES
-                ('cpu_usage', $1, 'percent', $2, $3),
-                ('memory_usage', $4, 'percent', $2, $3),
-                ('disk_usage', $5, 'percent', $2, $3),
-                ('load_average_1m', $6, 'ratio', $2, $3)
-            "#,
+            r##"INSERT INTO performance_metrics (metric_type, metric_value, metric_unit, timestamp, tags)
+                VALUES ('cpu_usage', $1, 'percent', $2, $3)"##
+            ,
             metrics.cpu_usage_percent,
             metrics.timestamp,
-            serde_json::json!({
-                "cpu_cores": metrics.cpu_cores,
-                "cpu_threads": metrics.cpu_threads,
-                "memory_total_gb": metrics.memory_total_gb,
-                "uptime_seconds": metrics.uptime_seconds
-            }),
-            metrics.memory_usage_percent,
-            metrics.disk_usage_percent,
-            metrics.load_average_1m
+            json_tags
         )
         .execute(&self.db_pool)
         .await?;
-
+    
+        sqlx::query!(
+            r##"INSERT INTO performance_metrics (metric_type, metric_value, metric_unit, timestamp, tags)
+                VALUES ('memory_usage', $1, 'percent', $2, $3)"##
+            ,
+            metrics.memory_usage_percent,
+            metrics.timestamp,
+            json_tags
+        )
+        .execute(&self.db_pool)
+        .await?;
+    
+        sqlx::query!(
+            r##"INSERT INTO performance_metrics (metric_type, metric_value, metric_unit, timestamp, tags)
+                VALUES ('disk_usage', $1, 'percent', $2, $3)"##
+            ,
+            metrics.disk_usage_percent,
+            metrics.timestamp,
+            json_tags
+        )
+        .execute(&self.db_pool)
+        .await?;
+    
+        sqlx::query!(
+            r##"INSERT INTO performance_metrics (metric_type, metric_value, metric_unit, timestamp, tags)
+                VALUES ('load_average_1m', $1, 'ratio', $2, $3)"##
+            ,
+            metrics.load_average_1m,
+            metrics.timestamp,
+            json_tags
+        )
+        .execute(&self.db_pool)
+        .await?;
+    
         Ok(())
     }
 }

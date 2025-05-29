@@ -147,6 +147,15 @@ impl DatabaseUtils {
         .fetch_one(pool)
         .await?;
 
+        // Pre-compute block read/hit statistics for hit ratio
+        let blks_read: i64 = db_stats.try_get("blks_read")?;
+        let blks_hit: i64 = db_stats.try_get("blks_hit")?;
+        let hit_ratio = if blks_read + blks_hit > 0 {
+            blks_hit as f64 / (blks_read + blks_hit) as f64 * 100.0
+        } else {
+            0.0
+        };
+
         let stats = serde_json::json!({
             "table_sizes": table_sizes.iter().map(|row| {
                 serde_json::json!({
@@ -161,20 +170,16 @@ impl DatabaseUtils {
                 "idle": connection_stats.get::<i64, _>("idle_connections")
             },
             "database": {
-                "backends": db_stats.get::<i32, _>("numbackends"),
+                "backends": db_stats.try_get::<i32, _>("numbackends")?,
                 "transactions": {
-                    "committed": db_stats.get::<i64, _>("xact_commit"),
+                    "committed": db_stats.try_get::<i64, _>("xact_commit")?,
                     "rolled_back": db_stats.get::<i64, _>("xact_rollback")
                 },
-                "blocks": {
-                    "read": db_stats.get::<i64, _>("blks_read"),
-                    "hit": db_stats.get::<i64, _>("blks_hit"),
-                    "hit_ratio": {
-                        let read = db_stats.get::<i64, _>("blks_read") as f64;
-                        let hit = db_stats.get::<i64, _>("blks_hit") as f64;
-                        if read + hit > 0.0 { hit / (read + hit) * 100.0 } else { 0.0 }
-                    }
-                },
+                    "blocks": {
+                        "read": blks_read,
+                        "hit": blks_hit,
+                        "hit_ratio": hit_ratio
+                    },
                 "tuples": {
                     "returned": db_stats.get::<i64, _>("tup_returned"),
                     "fetched": db_stats.get::<i64, _>("tup_fetched"),

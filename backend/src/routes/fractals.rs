@@ -325,9 +325,9 @@ async fn store_fractal_computation(
         r#"
         INSERT INTO fractal_computations (
             fractal_type, width, height, center_x, center_y, zoom_level,
-            max_iterations, computation_time_ms, pixels_computed,
+            max_iterations, computation_time_ms,
             cpu_usage_percent, memory_usage_mb, parameters
-    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
     "#,
     fractal_type_str,
     request.width as i32,
@@ -337,17 +337,16 @@ async fn store_fractal_computation(
     request.zoom,
     request.max_iterations as i32,
     response.computation_time_ms as i32,
-    (request.width * request.height) as i32,
-                 cpu_delta,
-                 memory_delta,
-                 serde_json::json!({
-                     "fractal_type": fractal_type_str,
-                     "parameters": match request.fractal_type {
-                         FractalType::Julia { c_real, c_imag } => serde_json::json!({"c_real": c_real, "c_imag": c_imag}),
-                                   _ => serde_json::json!({})
-                     }
-                 })
-    )
+    cpu_delta,
+    memory_delta,
+    serde_json::json!({
+        "fractal_type": fractal_type_str,
+        "parameters": match request.fractal_type {
+            FractalType::Julia { c_real, c_imag } => serde_json::json!({"c_real": c_real, "c_imag": c_imag}),
+            _ => serde_json::json!({})
+        }
+    })
+)
     .execute(&app_state.db_pool)
     .await
     .map_err(|e| AppError::DatabaseError(e.to_string()))?;

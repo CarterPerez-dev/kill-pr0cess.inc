@@ -250,7 +250,7 @@ impl GitHubService {
         };
 
         // Cache for 30 minutes (detailed info changes less frequently)
-        if let Err(e) = self.cache_service.set(&cache_key, &detailed_repo, 1800).await {
+        if let Err(e) = self.cache_service.set(&cache_key, &detailed_repo, Some(1800)).await {
             warn!("Failed to cache detailed repository data: {}", e);
         }
 
@@ -407,42 +407,42 @@ async fn get_repository_readme(&self, owner: &str, name: &str) -> Result<String>
 
     /// Transform GitHub API repository format to our internal format
     /// I'm normalizing data and calculating derived fields for better UX
-    fn transform_api_repository(&self, api_repo: GitHubApiRepository) -> Repository {
-        Repository {
-            id: api_repo.id as i64,
-            github_id: api_repo.id as i64,
-            owner_login: api_repo.owner.login,
-            name: api_repo.name,
-            full_name: api_repo.full_name,
-            description: api_repo.description,
-            html_url: api_repo.html_url,
-            clone_url: api_repo.clone_url,
-            ssh_url: api_repo.ssh_url,
-            language: api_repo.language,
-            size_kb: api_repo.size as i32,
-            stargazers_count: api_repo.stargazers_count as i32,
-            watchers_count: api_repo.watchers_count as i32,
-            forks_count: api_repo.forks_count as i32,
+        fn transform_api_repository(&self, api_repo: GitHubApiRepository) -> Repository {
+            Repository {
+                id: uuid::Uuid::new_v4(),
+                github_id: api_repo.id as i64,
+                owner_login: api_repo.owner.login,
+                name: api_repo.name,
+                full_name: api_repo.full_name,
+                description: api_repo.description,
+                html_url: api_repo.html_url,
+                clone_url: api_repo.clone_url,
+                ssh_url: api_repo.ssh_url,
+                language: api_repo.language,
+                size_kb: api_repo.size as i32,
+                stargazers_count: api_repo.stargazers_count as i32,
+                watchers_count: api_repo.watchers_count as i32,
+                forks_count: api_repo.forks_count as i32,
                 open_issues_count: api_repo.open_issues_count as i32,
                 created_at: chrono::DateTime::parse_from_rfc3339(&api_repo.created_at)
-                .unwrap_or_else(|_| chrono::Utc::now().into())
-                .with_timezone(&chrono::Utc),
+                    .unwrap_or_else(|_| chrono::Utc::now().into())
+                    .with_timezone(&chrono::Utc),
                 updated_at: chrono::DateTime::parse_from_rfc3339(&api_repo.updated_at)
-                .unwrap_or_else(|_| chrono::Utc::now().into())
-                .with_timezone(&chrono::Utc),
+                    .unwrap_or_else(|_| chrono::Utc::now().into())
+                    .with_timezone(&chrono::Utc),
                 pushed_at: api_repo.pushed_at
-                .and_then(|s| chrono::DateTime::parse_from_rfc3339(&s).ok())
-                .map(|dt| dt.with_timezone(&chrono::Utc)),
+                    .and_then(|s| chrono::DateTime::parse_from_rfc3339(&s).ok())
+                    .map(|dt| dt.with_timezone(&chrono::Utc)),
                 is_private: api_repo.private,
                 is_fork: api_repo.fork,
                 is_archived: api_repo.archived,
-                topics: api_repo.topics,
+                topics: Some(api_repo.topics),
                 license_name: api_repo.license.map(|l| l.name),
                 readme_content: None,
                 cache_updated_at: chrono::Utc::now(),
                 cache_expires_at: chrono::Utc::now() + chrono::Duration::hours(1),
+            }
         }
-    }
 
     /// Store repositories in database cache for performance optimization
     /// I'm implementing intelligent database caching with automatic cleanup
@@ -497,7 +497,7 @@ async fn get_repository_readme(&self, owner: &str, name: &str) -> Result<String>
                 repo.is_private,
                 repo.is_fork,
                 repo.is_archived,
-                &repo.topics,
+                repo.topics.as_deref().unwrap_or(&[]),
                 repo.license_name,
                 repo.cache_updated_at,
                 repo.cache_expires_at

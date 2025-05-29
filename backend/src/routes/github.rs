@@ -226,7 +226,7 @@ pub async fn get_repository_stats(
         },
         "health_indicators": {
             "has_description": repo.description.is_some(),
-            "has_topics": !repo.topics.is_empty(),
+            "has_topics": repo.topics.as_ref().map(|t| !t.is_empty()).unwrap_or(false),
             "has_license": repo.license_name.is_some(),
             "is_archived": repo.is_archived,
             "is_fork": repo.is_fork,
@@ -343,12 +343,12 @@ async fn get_repositories_from_db(app_state: &AppState, username: &str) -> Resul
         Repository,
         r###"
         SELECT
-            id, github_id, owner_login, name, full_name, description, html_url, clone_url, ssh_url,
+            id as "id!:Uuid", github_id, owner_login, name, full_name, description, html_url, clone_url, ssh_url,
             language, size_kb, stargazers_count, watchers_count, forks_count, open_issues_count,
-            created_at, updated_at, pushed_at, is_private, is_fork, is_archived, topics,
+            created_at, updated_at, pushed_at, is_private, is_fork, is_archived, topics as "topics!: Option<Vec<String>>",
             license_name, readme_content, cache_updated_at, cache_expires_at
         FROM repositories
-        WHERE owner_login = $1 AND cache_expires_at > NOW()
+        WHERE owner_login = $1 AND cache_expires_at > CURRENT_TIMESTAMP
         ORDER BY updated_at DESC
         "###,
         username
@@ -365,10 +365,32 @@ async fn get_single_repository(app_state: &AppState, owner: &str, name: &str) ->
         Repository,
         r###"
         SELECT
-            id, github_id, owner_login, name, full_name, description, html_url, clone_url, ssh_url,
-            language, size_kb, stargazers_count, watchers_count, forks_count, open_issues_count,
-            created_at, updated_at, pushed_at, is_private, is_fork, is_archived, topics,
-            license_name, readme_content, cache_updated_at, cache_expires_at
+            id as "id!: Uuid", 
+            github_id, 
+            owner_login, 
+            name, 
+            full_name, 
+            description, 
+            html_url, 
+            clone_url, 
+            ssh_url,
+            language, 
+            size_kb, 
+            stargazers_count, 
+            watchers_count, 
+            forks_count, 
+            open_issues_count,
+            created_at, 
+            updated_at, 
+            pushed_at, 
+            is_private, 
+            is_fork, 
+            is_archived, 
+            topics as "topics!: Option<Vec<String>>",
+            license_name, 
+            readme_content, 
+            cache_updated_at, 
+            cache_expires_at
         FROM repositories
         WHERE owner_login = $1 AND name = $2
         LIMIT 1

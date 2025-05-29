@@ -15,13 +15,12 @@ pub use performance::*;
 pub use health::*;
 
 use crate::utils::config::Config;
-use axum::http::header;
 
 use axum::{
     Router,
     response::IntoResponse,
     routing::{get, post, Route},
-    http::{Method, HeaderValue, header}
+    http::{Method, HeaderValue, header},
 };
 use tower_http::{
     cors::{CorsLayer, Any},
@@ -105,8 +104,8 @@ fn create_cors_layer(config: &Config) -> CorsLayer {
 /// Custom rate limiting middleware
 /// I'm providing a foundation for rate limiting that can be expanded based on requirements
 #[allow(dead_code)]
-async fn rate_limiting_middleware<B>(
-    request: axum::http::Request<B>,
+async fn rate_limiting_middleware(
+    request: axum::http::Request<axum::body::Body>,
     next: axum::middleware::Next,
 ) -> Result<axum::response::Response, AppError> {
     // Get client IP address
