@@ -12,6 +12,7 @@ use axum::{
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use tracing::{info, warn, error};
+use uuid::Uuid;
 
 use crate::{
     services::fractal_service::{FractalService, FractalRequest, FractalResponse, FractalType},
@@ -326,7 +327,7 @@ async fn store_fractal_computation(
         INSERT INTO fractal_computations (
             fractal_type, width, height, center_x, center_y, zoom_level,
             max_iterations, computation_time_ms,
-            cpu_usage_percent, memory_usage_mb, parameters
+            cpu_usage_percent, memory_usage_mb, parameters)
     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
     "#,
     fractal_type_str,

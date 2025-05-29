@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        INSERT INTO performance_metrics (metric_type, metric_name, metric_value, metric_unit, endpoint, tags)\n        VALUES ('repository_access', 'repo_access_count', 1, 'count', $1, $2)\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Varchar",
+        "Jsonb"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "98a4ca6f7f1ba22481c05a48f73ee0a2d92d1408a0cb7eff09babf8e6be38cc8"
+}

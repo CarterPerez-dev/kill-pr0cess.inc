@@ -51,6 +51,7 @@ services:
       ENVIRONMENT: development
       GITHUB_TOKEN: ${GITHUB_TOKEN}
       GITHUB_USERNAME: ${GITHUB_USERNAME}
+      SQLX_OFFLINE: "true"
     ports:
       - "3001:3001"
     depends_on:

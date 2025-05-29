@@ -7,6 +7,8 @@ import { Component, createSignal, onMount, createEffect } from 'solid-js';
 import { A } from '@solidjs/router';
 import { FractalCanvas } from '../components/Fractals/FractalCanvas';
 
+
+
 interface PerformanceMetric {
   label: string;
   value: string;
@@ -79,7 +81,6 @@ export default function Home(): Component {
 
   return (
     <div class="min-h-screen bg-black text-neutral-100 relative overflow-hidden">
-      {/* Atmospheric background elements */}
       <div class="absolute inset-0 opacity-20">
         <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-900/10 rounded-full blur-3xl animate-pulse"></div>
         <div class="absolute bottom-1/4 right-1/4 w-80 h-80 bg-purple-900/10 rounded-full blur-3xl animate-pulse" style="animation-delay: 2s"></div>

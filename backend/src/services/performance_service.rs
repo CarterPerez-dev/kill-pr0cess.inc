@@ -10,6 +10,7 @@ use tokio::sync::RwLock;
 use tracing::{info, warn, debug};
 use std::sync::Arc;
 use std::collections::VecDeque;
+use uuid::Uuid;
 
 use crate::{
     utils::error::{AppError, Result},
@@ -155,17 +156,19 @@ impl PerformanceService {
         let mut system = self.system.write().await;
         system.refresh_all();
 
+        let memory_usage_percent = {
+            let total = system.total_memory() as f64;
+            let available = system.available_memory() as f64;
+            if total > 0.0 { ((total - available) / total) * 100.0 } else { 0.0 }
+        };
+
         let info = serde_json::json!({
             "cpu_model": system.global_cpu_info().brand(),
             "cpu_cores": system.physical_core_count().unwrap_or(0),
             "cpu_threads": system.cpus().len(),
             "memory_total_gb": system.total_memory() as f64 / (1024.0 * 1024.0 * 1024.0),
             "memory_available_gb": system.available_memory() as f64 / (1024.0 * 1024.0 * 1024.0),
-            let mem_usage_perc = {
-                let total = system.total_memory() as f64;
-                let available = system.available_memory() as f64;
-                if total > 0.0 { ((total - available) / total) * 100.0 } else { 0.0 }
-            },
+            "memory_usage_percent": memory_usage_percent,
             "cpu_usage_percent": system.global_cpu_info().cpu_usage(),
             "uptime_seconds": system.uptime(),
             "load_average_1m": system.load_average().one,
@@ -248,8 +251,8 @@ impl PerformanceService {
         });
     
         sqlx::query!(
-            r##"INSERT INTO performance_metrics (metric_type, metric_value, metric_unit, timestamp, tags)
-                VALUES ('cpu_usage', $1, 'percent', $2, $3)"##
+            r##"INSERT INTO performance_metrics (metric_type, metric_name, metric_value, metric_unit, timestamp, tags)
+                VALUES ('cpu_usage', 'cpu_usage_percent', $1, 'percent', $2, $3)"##
             ,
             metrics.cpu_usage_percent,
             metrics.timestamp,
@@ -259,8 +262,8 @@ impl PerformanceService {
         .await?;
     
         sqlx::query!(
-            r##"INSERT INTO performance_metrics (metric_type, metric_value, metric_unit, timestamp, tags)
-                VALUES ('memory_usage', $1, 'percent', $2, $3)"##
+            r##"INSERT INTO performance_metrics (metric_type, metric_name, metric_value, metric_unit, timestamp, tags)
+                VALUES ('memory_usage', 'memory_usage_percent', $1, 'percent', $2, $3)"##
             ,
             metrics.memory_usage_percent,
             metrics.timestamp,
@@ -270,8 +273,8 @@ impl PerformanceService {
         .await?;
     
         sqlx::query!(
-            r##"INSERT INTO performance_metrics (metric_type, metric_value, metric_unit, timestamp, tags)
-                VALUES ('disk_usage', $1, 'percent', $2, $3)"##
+            r##"INSERT INTO performance_metrics (metric_type, metric_name, metric_value, metric_unit, timestamp, tags)
+                VALUES ('disk_usage', 'disk_usage_percent', $1, 'percent', $2, $3)"##
             ,
             metrics.disk_usage_percent,
             metrics.timestamp,
@@ -281,8 +284,8 @@ impl PerformanceService {
         .await?;
     
         sqlx::query!(
-            r##"INSERT INTO performance_metrics (metric_type, metric_value, metric_unit, timestamp, tags)
-                VALUES ('load_average_1m', $1, 'ratio', $2, $3)"##
+            r##"INSERT INTO performance_metrics (metric_type, metric_name, metric_value, metric_unit, timestamp, tags)
+                VALUES ('load_average_1m', 'load_average_1m', $1, 'ratio', $2, $3)"##
             ,
             metrics.load_average_1m,
             metrics.timestamp,

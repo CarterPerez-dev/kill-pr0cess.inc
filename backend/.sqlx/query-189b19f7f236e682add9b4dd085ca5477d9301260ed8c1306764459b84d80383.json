@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n        SELECT\n            id, github_id, owner_login, name, full_name, description, html_url, clone_url, ssh_url,\n            language, size_kb, stargazers_count, watchers_count, forks_count, open_issues_count,\n            created_at, updated_at, pushed_at, is_private, is_fork, is_archived, topics,\n            license_name, readme_content, cache_updated_at, cache_expires_at\n        FROM repositories\n        WHERE owner_login = $1 AND cache_expires_at > NOW()\n        ORDER BY updated_at DESC\n        ",
+  "query": "\n        SELECT\n            id, github_id, owner_login, name, full_name, description, html_url, clone_url, ssh_url,\n            language, COALESCE(size_kb, 0) as size_kb, COALESCE(stargazers_count, 0) as stargazers_count, \n            COALESCE(watchers_count, 0) as watchers_count, COALESCE(forks_count, 0) as forks_count, \n            COALESCE(open_issues_count, 0) as open_issues_count,\n            created_at, updated_at, pushed_at, COALESCE(is_private, false) as is_private, \n            COALESCE(is_fork, false) as is_fork, COALESCE(is_archived, false) as is_archived, topics,\n            license_name, readme_content, cache_updated_at, cache_expires_at\n        FROM repositories\n        WHERE owner_login = $1 AND cache_expires_at > CURRENT_TIMESTAMP\n        ORDER BY updated_at DESC\n        ",
   "describe": {
     "columns": [
       {
@@ -150,17 +150,17 @@
       false,
       false,
       true,
-      true,
-      true,
-      true,
-      true,
-      true,
+      null,
+      null,
+      null,
+      null,
+      null,
       false,
       false,
       true,
-      true,
-      true,
-      true,
+      null,
+      null,
+      null,
       true,
       true,
       true,
@@ -168,5 +168,5 @@
       true
     ]
   },
-  "hash": "ace7f541e4b3186704c6f64529dbd0eab725113dbda4523a433cea511cdd91e3"
+  "hash": "189b19f7f236e682add9b4dd085ca5477d9301260ed8c1306764459b84d80383"
 }

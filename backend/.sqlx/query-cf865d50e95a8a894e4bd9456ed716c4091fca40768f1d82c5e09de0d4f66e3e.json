@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO performance_metrics (metric_type, metric_name, metric_value, metric_unit, timestamp, tags)\n                VALUES ('memory_usage', 'memory_usage_percent', $1, 'percent', $2, $3)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Float8",
+        "Timestamptz",
+        "Jsonb"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "cf865d50e95a8a894e4bd9456ed716c4091fca40768f1d82c5e09de0d4f66e3e"
+}

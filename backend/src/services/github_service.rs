@@ -8,6 +8,7 @@ use serde::{Deserialize, Serialize};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use tokio::time::sleep;
 use tracing::{info, warn, error, debug};
+use uuid::Uuid;
 
 use crate::{
     models::github::{Repository, RepositoryStats, GitHubUser, RepositoryDetailed},

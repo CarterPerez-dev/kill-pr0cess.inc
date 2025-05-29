@@ -20,11 +20,14 @@ RUN cargo install cargo-watch
 
 WORKDIR /app
 
-COPY --chown=developer:developer Cargo.toml ./Cargo.toml
-COPY --chown=developer:developer src/database ./database
+COPY Cargo.toml ./Cargo.toml
+COPY src/database ./database
+
+# Copy SQLx offline data
+COPY .sqlx ./.sqlx
 
 RUN mkdir -p src && echo "fn main() {}" > src/main.rs && cargo generate-lockfile
-COPY --chown=developer:developer build.rs ./
+COPY build.rs ./
 
 # I'm creating a dummy src to cache dependencies
 RUN cargo build

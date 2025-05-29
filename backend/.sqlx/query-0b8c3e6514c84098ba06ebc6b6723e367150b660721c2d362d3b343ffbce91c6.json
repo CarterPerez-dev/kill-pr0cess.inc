@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n        SELECT\n            id, github_id, owner_login, name, full_name, description, html_url, clone_url, ssh_url,\n            language, size_kb, stargazers_count, watchers_count, forks_count, open_issues_count,\n            created_at, updated_at, pushed_at, is_private, is_fork, is_archived, topics,\n            license_name, readme_content, cache_updated_at, cache_expires_at\n        FROM repositories\n        WHERE owner_login = $1 AND name = $2\n        LIMIT 1\n        ",
+  "query": "\n        SELECT\n            id, \n            github_id, \n            owner_login, \n            name, \n            full_name, \n            description, \n            html_url, \n            clone_url, \n            ssh_url,\n            language, \n            COALESCE(size_kb, 0) as size_kb, \n            COALESCE(stargazers_count, 0) as stargazers_count, \n            COALESCE(watchers_count, 0) as watchers_count, \n            COALESCE(forks_count, 0) as forks_count, \n            COALESCE(open_issues_count, 0) as open_issues_count,\n            created_at, \n            updated_at, \n            pushed_at, \n            COALESCE(is_private, false) as is_private, \n            COALESCE(is_fork, false) as is_fork, \n            COALESCE(is_archived, false) as is_archived, \n            topics,\n            license_name, \n            readme_content, \n            cache_updated_at, \n            cache_expires_at\n        FROM repositories\n        WHERE owner_login = $1 AND name = $2\n        LIMIT 1\n        ",
   "describe": {
     "columns": [
       {
@@ -151,17 +151,17 @@
       false,
       false,
       true,
-      true,
-      true,
-      true,
-      true,
-      true,
+      null,
+      null,
+      null,
+      null,
+      null,
       false,
       false,
       true,
-      true,
-      true,
-      true,
+      null,
+      null,
+      null,
       true,
       true,
       true,
@@ -169,5 +169,5 @@
       true
     ]
   },
-  "hash": "868cdb8650cd21986096a0184c821c28f94899a65d6d55c73c774a3dacb61097"
+  "hash": "0b8c3e6514c84098ba06ebc6b6723e367150b660721c2d362d3b343ffbce91c6"
 }
