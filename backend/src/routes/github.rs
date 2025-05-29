@@ -66,7 +66,7 @@ pub struct CacheInfo {
 /// I'm providing a full-featured repository listing endpoint with performance optimization
 pub async fn get_repositories(
     State(app_state): State<AppState>,
-                              Query(params): Query<RepositoryQuery>,
+    Query(params): Query<RepositoryQuery>,
 ) -> Result<JsonResponse<RepositoryResponse>> {
     info!("Fetching repositories with params: {:?}", params);
 
@@ -105,10 +105,10 @@ pub async fn get_repositories(
     let total_count = sorted_repos.len() as i32;
     let total_pages = (total_count + per_page - 1) / per_page;
     let paginated_repos = sorted_repos
-    .into_iter()
-    .skip(offset as usize)
-    .take(per_page as usize)
-    .collect::<Vec<_>>();
+        .into_iter()
+        .skip(offset as usize)
+        .take(per_page as usize)
+        .collect::<Vec<_>>();
 
     // Calculate statistics for the filtered set
     let statistics = calculate_collection_stats(&paginated_repos);
@@ -119,8 +119,8 @@ pub async fn get_repositories(
             limit: limit.limit as i32,
             remaining: limit.remaining as i32,
             reset_at: chrono::DateTime::from_timestamp(limit.reset as i64, 0)
-            .unwrap_or_else(|| chrono::Utc::now())
-            .into(),
+                .unwrap_or_else(|| chrono::Utc::now())
+                .into(),
             used: limit.used as i32,
             percentage_used: (limit.used as f64 / limit.limit as f64) * 100.0,
         },
@@ -152,8 +152,12 @@ pub async fn get_repositories(
         },
     };
 
-    info!("Returning {} repositories (page {} of {})",
-          response.repositories.len(), page, total_pages);
+    info!(
+        "Returning {} repositories (page {} of {})",
+        response.repositories.len(),
+        page,
+        total_pages
+    );
 
     Ok(Json(response))
 }
@@ -162,14 +166,14 @@ pub async fn get_repositories(
 /// I'm providing comprehensive repository analysis with performance metrics and content
 pub async fn get_repository_details(
     State(app_state): State<AppState>,
-                                    Path((owner, name)): Path<(String, String)>,
+    Path((owner, name)): Path<(String, String)>,
 ) -> Result<JsonResponse<RepositoryDetailed>> {
     info!("Fetching detailed repository information for {}/{}", owner, name);
 
     // Get detailed repository information
     let repository_details = app_state.github_service
-    .get_repository_details(&owner, &name)
-    .await?;
+        .get_repository_details(&owner, &name)
+        .await?;
 
     // Update access metrics in database
     if let Err(e) = record_repository_access(&app_state, &owner, &name).await {
@@ -184,7 +188,7 @@ pub async fn get_repository_details(
 /// I'm providing detailed analytics that highlight the repository's characteristics
 pub async fn get_repository_stats(
     State(app_state): State<AppState>,
-                                  Path((owner, name)): Path<(String, String)>,
+    Path((owner, name)): Path<(String, String)>,
 ) -> Result<JsonResponse<serde_json::Value>> {
     info!("Fetching repository statistics for {}/{}", owner, name);
 
@@ -194,8 +198,8 @@ pub async fn get_repository_stats(
         Err(_) => {
             // Try fetching from GitHub API
             let detailed = app_state.github_service
-            .get_repository_details(&owner, &name)
-            .await?;
+                .get_repository_details(&owner, &name)
+                .await?;
             detailed.basic
         }
     };
@@ -214,35 +218,35 @@ pub async fn get_repository_stats(
         },
         "activity_metrics": {
             "activity_score": repo.calculate_activity_score(),
-                                  "age_in_days": repo.age_in_days(),
-                                  "days_since_update": repo.days_since_update(),
-                                  "is_active": repo.days_since_update() < 90,
-                                  "last_updated": repo.updated_at,
-                                  "last_pushed": repo.pushed_at
+            "age_in_days": repo.age_in_days(),
+            "days_since_update": repo.days_since_update(),
+            "is_active": repo.days_since_update() < 90,
+            "last_updated": repo.updated_at,
+            "last_pushed": repo.pushed_at
         },
         "health_indicators": {
             "has_description": repo.description.is_some(),
-                                  "has_topics": !repo.topics.is_empty(),
-                                  "has_license": repo.license_name.is_some(),
-                                  "is_archived": repo.is_archived,
-                                  "is_fork": repo.is_fork,
-                                  "issue_activity": if repo.stargazers_count > 0 {
-                                      repo.open_issues_count as f64 / repo.stargazers_count as f64
-                                  } else { 0.0 }
+            "has_topics": !repo.topics.is_empty(),
+            "has_license": repo.license_name.is_some(),
+            "is_archived": repo.is_archived,
+            "is_fork": repo.is_fork,
+            "issue_activity": if repo.stargazers_count > 0 {
+                repo.open_issues_count as f64 / repo.stargazers_count as f64
+            } else { 0.0 }
         },
         "popularity_metrics": {
             "stars_to_forks_ratio": if repo.forks_count > 0 {
                 repo.stargazers_count as f64 / repo.forks_count as f64
             } else { repo.stargazers_count as f64 },
-                "watchers_to_stars_ratio": if repo.stargazers_count > 0 {
-                    repo.watchers_count as f64 / repo.stargazers_count as f64
-                } else { 0.0 },
-                    "popularity_rank": calculate_popularity_rank(&repo)
+            "watchers_to_stars_ratio": if repo.stargazers_count > 0 {
+                repo.watchers_count as f64 / repo.stargazers_count as f64
+            } else { 0.0 },
+            "popularity_rank": calculate_popularity_rank(&repo)
         },
         "technical_info": {
             "primary_language": repo.language,
             "size_category": categorize_repository_size(repo.size_kb),
-                                  "complexity_estimate": estimate_complexity(&repo)
+            "complexity_estimate": estimate_complexity(&repo)
         }
     });
 
@@ -279,11 +283,11 @@ pub async fn get_language_distribution(
         if let Some(ref language) = repo.language {
             let stat = language_stats.entry(language.clone()).or_insert(LanguageStat {
                 name: language.clone(),
-                                                                        repository_count: 0,
-                                                                        total_size_kb: 0,
-                                                                        total_stars: 0,
-                                                                        average_stars: 0.0,
-                                                                        percentage: 0.0,
+                repository_count: 0,
+                total_size_kb: 0,
+                total_stars: 0,
+                average_stars: 0.0,
+                percentage: 0.0,
             });
 
             stat.repository_count += 1;
@@ -310,10 +314,10 @@ pub async fn get_language_distribution(
         "languages": sorted_languages,
         "summary": {
             "total_languages": sorted_languages.len(),
-                                     "total_repositories_analyzed": repositories.len(),
-                                     "total_size_kb": total_size,
-                                     "most_used_language": sorted_languages.first().map(|l| &l.name),
-                                     "language_diversity_score": calculate_diversity_score(&sorted_languages)
+            "total_repositories_analyzed": repositories.len(),
+            "total_size_kb": total_size,
+            "most_used_language": sorted_languages.first().map(|l| &l.name),
+            "language_diversity_score": calculate_diversity_score(&sorted_languages)
         },
         "analysis_timestamp": chrono::Utc::now()
     });
@@ -337,17 +341,17 @@ struct LanguageStat {
 async fn get_repositories_from_db(app_state: &AppState, username: &str) -> Result<Vec<Repository>> {
     let repositories = sqlx::query_as!(
         Repository,
-        r#"
+        r###"
         SELECT
-        id, github_id, owner_login, name, full_name, description, html_url, clone_url, ssh_url,
-        language, size_kb, stargazers_count, watchers_count, forks_count, open_issues_count,
-        created_at, updated_at, pushed_at, is_private, is_fork, is_archived, topics,
-        license_name, readme_content, cached_at, cache_expires_at
+            id, github_id, owner_login, name, full_name, description, html_url, clone_url, ssh_url,
+            language, size_kb, stargazers_count, watchers_count, forks_count, open_issues_count,
+            created_at, updated_at, pushed_at, is_private, is_fork, is_archived, topics,
+            license_name, readme_content, cached_at, cache_expires_at
         FROM repositories
         WHERE owner_login = $1 AND cache_expires_at > NOW()
-    ORDER BY updated_at DESC
-    "#,
-    username
+        ORDER BY updated_at DESC
+        "###,
+        username
     )
     .fetch_all(&app_state.db_pool)
     .await
@@ -359,16 +363,16 @@ async fn get_repositories_from_db(app_state: &AppState, username: &str) -> Resul
 async fn get_single_repository(app_state: &AppState, owner: &str, name: &str) -> Result<Repository> {
     let repo = sqlx::query_as!(
         Repository,
-        r#"
+        r###"
         SELECT
-        id, github_id, owner_login, name, full_name, description, html_url, clone_url, ssh_url,
-        language, size_kb, stargazers_count, watchers_count, forks_count, open_issues_count,
-        created_at, updated_at, pushed_at, is_private, is_fork, is_archived, topics,
-        license_name, readme_content, cached_at, cache_expires_at
+            id, github_id, owner_login, name, full_name, description, html_url, clone_url, ssh_url,
+            language, size_kb, stargazers_count, watchers_count, forks_count, open_issues_count,
+            created_at, updated_at, pushed_at, is_private, is_fork, is_archived, topics,
+            license_name, readme_content, cached_at, cache_expires_at
         FROM repositories
         WHERE owner_login = $1 AND name = $2
         LIMIT 1
-        "#,
+        "###,
         owner,
         name
     )
@@ -381,11 +385,11 @@ async fn get_single_repository(app_state: &AppState, owner: &str, name: &str) ->
 
 async fn record_repository_access(app_state: &AppState, owner: &str, name: &str) -> Result<()> {
     sqlx::query!(
-        r#"
+        r###"
         INSERT INTO performance_metrics (metric_type, metric_value, metric_unit, endpoint, tags)
-    VALUES ('repository_access', 1, 'count', $1, $2)
-    "#,
-    format!("/api/github/repo/{}/{}", owner, name),
+        VALUES ('repository_access', 1, 'count', $1, $2)
+        "###,
+        format!("/api/github/repo/{}/{}", owner, name),
         serde_json::json!({"owner": owner, "name": name, "access_time": chrono::Utc::now()})
     )
     .execute(&app_state.db_pool)
@@ -414,11 +418,11 @@ fn apply_sorting(mut repositories: Vec<Repository>, params: &RepositoryQuery) ->
     repositories.sort_by(|a, b| {
         let comparison = match sort_field {
             "name" => a.name.cmp(&b.name),
-                         "stars" => a.stargazers_count.cmp(&b.stargazers_count),
-                         "forks" => a.forks_count.cmp(&b.forks_count),
-                         "size" => a.size_kb.cmp(&b.size_kb),
-                         "created" => a.created_at.cmp(&b.created_at),
-                         "updated" | _ => a.updated_at.cmp(&b.updated_at),
+            "stars" => a.stargazers_count.cmp(&b.stargazers_count),
+            "forks" => a.forks_count.cmp(&b.forks_count),
+            "size" => a.size_kb.cmp(&b.size_kb),
+            "created" => a.created_at.cmp(&b.created_at),
+            "updated" | _ => a.updated_at.cmp(&b.updated_at),
         };
 
         if direction == "desc" {

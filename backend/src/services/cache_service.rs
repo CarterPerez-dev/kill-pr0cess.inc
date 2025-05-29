@@ -9,9 +9,8 @@ use tokio::sync::RwLock;
 
 use crate::utils::error::{AppError, Result};
 
-/// Cache service with Redis backend and intelligent key management
-/// I'm providing a comprehensive caching solution with performance optimization and reliability features
-#[derive(Clone)] // <<<< IMPORTANT: Removed `Debug` from here
+
+#[derive(Clone)]
 pub struct CacheService {
     client: Client,
     key_prefix: String,

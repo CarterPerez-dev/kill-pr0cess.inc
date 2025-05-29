@@ -1,6 +1,6 @@
 // @refresh reload
 import { mount, StartClient } from "@solidjs/start/client";
-
+import './routes.tsx';
 // I'm mounting the client application with performance monitoring
 mount(() => <StartClient />, document.getElementById("app")!);
 

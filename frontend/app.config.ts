@@ -1,8 +1,3 @@
-/*
- * Clean and focused SolidStart application configuration with essential vite-plugin-solid compatibility fixes.
- * I'm providing the minimal configuration needed to resolve plugin issues while maintaining optimal performance.
- */
-
 import { defineConfig } from "@solidjs/start/config";
 import tailwindcss from "tailwindcss";
 import autoprefixer from "autoprefixer";
@@ -36,7 +31,7 @@ export default defineConfig({
       host: '0.0.0.0',
       open: false,
       hmr: {
-        port: 3001,
+        clientPort: 3000,
       },
     },
     define: {
@@ -52,7 +47,7 @@ export default defineConfig({
       },
     },
     optimizeDeps: {
-      include: ['solid-js', '@solidjs/router', '@solidjs/meta'],
+      include: ['solid-js'],
       exclude: ['@solidjs/start'],
     },
     esbuild: {

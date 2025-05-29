@@ -1,5 +1,6 @@
+// frontend/src/routes.tsx
 import { lazy } from 'solid-js';
-import { RouteDefinition } from '@solidjs/router';
+import type { RouteDefinition } from '@solidjs/router'; // Use `type` import
 import Home from './pages/Home';
 
 export const routes: RouteDefinition[] = [

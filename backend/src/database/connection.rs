@@ -147,7 +147,7 @@ impl DatabaseManager {
     pub async fn run_migrations(&self) -> Result<()> {
         info!("Running database migrations");
 
-        match sqlx::migrate!("./database/migrations")
+        match sqlx::migrate!("src/database/migrations")
         .run(&self.pool)
         .await
         {
