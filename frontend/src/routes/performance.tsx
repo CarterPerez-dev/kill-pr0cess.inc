@@ -4,7 +4,7 @@
  */
 
 import { Component } from 'solid-js';
-import Performance from '../pages/Performance';
+import Performance from '.../pages/Performance';
 
 const PerformanceRoute: Component = () => {
   return <Performance />;

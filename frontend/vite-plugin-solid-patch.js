@@ -19,7 +19,7 @@ try {
 
   // --- Client Conditions Patch ---
   const clientOriginal = 'config.resolve.conditions = [...defaultClientConditions];';
-  const clientPatched = "config.resolve.conditions = Array.isArray(defaultClientConditions) ? [...defaultClientConditions] : ['browser', 'module', 'import', 'default'];";
+  const clientPatched = "config.resolve.conditions = Array.isArray(defaultClientConditions) ? [...new Set([...defaultClientConditions, 'solid', 'development'])] : ['solid', 'development', 'browser', 'module', 'import', 'default'];";
 
   if (content.includes(clientOriginal)) {
     console.log('🎯 Found original client conditions. Patching...');
@@ -38,7 +38,7 @@ try {
 
   // --- Server Conditions Patch ---
   const serverOriginal = 'config.resolve.conditions = [...defaultServerConditions];';
-  const serverPatched = "config.resolve.conditions = Array.isArray(defaultServerConditions) ? [...defaultServerConditions] : ['node', 'module', 'import', 'default'];";
+  const serverPatched = "config.resolve.conditions = Array.isArray(defaultServerConditions) ? [...new Set([...defaultServerConditions, 'solid', 'development'])] : ['solid', 'development', 'node', 'module', 'import', 'default'];";
 
   if (content.includes(serverOriginal)) {
     console.log('🎯 Found original server conditions. Patching...');

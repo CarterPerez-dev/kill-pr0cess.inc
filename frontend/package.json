@@ -4,6 +4,7 @@
   "description": "High-performance SolidJS frontend for computational showcase",
   "type": "module",
   "scripts": {
+    "postinstall": "echo 'NPM Postinstall: Attempting to run patch script...' && node ./vite-plugin-solid-patch.js && echo 'NPM Postinstall: Patch script finished.'",
     "dev": "vinxi dev --host 0.0.0.0 --port 3000",
     "build": "vinxi build",
     "start": "vinxi start",
@@ -16,24 +17,25 @@
     "test:run": "vitest run"
   },
   "dependencies": {
+    "@solidjs/meta": "^0.29.4",
     "@solidjs/router": "^0.14.7",
     "@solidjs/start": "^1.0.8",
-    "@solidjs/meta": "^0.29.4",
+    "package.json": "^0.0.0",
     "solid-js": "^1.9.3",
     "vinxi": "^0.5.6"
   },
   "devDependencies": {
-    "tailwindcss": "^3.4.16",
-    "autoprefixer": "^10.4.20",
     "@types/node": "^20.12.7",
-    "typescript": "^5.4.5",
-    "vite": "^5.2.10",
-    "vitest": "^1.6.0",
-    "eslint": "^8.57.0",
     "@typescript-eslint/eslint-plugin": "^7.7.1",
     "@typescript-eslint/parser": "^7.7.1",
+    "autoprefixer": "^10.4.20",
+    "eslint": "^8.57.0",
+    "postcss": "^8.4.38",
     "prettier": "^3.2.5",
-    "postcss": "^8.4.38"
+    "tailwindcss": "^3.4.16",
+    "typescript": "^5.4.5",
+    "vite": "^6.3.5",
+    "vitest": "^3.1.4"
   },
   "engines": {
     "node": ">=20",

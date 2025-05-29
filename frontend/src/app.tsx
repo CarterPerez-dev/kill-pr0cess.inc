@@ -1,17 +1,18 @@
-/*
- * Root application component that serves as the main entry point for SolidStart.
- * This file is required by SolidStart and provides the app shell that wraps all routes automatically.
- */
-
+import { Router } from "@solidjs/router";
 import { FileRoutes } from "@solidjs/start/router";
+import { Suspense } from "solid-js";
 import "./app.css";
 
 export default function App() {
-  console.log("[App.tsx] SolidStart App component rendering with FileRoutes");
-
   return (
-    <>
+    <Router
+      root={props => (
+        <>
+          <Suspense>{props.children}</Suspense>
+        </>
+      )}
+    >
       <FileRoutes />
-    </>
+    </Router>
   );
 }
