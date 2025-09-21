@@ -1,13 +1,12 @@
 /*
- * Utilities module aggregator providing common functionality, error handling, configuration management, and metrics collection for the dark performance showcase.
- * I'm organizing cross-cutting concerns like configuration parsing, error handling, performance metrics, and shared utilities into a cohesive support layer for the entire application.
+ * ©AngelaMos | 2025
  */
+
 
 pub mod config;
 pub mod error;
 pub mod metrics;
 
-// Re-export commonly used utilities for convenient access throughout the application
 pub use config::Config;
 pub use error::{AppError, Result, ErrorContext, ResultExt};
 pub use metrics::{MetricsCollector, PerformanceTimer, TimingGuard};
@@ -17,19 +16,13 @@ use tracing::{info, warn};
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 use chrono::{DateTime, Utc};
 
-/// Common utility functions used across the application
-/// I'm providing a collection of helper functions for common operations
 pub struct Utils;
 
 impl Utils {
-    /// Generate a unique correlation ID for request tracking
-    /// I'm implementing request correlation for distributed tracing
     pub fn generate_correlation_id() -> String {
         uuid::Uuid::new_v4().to_string()
     }
 
-    /// Get current timestamp in various formats
-    /// I'm providing flexible timestamp generation for different use cases
     pub fn current_timestamp() -> DateTime<Utc> {
         Utc::now()
     }
@@ -48,8 +41,6 @@ impl Utils {
             .as_millis()
     }
 
-    /// Format duration in human-readable format
-    /// I'm providing human-friendly duration formatting
     pub fn format_duration(duration: Duration) -> String {
         let seconds = duration.as_secs();
         let millis = duration.subsec_millis();
@@ -70,8 +61,6 @@ impl Utils {
         }
     }
 
-    /// Format bytes in human-readable format
-    /// I'm providing human-friendly byte size formatting
     pub fn format_bytes(bytes: u64) -> String {
         const UNITS: &[&str] = &["B", "KB", "MB", "GB", "TB", "PB"];
 
@@ -93,8 +82,6 @@ impl Utils {
         }
     }
 
-    /// Parse size string (e.g., "1GB", "500MB") to bytes
-    /// I'm implementing flexible size parsing for configuration
      pub fn parse_size(size_str: &str) -> std::result::Result<u64, AppError> {
         let size_str = size_str.trim().to_uppercase();
 
@@ -102,7 +89,6 @@ impl Utils {
             return Err(AppError::ConfigurationError("Empty size string".to_string()));
         }
 
-        // Extract number and unit
         let (number_part, unit_part) = if size_str.ends_with("B") {
             let without_b = &size_str[..size_str.len() - 1];
             if let Some(pos) = without_b.chars().position(|c| c.is_alphabetic()) {
@@ -134,8 +120,6 @@ impl Utils {
         Ok((number * multiplier as f64) as u64)
     }
 
-    /// Truncate string to specified length with ellipsis
-    /// I'm providing string truncation for display purposes
     pub fn truncate_string(s: &str, max_len: usize) -> String {
         if s.len() <= max_len {
             s.to_string()
@@ -146,16 +130,12 @@ impl Utils {
         }
     }
 
-    /// Sanitize string for safe logging
-    /// I'm implementing string sanitization for security
     pub fn sanitize_for_log(s: &str) -> String {
         s.chars()
             .map(|c| if c.is_control() { '�' } else { c })
             .collect()
     }
 
-    /// Calculate percentile from a sorted vector
-    /// I'm implementing percentile calculation for statistics
     pub fn calculate_percentile(sorted_values: &[f64], percentile: f64) -> Option<f64> {
         if sorted_values.is_empty() || percentile < 0.0 || percentile > 100.0 {
             return None;
@@ -179,8 +159,6 @@ impl Utils {
         }
     }
 
-    /// Generate secure random string
-    /// I'm implementing secure random string generation
     pub fn generate_random_string(length: usize) -> String {
         use rand::Rng;
         const CHARSET: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -194,8 +172,6 @@ impl Utils {
             .collect()
     }
 
-    /// Hash string using SHA-256
-    /// I'm providing secure hashing functionality
     pub fn hash_string(input: &str) -> String {
         use sha2::{Sha256, Digest};
         let mut hasher = Sha256::new();
@@ -203,27 +179,19 @@ impl Utils {
         format!("{:x}", hasher.finalize())
     }
 
-    /// Validate email address format
-    /// I'm implementing basic email validation
     pub fn is_valid_email(email: &str) -> bool {
         email.contains('@') && email.contains('.') && email.len() > 5
     }
 
-    /// Validate URL format
-    /// I'm implementing basic URL validation
     pub fn is_valid_url(url: &str) -> bool {
         url.starts_with("http://") || url.starts_with("https://")
     }
 
-    /// Rate limiter utility
-    /// I'm implementing a simple rate limiter for API protection
     pub fn create_rate_limiter(max_requests: u32, window_seconds: u64) -> RateLimiter {
         RateLimiter::new(max_requests, Duration::from_secs(window_seconds))
     }
 }
 
-/// Simple rate limiter implementation
-/// I'm providing basic rate limiting functionality
 pub struct RateLimiter {
     max_requests: u32,
     window: Duration,
@@ -243,7 +211,6 @@ impl RateLimiter {
         let now = Instant::now();
         let mut requests = self.requests.lock().unwrap();
 
-        // Remove old requests outside the window
         requests.retain(|&request_time| now.duration_since(request_time) < self.window);
 
         if requests.len() < self.max_requests as usize {
@@ -258,7 +225,6 @@ impl RateLimiter {
         let now = Instant::now();
         let mut requests = self.requests.lock().unwrap();
 
-        // Remove old requests outside the window
         requests.retain(|&request_time| now.duration_since(request_time) < self.window);
 
         self.max_requests.saturating_sub(requests.len() as u32)
@@ -270,8 +236,6 @@ impl RateLimiter {
     }
 }
 
-/// Environment detection utilities
-/// I'm providing environment detection for configuration
 pub struct Environment;
 
 impl Environment {
@@ -308,8 +272,6 @@ impl Environment {
     }
 }
 
-/// Retry utility for resilient operations
-/// I'm implementing retry logic with exponential backoff
 pub struct RetryConfig {
     pub max_attempts: u32,
     pub initial_delay: Duration,
@@ -360,8 +322,6 @@ where
     unreachable!()
 }
 
-/// Circuit breaker pattern implementation
-/// I'm implementing circuit breaker for service resilience
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum CircuitState {
     Closed,
@@ -393,7 +353,6 @@ impl CircuitBreaker {
         F: FnOnce() -> std::result::Result<T, E>,
         E: From<AppError>,
     {
-        // First, check the current state and decide if we can proceed or need to transition
         let can_proceed = {
             let mut current_state_guard = self.state.lock().unwrap(); // Lock to read and potentially modify
             match *current_state_guard {
@@ -403,7 +362,6 @@ impl CircuitBreaker {
                     let last_failure_time_guard = self.last_failure_time.lock().unwrap();
                     if let Some(last_failure) = *last_failure_time_guard {
                         if Instant::now().duration_since(last_failure) > self.timeout {
-                            // Timeout has passed, transition to HalfOpen
                             info!("CircuitBreaker: Timeout elapsed, transitioning from Open to HalfOpen.");
                             *current_state_guard = CircuitState::HalfOpen;
                             true // Allow this call as the first attempt in HalfOpen
@@ -428,10 +386,8 @@ impl CircuitBreaker {
             .into());
         }
 
-        // If we can proceed, attempt the operation
         match operation() {
             Ok(result) => {
-                // Operation succeeded
                 let mut current_state_guard = self.state.lock().unwrap();
                 if *current_state_guard == CircuitState::HalfOpen {
                     info!("CircuitBreaker: Successful call in HalfOpen state, transitioning to Closed.");
@@ -442,7 +398,6 @@ impl CircuitBreaker {
                 Ok(result)
             }
             Err(error) => {
-                // Operation failed
                 let mut failure_count_guard = self.failure_count.lock().unwrap();
                 let mut current_state_guard = self.state.lock().unwrap();
                 let mut last_failure_time_guard = self.last_failure_time.lock().unwrap();
@@ -506,7 +461,7 @@ mod tests {
 
         assert!(limiter.is_allowed());
         assert!(limiter.is_allowed());
-        assert!(!limiter.is_allowed()); // Should be rate limited
+        assert!(!limiter.is_allowed());
     }
 
     #[test]

@@ -57,7 +57,6 @@ impl FractalService {
                 let c = Complex::new(cx, cy);
                 let iterations = self.mandelbrot_iterations(c, request.max_iterations);
 
-                // I'm creating an eerie color palette that fits the dark theme
                 self.iteration_to_dark_color(iterations, request.max_iterations)
             }).collect::<Vec<_>>()
         })

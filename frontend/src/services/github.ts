@@ -1,6 +1,5 @@
 /*
- * GitHub API service layer providing data transformation, caching strategies, and error recovery for repository information.
- * I'm implementing intelligent caching, rate limit handling, and seamless integration with the backend GitHub service while providing clean interfaces for frontend components.
+ * ©AngelaMos | 2025
  */
 
 import { apiClient } from './api';

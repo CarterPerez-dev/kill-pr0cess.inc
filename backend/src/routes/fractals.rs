@@ -1,6 +1,5 @@
 /*
- * Fractal generation route handlers providing high-performance computational endpoints for real-time visualization.
- * I'm implementing Mandelbrot and Julia set generation with comprehensive performance tracking and parameter validation.
+ * ©AngelaMos | 2025
  */
 
 use axum::{
@@ -322,32 +321,32 @@ async fn store_fractal_computation(
         FractalType::Julia { .. } => "julia",
     };
 
-    sqlx::query!(
+    sqlx::query(
         r#"
         INSERT INTO fractal_computations (
             fractal_type, width, height, center_x, center_y, zoom_level,
             max_iterations, computation_time_ms,
             cpu_usage_percent, memory_usage_mb, parameters)
     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-    "#,
-    fractal_type_str,
-    request.width as i32,
-    request.height as i32,
-    request.center_x,
-    request.center_y,
-    request.zoom,
-    request.max_iterations as i32,
-    response.computation_time_ms as i32,
-    cpu_delta,
-    memory_delta,
-    serde_json::json!({
+    "#
+)
+    .bind(fractal_type_str)
+    .bind(request.width as i32)
+    .bind(request.height as i32)
+    .bind(request.center_x)
+    .bind(request.center_y)
+    .bind(request.zoom)
+    .bind(request.max_iterations as i32)
+    .bind(response.computation_time_ms as i32)
+    .bind(cpu_delta)
+    .bind(memory_delta)
+    .bind(serde_json::json!({
         "fractal_type": fractal_type_str,
         "parameters": match request.fractal_type {
             FractalType::Julia { c_real, c_imag } => serde_json::json!({"c_real": c_real, "c_imag": c_imag}),
             _ => serde_json::json!({})
         }
-    })
-)
+    }))
     .execute(&app_state.db_pool)
     .await
     .map_err(|e| AppError::DatabaseError(e.to_string()))?;

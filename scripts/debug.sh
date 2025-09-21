@@ -22,11 +22,11 @@ echo
 # I'm checking backend health
 echo "🦀 Backend Health Check:"
 echo "---------------------"
-BACKEND_HEALTH=$(curl -s http://localhost:3001/health 2>/dev/null || echo "❌ Backend unreachable")
+BACKEND_HEALTH=$(curl -s http://localhost:8000/health 2>/dev/null || echo "❌ Backend unreachable")
 if [[ "$BACKEND_HEALTH" =~ "healthy" ]]; then
     echo "✅ Backend is healthy"
     echo "📊 Backend details:"
-    curl -s http://localhost:3001/health | jq '.' 2>/dev/null || echo "$BACKEND_HEALTH"
+    curl -s http://localhost:8000/health | jq '.' 2>/dev/null || echo "$BACKEND_HEALTH"
 else
     echo "❌ Backend health check failed: $BACKEND_HEALTH"
     echo "🔧 Checking backend logs..."
@@ -41,7 +41,7 @@ echo
 # I'm checking frontend health
 echo "⚛️  Frontend Health Check:"
 echo "------------------------"
-FRONTEND_HEALTH=$(curl -s http://localhost:3000/ 2>/dev/null || echo "❌ Frontend unreachable")
+FRONTEND_HEALTH=$(curl -s http://localhost:4000/ 2>/dev/null || echo "❌ Frontend unreachable")
 if [[ "$FRONTEND_HEALTH" =~ "html" ]] || [[ "$FRONTEND_HEALTH" =~ "DOCTYPE" ]]; then
     echo "✅ Frontend is serving content"
 else
@@ -83,7 +83,7 @@ echo "----------------------"
 
 # Check for port conflicts
 echo "📡 Port Status:"
-PORTS=(3000 3001 5432 6379)
+PORTS=(4000 8000 5432 6377)
 for port in "${PORTS[@]}"; do
     if lsof -i :$port &> /dev/null; then
         PROCESS=$(lsof -i :$port | grep LISTEN | awk '{print $1, $2}' | head -1)

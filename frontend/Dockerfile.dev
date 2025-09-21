@@ -21,7 +21,7 @@ COPY . .
 
 ENV NODE_ENV=development
 ENV VITE_DEV_MODE=true
-ENV VITE_API_URL=http://localhost:3001
+ENV VITE_API_URL=http://localhost:8000
 
 EXPOSE 3000
 

@@ -191,7 +191,7 @@ jobs:
 
         # I'm waiting for the service to be ready
         for i in {1..30}; do
-          if curl -sf http://localhost:3001/health; then
+          if curl -sf http://localhost:8000/health; then
             echo "Backend is ready"
             break
           fi
@@ -228,7 +228,7 @@ jobs:
           times=()
           for i in {1..50}; do
             start_time=$(date +%s%3N)
-            if curl -sf "http://localhost:3001$endpoint" >/dev/null; then
+            if curl -sf "http://localhost:8000$endpoint" >/dev/null; then
               end_time=$(date +%s%3N)
               response_time=$((end_time - start_time))
               times+=("$response_time")
@@ -276,7 +276,7 @@ jobs:
             response=$(curl -sf -X POST \
               -H "Content-Type: application/json" \
               -d "$scenario" \
-              "http://localhost:3001/api/fractals/mandelbrot" 2>/dev/null)
+              "http://localhost:8000/api/fractals/mandelbrot" 2>/dev/null)
 
             if [[ -n "$response" ]]; then
               comp_time=$(echo "$response" | jq -r '.computation_time_ms')

@@ -1,6 +1,5 @@
 /*
- * GitHub API route handlers providing comprehensive repository data with intelligent caching and performance optimization.
- * I'm implementing RESTful endpoints that showcase GitHub integration while maintaining high performance through caching and database optimization.
+ * ©AngelaMos | 2025
  */
 
 use axum::{
@@ -340,9 +339,8 @@ struct LanguageStat {
 // Helper functions for repository processing and analysis
 
 async fn get_repositories_from_db(app_state: &AppState, username: &str) -> Result<Vec<Repository>> {
-    let repositories = sqlx::query_as!(
-        Repository,
-        r###"
+    let repositories = sqlx::query_as::<_, Repository>(
+        r#"
         SELECT
             id, github_id, owner_login, name, full_name, description, html_url, clone_url, ssh_url,
             language, size_kb, stargazers_count, watchers_count, forks_count, open_issues_count,
@@ -351,9 +349,9 @@ async fn get_repositories_from_db(app_state: &AppState, username: &str) -> Resul
         FROM repositories
         WHERE owner_login = $1 AND cache_expires_at > CURRENT_TIMESTAMP
         ORDER BY updated_at DESC
-        "###,
-        username
+        "#
     )
+    .bind(username)
     .fetch_all(&app_state.db_pool)
     .await
     .map_err(|e| AppError::DatabaseError(format!("Failed to fetch repositories from database: {}", e)))?;
@@ -362,43 +360,20 @@ async fn get_repositories_from_db(app_state: &AppState, username: &str) -> Resul
 }
 
 async fn get_single_repository(app_state: &AppState, owner: &str, name: &str) -> Result<Repository> {
-    let repo = sqlx::query_as!(
-        Repository,
-        r###"
+    let repo = sqlx::query_as::<_, Repository>(
+        r#"
         SELECT
-            id, 
-            github_id, 
-            owner_login, 
-            name, 
-            full_name, 
-            description, 
-            html_url, 
-            clone_url, 
-            ssh_url,
-            language, 
-            size_kb, 
-            stargazers_count, 
-            watchers_count, 
-            forks_count, 
-            open_issues_count,
-            created_at, 
-            updated_at, 
-            pushed_at, 
-            is_private, 
-            is_fork, 
-            is_archived, 
-            topics,
-            license_name, 
-            readme_content, 
-            cache_updated_at, 
-            cache_expires_at
+            id, github_id, owner_login, name, full_name, description, html_url, clone_url, ssh_url,
+            language, size_kb, stargazers_count, watchers_count, forks_count, open_issues_count,
+            created_at, updated_at, pushed_at, is_private, is_fork, is_archived, topics,
+            license_name, readme_content, cache_updated_at, cache_expires_at
         FROM repositories
         WHERE owner_login = $1 AND name = $2
         LIMIT 1
-        "###,
-        owner,
-        name
+        "#
     )
+    .bind(owner)
+    .bind(name)
     .fetch_one(&app_state.db_pool)
     .await
     .map_err(|e| AppError::DatabaseError(format!("Repository not found: {}", e)))?;
@@ -407,14 +382,14 @@ async fn get_single_repository(app_state: &AppState, owner: &str, name: &str) ->
 }
 
 async fn record_repository_access(app_state: &AppState, owner: &str, name: &str) -> Result<()> {
-    sqlx::query!(
-        r###"
+    sqlx::query(
+        r#"
         INSERT INTO performance_metrics (metric_type, metric_name, metric_value, metric_unit, endpoint, tags)
         VALUES ('repository_access', 'repo_access_count', 1, 'count', $1, $2)
-        "###,
-        format!("/api/github/repo/{}/{}", owner, name),
-        serde_json::json!({"owner": owner, "name": name, "access_time": chrono::Utc::now()})
+        "#
     )
+    .bind(format!("/api/github/repo/{}/{}", owner, name))
+    .bind(serde_json::json!({"owner": owner, "name": name, "access_time": chrono::Utc::now()}))
     .execute(&app_state.db_pool)
     .await
     .map_err(|e| AppError::DatabaseError(format!("Failed to record access: {}", e)))?;

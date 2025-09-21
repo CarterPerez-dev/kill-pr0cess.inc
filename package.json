@@ -1,0 +1,47 @@
+{
+  "name": "kill-pr0cess-inc",
+  "version": "1.0.0",
+  "description": "Dark Performance Showcase - Rust + SolidJS",
+  "private": true,
+  "scripts": {
+    "dev": "docker compose build && docker compose up -d",
+    "dev:logs": "docker compose logs -f",
+    "dev:backend": "docker compose logs -f backend",
+    "dev:frontend": "docker compose logs -f frontend",
+    "build": "docker compose -f docker-compose.prod.yml build",
+    "prod": "docker compose -f docker-compose.prod.yml up -d",
+    "prod:logs": "docker compose -f docker-compose.prod.yml logs -f",
+    "stop": "docker compose down",
+    "clean": "docker compose down -v",
+    "restart": "npm run stop && npm run dev",
+    "backend:dev": "cd backend && cargo run",
+    "backend:build": "cd backend && cargo build --release",
+    "backend:test": "cd backend && cargo test",
+    "frontend:dev": "cd frontend && npm run dev",
+    "frontend:build": "cd frontend && npm run build",
+    "frontend:test": "cd frontend && npm test",
+    "test": "npm run backend:test && npm run frontend:test",
+    "benchmark": "./scripts/benchmark.sh",
+    "benchmark:quick": "./scripts/benchmark.sh --quick",
+    "benchmark:api": "./scripts/benchmark.sh --api-only",
+    "benchmark:fractal": "./scripts/benchmark.sh --fractal-only",
+    "debug": "./scripts/debug.sh",
+    "setup": "./scripts/setup.sh",
+    "setup:verify": "./scripts/setup.sh --verify",
+    "health": "curl -sf http://localhost:8000/health && echo 'Backend healthy' || echo 'Backend",
+    "status": "docker compose ps"
+  },
+  "keywords": [
+    "rust",
+    "solidjs",
+    "performance",
+    "fractal",
+    "benchmark",
+    "docker"
+  ],
+  "author": "kill-pr0cess.inc",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

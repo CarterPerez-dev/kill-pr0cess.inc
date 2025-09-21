@@ -250,47 +250,43 @@ impl PerformanceService {
             "uptime_seconds": metrics.uptime_seconds
         });
     
-        sqlx::query!(
+        sqlx::query(
             r##"INSERT INTO performance_metrics (metric_type, metric_name, metric_value, metric_unit, timestamp, tags)
                 VALUES ('cpu_usage', 'cpu_usage_percent', $1, 'percent', $2, $3)"##
-            ,
-            metrics.cpu_usage_percent,
-            metrics.timestamp,
-            json_tags
         )
+        .bind(metrics.cpu_usage_percent)
+        .bind(metrics.timestamp)
+        .bind(json_tags.clone())
         .execute(&self.db_pool)
         .await?;
     
-        sqlx::query!(
+        sqlx::query(
             r##"INSERT INTO performance_metrics (metric_type, metric_name, metric_value, metric_unit, timestamp, tags)
                 VALUES ('memory_usage', 'memory_usage_percent', $1, 'percent', $2, $3)"##
-            ,
-            metrics.memory_usage_percent,
-            metrics.timestamp,
-            json_tags
         )
+        .bind(metrics.memory_usage_percent)
+        .bind(metrics.timestamp)
+        .bind(json_tags.clone())
         .execute(&self.db_pool)
         .await?;
     
-        sqlx::query!(
+        sqlx::query(
             r##"INSERT INTO performance_metrics (metric_type, metric_name, metric_value, metric_unit, timestamp, tags)
                 VALUES ('disk_usage', 'disk_usage_percent', $1, 'percent', $2, $3)"##
-            ,
-            metrics.disk_usage_percent,
-            metrics.timestamp,
-            json_tags
         )
+        .bind(metrics.disk_usage_percent)
+        .bind(metrics.timestamp)
+        .bind(json_tags.clone())
         .execute(&self.db_pool)
         .await?;
     
-        sqlx::query!(
+        sqlx::query(
             r##"INSERT INTO performance_metrics (metric_type, metric_name, metric_value, metric_unit, timestamp, tags)
                 VALUES ('load_average_1m', 'load_average_1m', $1, 'ratio', $2, $3)"##
-            ,
-            metrics.load_average_1m,
-            metrics.timestamp,
-            json_tags
         )
+        .bind(metrics.load_average_1m)
+        .bind(metrics.timestamp)
+        .bind(json_tags)
         .execute(&self.db_pool)
         .await?;
     

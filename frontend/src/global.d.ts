@@ -1,6 +1,5 @@
 /// <reference types="@solidjs/start/env" />
 
-// I'm extending the global window interface for performance tracking
 declare global {
   interface Window {
     __PERFORMANCE_START__?: number;
@@ -9,7 +8,6 @@ declare global {
     };
   }
 
-  // I'm adding environment variable types for the performance showcase
   namespace NodeJS {
     interface ProcessEnv {
       VITE_API_URL?: string;
@@ -20,7 +18,6 @@ declare global {
     }
   }
 
-  // I'm extending the Performance API types for advanced metrics
   interface PerformanceEntry {
     hadRecentInput?: boolean;
     value?: number;
@@ -33,12 +30,10 @@ declare global {
     currentRect?: DOMRectReadOnly;
   }
 
-  // I'm adding Web Vitals types for performance monitoring
   interface PerformanceObserver {
     supportedEntryTypes?: string[];
   }
 
-  // I'm extending the Navigator interface for hardware information
   interface Navigator {
     hardwareConcurrency?: number;
     deviceMemory?: number;
@@ -52,7 +47,6 @@ declare global {
   }
 }
 
-// I'm defining module declarations for assets and imports
 declare module '*.css' {
   const content: string;
   export default content;
@@ -93,7 +87,6 @@ declare module '*.ico' {
   export default content;
 }
 
-// I'm defining types for the performance showcase API responses
 export interface ApiResponse<T = any> {
   data: T;
   timestamp: string;
@@ -126,7 +119,6 @@ export interface SystemMetrics {
   load_average_1m?: number;
 }
 
-// I'm defining fractal computation types
 export interface FractalRequest {
   width: number;
   height: number;
@@ -145,7 +137,6 @@ export interface FractalResponse {
   zoom_level: number;
 }
 
-// I'm defining GitHub repository types
 export interface Repository {
   id: number;
   name: string;

@@ -4,6 +4,7 @@
  */
 
 import { Component, createSignal, onMount, onCleanup, createEffect } from 'solid-js';
+import { apiClient } from '../../services/api';
 
 interface FractalCanvasProps {
   width?: number;
@@ -101,32 +102,24 @@ export const FractalCanvas: Component<FractalCanvasProps> = (props) => {
 
     try {
       // I'm building the API request with current parameters
-      const params = new URLSearchParams({
-        width: width().toString(),
-        height: height().toString(),
-        center_x: centerX().toString(),
-        center_y: centerY().toString(),
-        zoom: zoom().toString(),
-        max_iterations: maxIterations().toString(),
-      });
-
-      // Add Julia-specific parameters if needed
-      if (fractalType() === 'julia') {
-        params.append('c_real', juliaC().real.toString());
-        params.append('c_imag', juliaC().imag.toString());
-      }
+      const requestData = {
+        width: width(),
+        height: height(),
+        center_x: centerX(),
+        center_y: centerY(),
+        zoom: zoom(),
+        max_iterations: maxIterations(),
+        ...(fractalType() === 'julia' && {
+          c_real: juliaC().real,
+          c_imag: juliaC().imag,
+        }),
+      };
 
       const endpoint = fractalType() === 'mandelbrot' 
-        ? `/api/fractals/mandelbrot?${params}`
-        : `/api/fractals/julia?${params}`;
+        ? '/api/fractals/mandelbrot'
+        : '/api/fractals/julia';
 
-      const response = await fetch(endpoint);
-      
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      const fractalData: FractalResponse = await response.json();
+      const fractalData: FractalResponse = await apiClient.post(endpoint, requestData);
       const networkTime = performance.now() - startTime;
 
       // I'm converting the response data to ImageData for canvas rendering

@@ -1,6 +1,5 @@
 /*
- * Configuration management system with environment variable loading, validation, and type safety for all application settings.
- * I'm implementing comprehensive configuration handling with intelligent defaults and runtime validation to ensure reliable deployment across environments.
+ * ©AngelaMos | 2025
  */
 
 use serde::{Deserialize, Serialize};
@@ -115,7 +114,7 @@ impl Config {
             github_cache_ttl: parse_env_var("GITHUB_CACHE_TTL", 1800)?,
 
             // Frontend configuration
-            frontend_url: env::var("FRONTEND_URL").unwrap_or_else(|_| "http://localhost:3000".to_string()),
+            frontend_url: env::var("FRONTEND_URL").unwrap_or_else(|_| "http://localhost:4000".to_string()),
             cors_allowed_origins: parse_cors_origins()?,
 
             // Performance monitoring
@@ -246,6 +245,11 @@ impl Config {
         self.environment == Environment::Production
     }
 
+    /// Get API base URL for documentation
+    pub fn api_base_url(&self) -> String {
+        format!("http://{}:{}", self.host, self.port)
+    }
+
     /// Get database pool configuration
     /// I'm providing optimized database settings based on environment
     pub fn database_pool_config(&self) -> DatabasePoolConfig {
@@ -344,7 +348,7 @@ fn parse_bool_env(key: &str, default: bool) -> Result<bool> {
 
 fn parse_cors_origins() -> Result<Vec<String>> {
     let origins_str = env::var("CORS_ALLOWED_ORIGINS")
-        .unwrap_or_else(|_| "http://localhost:3000,http://localhost:3001".to_string());
+        .unwrap_or_else(|_| "http://localhost:4000,http://localhost:8000".to_string());
 
     let origins: Vec<String> = origins_str
         .split(',')
@@ -425,8 +429,8 @@ impl ConfigBuilder {
                 github_api_base_url: "https://api.github.com".to_string(),
                 github_rate_limit_requests: 5000,
                 github_cache_ttl: 1800,
-                frontend_url: "http://localhost:3000".to_string(),
-                cors_allowed_origins: vec!["http://localhost:3000".to_string()],
+                frontend_url: "http://localhost:4000".to_string(),
+                cors_allowed_origins: vec!["http://localhost:4000".to_string()],
                 metrics_enabled: true,
                 prometheus_port: 9090,
                 system_metrics_interval: 60,

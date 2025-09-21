@@ -1,41 +1,55 @@
 /*
- * Main application stylesheet implementing the complete dark performance showcase theme with advanced CSS custom properties and animations.
- * I'm establishing comprehensive theming system with CSS variables, sophisticated animations, and accessibility considerations for the eerie aesthetic.
+ * ©AngelaMos | 2025
  */
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* I'm setting up CSS custom properties for the dark, eerie theme */
 :root {
   --background-rgb: 0, 0, 0;
   --foreground-rgb: 245, 245, 245;
   --accent-rgb: 34, 211, 238;
   --secondary-rgb: 99, 102, 241;
+  --tertiary-rgb: 168, 85, 247;
+  --success-rgb: 52, 211, 153;
+  --error-rgb: 248, 113, 113;
 
-  /* I'm defining the color palette for consistent theming */
   --color-primary: rgb(var(--accent-rgb));
   --color-secondary: rgb(var(--secondary-rgb));
+  --color-tertiary: rgb(var(--tertiary-rgb));
+  --color-success: rgb(var(--success-rgb));
+  --color-error: rgb(var(--error-rgb));
 
-  --bg-primary: rgb(var(--background-rgb));
-  --bg-secondary: rgb(10, 10, 10);
-  --bg-tertiary: rgb(23, 23, 23);
+  --bg-primary: rgb(0, 0, 0);
+  --bg-secondary: rgb(5, 5, 7);
+  --bg-tertiary: rgb(10, 11, 13);
+  --bg-elevated: rgb(15, 16, 18);
+  --bg-surface: rgb(20, 21, 23);
+  --bg-overlay: rgb(25, 26, 28);
 
-  --text-primary: rgb(var(--foreground-rgb));
-  --text-secondary: rgb(163, 163, 163);
-  --text-tertiary: rgb(115, 115, 115);
-  --text-muted: rgb(82, 82, 82);
+  --text-primary: rgb(250, 250, 250);
+  --text-secondary: rgb(180, 180, 185);
+  --text-tertiary: rgb(140, 140, 145);
+  --text-muted: rgb(100, 100, 105);
 
   --border-primary: rgb(38, 38, 38);
   --border-secondary: rgb(64, 64, 64);
+  --border-accent: rgba(34, 211, 238, 0.3);
 
-  /* I'm defining font stacks for the technical aesthetic */
+  --shadow-glow: 0 0 30px rgba(34, 211, 238, 0.1);
+  --shadow-elevation-1: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+  --shadow-elevation-2: 0 10px 15px -3px rgba(0, 0, 0, 0.6), 0 4px 6px -2px rgba(0, 0, 0, 0.4);
+  --shadow-elevation-3: 0 20px 25px -5px rgba(0, 0, 0, 0.7), 0 10px 10px -5px rgba(0, 0, 0, 0.5);
+
   --font-mono: 'JetBrains Mono', 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
   --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+  --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
+  --ease-in-out-expo: cubic-bezier(0.87, 0, 0.13, 1);
+  --ease-spring: cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
-/* I'm establishing the dark theme foundation */
 body {
   background: rgb(var(--background-rgb));
   color: rgb(var(--foreground-rgb));
@@ -43,14 +57,39 @@ body {
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "kern" 1;
+  position: relative;
+  min-height: 100vh;
 }
 
-/* I'm ensuring all elements follow the dark theme */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: 
+    radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.02) 1px, transparent 0),
+    repeating-linear-gradient(0deg, transparent, transparent 1px, rgba(255, 255, 255, 0.005) 1px, rgba(255, 255, 255, 0.005) 2px),
+    repeating-linear-gradient(90deg, transparent, transparent 1px, rgba(255, 255, 255, 0.005) 1px, rgba(255, 255, 255, 0.005) 2px),
+    linear-gradient(45deg, rgba(0, 0, 0, 0.8) 0%, rgba(5, 5, 7, 0.9) 25%, rgba(0, 0, 0, 0.95) 50%, rgba(5, 5, 7, 0.9) 75%, rgba(0, 0, 0, 0.8) 100%);
+  background-size: 2px 2px, 1px 1px, 1px 1px, 100% 100%;
+  opacity: 0.6;
+  pointer-events: none;
+  z-index: 1;
+  animation: subtle-grain 20s linear infinite;
+}
+
+@keyframes subtle-grain {
+  0%, 100% { transform: translate(0, 0); }
+  25% { transform: translate(-1px, 1px); }
+  50% { transform: translate(1px, -1px); }
+  75% { transform: translate(-1px, -1px); }
+}
+
 * {
   box-sizing: border-box;
 }
 
-/* I'm creating smooth focus states for accessibility */
 *:focus {
   outline: none;
 }
@@ -60,7 +99,6 @@ body {
   outline-offset: 2px;
 }
 
-/* I'm defining selection colors for the theme */
 ::selection {
   background-color: var(--color-primary);
   color: var(--bg-primary);
@@ -71,7 +109,6 @@ body {
   color: var(--bg-primary);
 }
 
-/* I'm styling scrollbars to match the dark theme */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -91,7 +128,6 @@ body {
   background: var(--text-muted);
 }
 
-/* I'm creating utility classes for the performance showcase */
 .text-mono {
   font-family: var(--font-mono);
 }
@@ -104,16 +140,64 @@ body {
 }
 
 .glass-effect {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--bg-secondary);
+  backdrop-filter: blur(16px) saturate(150%);
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 
+    inset 0 1px 0 rgba(255, 255, 255, 0.03),
+    0 2px 10px rgba(0, 0, 0, 0.4);
 }
 
-/* I'm defining performance-focused animations */
+.glass-effect-strong {
+  background: linear-gradient(135deg, var(--bg-elevated) 0%, var(--bg-surface) 100%);
+  backdrop-filter: blur(24px) saturate(200%);
+  -webkit-backdrop-filter: blur(24px) saturate(200%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.2),
+    0 20px 40px -10px rgba(0, 0, 0, 0.6),
+    0 5px 15px -5px rgba(0, 0, 0, 0.4);
+  position: relative;
+}
+
+.glass-effect-strong::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.02) 0%, transparent 50%, rgba(0, 0, 0, 0.1) 100%);
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.glass-dark {
+  background: var(--bg-overlay);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  box-shadow: 
+    inset 0 1px 0 rgba(255, 255, 255, 0.02),
+    0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.gradient-radial {
+  background: radial-gradient(ellipse at center, rgba(34, 211, 238, 0.15) 0%, transparent 70%);
+}
+
+.gradient-mesh {
+  background-image: 
+    radial-gradient(at 40% 20%, rgba(34, 211, 238, 0.1) 0px, transparent 50%),
+    radial-gradient(at 80% 0%, rgba(99, 102, 241, 0.08) 0px, transparent 50%),
+    radial-gradient(at 0% 50%, rgba(168, 85, 247, 0.08) 0px, transparent 50%),
+    radial-gradient(at 80% 50%, rgba(34, 211, 238, 0.05) 0px, transparent 50%),
+    radial-gradient(at 0% 100%, rgba(99, 102, 241, 0.1) 0px, transparent 50%);
+}
+
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(30px);
   }
   to {
     opacity: 1;
@@ -132,10 +216,54 @@ body {
 
 @keyframes matrix-glow {
   0%, 100% {
-    box-shadow: 0 0 5px var(--color-primary);
+    box-shadow: 
+      0 0 5px var(--color-primary),
+      inset 0 0 5px rgba(34, 211, 238, 0.1);
   }
   50% {
-    box-shadow: 0 0 20px var(--color-primary), 0 0 30px var(--color-primary);
+    box-shadow: 
+      0 0 20px var(--color-primary), 
+      0 0 40px var(--color-primary),
+      inset 0 0 10px rgba(34, 211, 238, 0.2);
+  }
+}
+
+@keyframes float-subtle {
+  0%, 100% {
+    transform: translateY(0px) translateX(0px);
+  }
+  33% {
+    transform: translateY(-10px) translateX(5px);
+  }
+  66% {
+    transform: translateY(5px) translateX(-5px);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+@keyframes reveal-block {
+  0% {
+    transform: scaleX(0);
+    transform-origin: left;
+  }
+  50% {
+    transform: scaleX(1);
+    transform-origin: left;
+  }
+  51% {
+    transform-origin: right;
+  }
+  100% {
+    transform: scaleX(0);
+    transform-origin: right;
   }
 }
 
@@ -163,7 +291,7 @@ body {
 }
 
 .animate-fade-in-up {
-  animation: fadeInUp 0.8s ease-out;
+  animation: fadeInUp 0.8s var(--ease-out-expo) forwards;
 }
 
 .animate-pulse-slow {
@@ -178,7 +306,35 @@ body {
   animation: glitchEffect 0.5s ease-in-out;
 }
 
-/* I'm adding animation delay utilities */
+.animate-float {
+  animation: float-subtle 6s ease-in-out infinite;
+}
+
+.animate-shimmer {
+  background: linear-gradient(
+    105deg,
+    transparent 40%,
+    rgba(255, 255, 255, 0.1) 50%,
+    transparent 60%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s ease-in-out infinite;
+}
+
+.stagger-children > * {
+  opacity: 0;
+  animation: fadeInUp 0.6s var(--ease-out-expo) forwards;
+}
+
+.stagger-children > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-children > *:nth-child(2) { animation-delay: 50ms; }
+.stagger-children > *:nth-child(3) { animation-delay: 100ms; }
+.stagger-children > *:nth-child(4) { animation-delay: 150ms; }
+.stagger-children > *:nth-child(5) { animation-delay: 200ms; }
+.stagger-children > *:nth-child(6) { animation-delay: 250ms; }
+.stagger-children > *:nth-child(7) { animation-delay: 300ms; }
+.stagger-children > *:nth-child(8) { animation-delay: 350ms; }
+
 .animation-delay-150 {
   animation-delay: 150ms;
 }
@@ -191,7 +347,6 @@ body {
   animation-delay: 500ms;
 }
 
-/* I'm handling reduced motion preferences for accessibility */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -203,7 +358,6 @@ body {
   }
 }
 
-/* I'm ensuring proper dark theme for form elements */
 input, textarea, select {
   background-color: var(--bg-secondary);
   border: 1px solid var(--border-primary);
@@ -219,18 +373,36 @@ input::placeholder, textarea::placeholder {
   color: var(--text-muted);
 }
 
-/* I'm adding custom component styles */
 .performance-card {
   background: rgba(255, 255, 255, 0.02);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  transition: all 0.3s ease;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: all 0.4s var(--ease-out-expo);
+  position: relative;
+  overflow: hidden;
+}
+
+.performance-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(34, 211, 238, 0.1) 0%, transparent 50%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 .performance-card:hover {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(34, 211, 238, 0.3);
-  box-shadow: 0 0 20px rgba(34, 211, 238, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(34, 211, 238, 0.2);
+  box-shadow: 
+    0 0 30px rgba(34, 211, 238, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  transform: translateY(-2px);
+}
+
+.performance-card:hover::before {
+  opacity: 1;
 }
 
 .code-block {
@@ -247,7 +419,6 @@ input::placeholder, textarea::placeholder {
   letter-spacing: 0.05em;
 }
 
-/* I'm creating sophisticated loading states */
 .loading-pulse {
   background: linear-gradient(90deg,
     rgba(255, 255, 255, 0.1) 25%,
@@ -267,7 +438,6 @@ input::placeholder, textarea::placeholder {
   }
 }
 
-/* I'm adding sophisticated border effects */
 .border-glow {
   position: relative;
 }
@@ -275,15 +445,42 @@ input::placeholder, textarea::placeholder {
 .border-glow::before {
   content: '';
   position: absolute;
-  inset: -1px;
-  background: linear-gradient(45deg, var(--color-primary), var(--color-secondary));
+  inset: -2px;
+  background: linear-gradient(45deg, var(--color-primary), var(--color-secondary), var(--color-tertiary));
   border-radius: inherit;
   z-index: -1;
-  opacity: 0.5;
-  filter: blur(1px);
+  opacity: 0;
+  filter: blur(8px);
+  transition: opacity 0.3s ease;
 }
 
-/* I'm creating responsive typography */
+.border-glow:hover::before {
+  opacity: 0.6;
+}
+
+.border-gradient {
+  position: relative;
+  background: var(--bg-elevated);
+  border-radius: 8px;
+}
+
+.border-gradient::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  background: linear-gradient(45deg, var(--color-primary), var(--color-secondary), var(--color-tertiary), var(--color-primary));
+  background-size: 300% 300%;
+  border-radius: inherit;
+  z-index: -1;
+  animation: gradient-rotate 4s linear infinite;
+}
+
+@keyframes gradient-rotate {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
 .heading-main {
   font-size: clamp(2rem, 5vw, 4rem);
   font-weight: 300;
@@ -298,14 +495,63 @@ input::placeholder, textarea::placeholder {
   line-height: 1.2;
 }
 
-/* I'm adding performance-optimized transitions */
 .transition-performance {
   transition-property: transform, opacity, background-color, border-color, box-shadow;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 0.15s;
 }
 
-/* I'm creating dark theme specific adjustments */
+.hover-lift {
+  transition: transform 0.3s var(--ease-out-expo), box-shadow 0.3s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-elevation-2);
+}
+
+.hover-scale {
+  transition: transform 0.3s var(--ease-out-expo);
+}
+
+.hover-scale:hover {
+  transform: scale(1.02);
+}
+
+.text-shadow-glow {
+  text-shadow: 
+    0 0 10px currentColor,
+    0 0 20px currentColor,
+    0 0 30px currentColor;
+}
+
+.text-gradient-animate {
+  background: linear-gradient(90deg, var(--color-primary), var(--color-secondary), var(--color-tertiary), var(--color-primary));
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradient-shift 3s ease infinite;
+}
+
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% center; }
+  50% { background-position: 100% center; }
+}
+
+.scroll-indicator {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--color-primary), var(--color-secondary));
+  transform-origin: left;
+  transform: scaleX(var(--scroll-progress, 0));
+  z-index: 100;
+  transition: transform 0.1s ease-out;
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     color-scheme: dark;

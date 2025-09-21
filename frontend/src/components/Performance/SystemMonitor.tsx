@@ -1,6 +1,5 @@
 /*
- * Real-time system monitoring component displaying live metrics with interactive visualizations and alert management for comprehensive performance oversight.
- * I'm implementing sophisticated monitoring dashboards with animated charts, resource utilization tracking, and contextual performance insights that maintain the dark aesthetic while providing critical system visibility.
+ * ©AngelaMos | 2025
  */
 
 import { Component, createSignal, onMount, Show, For, createEffect } from 'solid-js';
@@ -450,14 +449,14 @@ export const SystemMonitor: Component = () => {
                 <div class="flex justify-between">
                   <span class="text-neutral-500">Total Memory</span>
                   <span class="text-neutral-300 font-mono">
-                    {currentMetrics()!.memory_total_gb.toFixed(1)} GB
+                    {currentMetrics()?.memory_total_gb?.toFixed(1) || '0.0'} GB
                   </span>
                 </div>
                 
                 <div class="flex justify-between">
                   <span class="text-neutral-500">Available Memory</span>
                   <span class="text-neutral-300 font-mono">
-                    {currentMetrics()!.memory_available_gb.toFixed(1)} GB
+                    {currentMetrics()?.memory_available_gb?.toFixed(1) || '0.0'} GB
                   </span>
                 </div>
                 
@@ -489,7 +488,7 @@ export const SystemMonitor: Component = () => {
                     {performanceInsights()!.grade}
                   </div>
                   <div class="text-sm text-neutral-500 mt-1">
-                    {performanceInsights()!.overallScore.toFixed(0)}/100
+                    {performanceInsights()?.overallScore?.toFixed(0) || '0'}/100
                   </div>
                 </div>
                 
@@ -497,19 +496,19 @@ export const SystemMonitor: Component = () => {
                   <div class="flex justify-between">
                     <span class="text-neutral-500">CPU Score</span>
                     <span class="text-neutral-300 font-mono">
-                      {performanceInsights()!.cpuScore.toFixed(0)}
+                      {performanceInsights()?.cpuScore?.toFixed(0) || '0'}
                     </span>
                   </div>
                   <div class="flex justify-between">
                     <span class="text-neutral-500">Memory Score</span>
                     <span class="text-neutral-300 font-mono">
-                      {performanceInsights()!.memoryScore.toFixed(0)}
+                      {performanceInsights()?.memoryScore?.toFixed(0) || '0'}
                     </span>
                   </div>
                   <div class="flex justify-between">
                     <span class="text-neutral-500">Load Score</span>
                     <span class="text-neutral-300 font-mono">
-                      {performanceInsights()!.loadScore.toFixed(0)}
+                      {performanceInsights()?.loadScore?.toFixed(0) || '0'}
                     </span>
                   </div>
                 </div>

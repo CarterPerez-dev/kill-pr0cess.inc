@@ -1,5 +1,5 @@
-# Rust backend manifest for the dark performance showcase with maximum optimization settings.
-# I'm configuring for both development productivity and production performance with comprehensive dependency management.
+# ©AngelaMos | 2025
+# Cargo
 
 [package]
 name = "dark-performance-backend"
@@ -13,7 +13,6 @@ readme = "README.md"
 keywords = ["performance", "fractals", "github", "api", "rust"]
 categories = ["web-programming", "api-bindings", "mathematics"]
 
-# Build configuration with maximum optimization
 [profile.release]
 opt-level = 3              # Maximum optimization
 lto = "fat"               # Full link-time optimization
@@ -27,13 +26,11 @@ opt-level = 1             # Some optimization in debug builds for better dev exp
 debug = true              # Full debug info
 overflow-checks = true    # Keep overflow checks in development
 
-# Production profile with balanced optimization and debugging
 [profile.production]
 inherits = "release"
 debug = 1                 # Minimal debug info for production debugging
 strip = "debuginfo"       # Keep symbols but remove debug info
 
-# Benchmark profile for criterion
 [profile.bench]
 opt-level = 3
 debug = false
@@ -121,6 +118,7 @@ brotli = "3.4"
 # Template engine for dynamic content
 tera = "1.19"
 handlebars = "4.4"
+
 
 # WebSocket support for real-time features
 tokio-tungstenite = "0.20"
@@ -240,6 +238,7 @@ database_max_connections = "10"
 [package.metadata.env.production]
 rust_log = "info"
 database_max_connections = "100"
+
 
 # Cargo configuration aliases for convenience
 [package.metadata.scripts]

@@ -5,6 +5,8 @@
 
 import { Component, createSignal, createEffect, onMount, onCleanup, Show, For } from 'solid-js';
 import { FractalCanvas } from '../components/Fractals/FractalCanvas';
+import { WebVitals } from '../components/Performance/WebVitals';
+import { RustMetrics } from '../components/Performance/RustMetrics';
 import { performanceService, SystemMetrics, Alert } from '../services/performance';
 import { fractalService, BenchmarkResult } from '../services/fractals';
 
@@ -102,15 +104,15 @@ export default function Performance(): Component {
 
   const updateHistoricalData = (metrics: SystemMetrics) => {
     const timestamp = new Date().toISOString();
-    
+
     // I'm maintaining historical data for charts
     setCpuHistory(prev => {
-      const updated = [...prev, { timestamp, value: metrics.cpu_usage_percent }];
+      const updated = [...prev, { timestamp, value: metrics.cpu_usage_percent || 0 }];
       return updated.slice(-50); // Keep last 50 points
     });
 
     setMemoryHistory(prev => {
-      const updated = [...prev, { timestamp, value: metrics.memory_usage_percent }];
+      const updated = [...prev, { timestamp, value: metrics.memory_usage_percent || 0 }];
       return updated.slice(-50); // Keep last 50 points
     });
   };
@@ -127,8 +129,8 @@ export default function Performance(): Component {
       
       // I'm initializing historical data
       const now = new Date().toISOString();
-      setCpuHistory([{ timestamp: now, value: snapshot.system.cpu_usage_percent }]);
-      setMemoryHistory([{ timestamp: now, value: snapshot.system.memory_usage_percent }]);
+      setCpuHistory([{ timestamp: now, value: snapshot.system.cpu_usage_percent || 0 }]);
+      setMemoryHistory([{ timestamp: now, value: snapshot.system.memory_usage_percent || 0 }]);
 
     } catch (error) {
       console.error('Failed to load initial performance data:', error);
@@ -194,37 +196,37 @@ export default function Performance(): Component {
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
               <div class="bg-neutral-900/30 border border-neutral-800 rounded-sm p-4 text-center">
                 <div class="text-2xl font-mono text-neutral-100 mb-1">
-                  {systemMetrics()!.cpu_usage_percent.toFixed(1)}%
+                  {systemMetrics()?.cpu_usage_percent?.toFixed(1) || '0.0'}%
                 </div>
                 <div class="text-xs text-neutral-500 tracking-wide">CPU USAGE</div>
-                <div class={`text-xs mt-1 ${getPerformanceRating(systemMetrics()!.cpu_usage_percent, { excellent: 50, good: 70, fair: 85 }).color}`}>
-                  {getPerformanceRating(systemMetrics()!.cpu_usage_percent, { excellent: 50, good: 70, fair: 85 }).rating}
+                <div class={`text-xs mt-1 ${getPerformanceRating(systemMetrics()?.cpu_usage_percent || 0, { excellent: 50, good: 70, fair: 85 }).color}`}>
+                  {getPerformanceRating(systemMetrics()?.cpu_usage_percent || 0, { excellent: 50, good: 70, fair: 85 }).rating}
                 </div>
               </div>
 
               <div class="bg-neutral-900/30 border border-neutral-800 rounded-sm p-4 text-center">
                 <div class="text-2xl font-mono text-neutral-100 mb-1">
-                  {systemMetrics()!.memory_usage_percent.toFixed(1)}%
+                  {systemMetrics()?.memory_usage_percent?.toFixed(1) || '0.0'}%
                 </div>
                 <div class="text-xs text-neutral-500 tracking-wide">MEMORY</div>
-                <div class={`text-xs mt-1 ${getPerformanceRating(systemMetrics()!.memory_usage_percent, { excellent: 60, good: 75, fair: 85 }).color}`}>
-                  {getPerformanceRating(systemMetrics()!.memory_usage_percent, { excellent: 60, good: 75, fair: 85 }).rating}
+                <div class={`text-xs mt-1 ${getPerformanceRating(systemMetrics()?.memory_usage_percent || 0, { excellent: 60, good: 75, fair: 85 }).color}`}>
+                  {getPerformanceRating(systemMetrics()?.memory_usage_percent || 0, { excellent: 60, good: 75, fair: 85 }).rating}
                 </div>
               </div>
 
               <div class="bg-neutral-900/30 border border-neutral-800 rounded-sm p-4 text-center">
                 <div class="text-2xl font-mono text-neutral-100 mb-1">
-                  {systemMetrics()!.load_average_1m.toFixed(2)}
+                  {systemMetrics()?.load_average_1m?.toFixed(2) || '0.00'}
                 </div>
                 <div class="text-xs text-neutral-500 tracking-wide">LOAD AVG</div>
                 <div class="text-xs text-neutral-400 mt-1">
-                  {systemMetrics()!.cpu_cores} CORES
+                  {systemMetrics()?.cpu_cores || '0'} CORES
                 </div>
               </div>
 
               <div class="bg-neutral-900/30 border border-neutral-800 rounded-sm p-4 text-center">
                 <div class="text-2xl font-mono text-neutral-100 mb-1">
-                  {formatUptime(systemMetrics()!.uptime_seconds)}
+                  {systemMetrics()?.uptime_seconds ? formatUptime(systemMetrics()!.uptime_seconds) : '0m'}
                 </div>
                 <div class="text-xs text-neutral-500 tracking-wide">UPTIME</div>
                 <div class="text-xs text-green-400 mt-1">STABLE</div>
@@ -284,6 +286,18 @@ export default function Performance(): Component {
               {/* Overview Tab */}
               <Show when={activeTab() === 'overview'}>
                 <div class="space-y-8">
+                  {/* Web Vitals Section */}
+                  <div class="bg-neutral-900/30 border border-neutral-800 rounded-lg p-6">
+                    <h3 class="text-lg font-mono text-neutral-300 mb-6">FRONTEND PERFORMANCE METRICS</h3>
+                    <WebVitals />
+                  </div>
+
+                  {/* Rust Backend Metrics Section */}
+                  <div class="bg-neutral-900/30 border border-neutral-800 rounded-lg p-6">
+                    <h3 class="text-lg font-mono text-neutral-300 mb-6">RUST BACKEND METRICS</h3>
+                    <RustMetrics />
+                  </div>
+
                   {/* Real-time Charts */}
                   <div class="grid md:grid-cols-2 gap-6">
                     <div class="bg-neutral-900/30 border border-neutral-800 rounded-lg p-6">
@@ -298,7 +312,7 @@ export default function Performance(): Component {
                               points={cpuHistory().map((point, index) => {
                                 const x = (index / (cpuHistory().length - 1)) * 100;
                                 const y = 100 - point.value;
-                                return `${x}%,${y}%`;
+                                return `${x},${y}`;
                               }).join(' ')}
                             />
                           </svg>
@@ -323,7 +337,7 @@ export default function Performance(): Component {
                               points={memoryHistory().map((point, index) => {
                                 const x = (index / (memoryHistory().length - 1)) * 100;
                                 const y = 100 - point.value;
-                                return `${x}%,${y}%`;
+                                return `${x},${y}`;
                               }).join(' ')}
                             />
                           </svg>
@@ -351,9 +365,9 @@ export default function Performance(): Component {
                         </div>
                         <div>
                           <div class="text-neutral-500 mb-2">MEMORY</div>
-                          <div class="text-neutral-300 font-mono">{systemMetrics()!.memory_total_gb.toFixed(1)} GB</div>
+                          <div class="text-neutral-300 font-mono">{systemMetrics()?.memory_total_gb?.toFixed(1) || '0.0'} GB</div>
                           <div class="text-neutral-500 text-xs mt-1">
-                            {systemMetrics()!.memory_available_gb.toFixed(1)} GB available
+                            {systemMetrics()?.memory_available_gb?.toFixed(1) || '0.0'} GB available
                           </div>
                         </div>
                         <div>
@@ -484,7 +498,7 @@ export default function Performance(): Component {
                             <div class="flex justify-between">
                               <span class="text-neutral-500">Efficiency:</span>
                               <span class="text-green-400 font-mono">
-                                {(benchmarkResults()!.benchmarks.cpu.parallel_efficiency * 100).toFixed(1)}%
+                                {benchmarkResults()?.benchmarks?.cpu?.parallel_efficiency ? (benchmarkResults()!.benchmarks.cpu.parallel_efficiency * 100).toFixed(1) : '0.0'}%
                               </span>
                             </div>
                           </div>
@@ -496,19 +510,19 @@ export default function Performance(): Component {
                             <div class="flex justify-between">
                               <span class="text-neutral-500">Read Speed:</span>
                               <span class="text-neutral-300 font-mono">
-                                {benchmarkResults()!.benchmarks.memory.sequential_read?.mb_per_second.toFixed(0)} MB/s
+                                {benchmarkResults()?.benchmarks?.memory?.sequential_read?.mb_per_second?.toFixed(0) || '0'} MB/s
                               </span>
                             </div>
                             <div class="flex justify-between">
                               <span class="text-neutral-500">Write Speed:</span>
                               <span class="text-neutral-300 font-mono">
-                                {benchmarkResults()!.benchmarks.memory.sequential_write?.mb_per_second.toFixed(0)} MB/s
+                                {benchmarkResults()?.benchmarks?.memory?.sequential_write?.mb_per_second?.toFixed(0) || '0'} MB/s
                               </span>
                             </div>
                             <div class="flex justify-between">
                               <span class="text-neutral-500">Allocation:</span>
                               <span class="text-cyan-400 font-mono">
-                                {benchmarkResults()!.benchmarks.memory.allocation?.mb_per_second.toFixed(0)} MB/s
+                                {benchmarkResults()?.benchmarks?.memory?.allocation?.mb_per_second?.toFixed(0) || '0'} MB/s
                               </span>
                             </div>
                           </div>

@@ -1,6 +1,5 @@
 /*
- * Comprehensive performance monitoring utilities providing real-time metrics collection, analysis, and optimization insights for the showcase application.
- * I'm implementing client-side performance tracking, system resource monitoring, and computational efficiency analysis that aligns with the philosophical focus on precision and measurement inherent in the dark aesthetic.
+ * ©AngelaMos | 2025
  */
 
 interface PerformanceMetric {

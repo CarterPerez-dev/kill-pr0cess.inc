@@ -20,8 +20,12 @@ export default defineConfig({
       sourcemap: true,
       rollupOptions: {
         output: {
-          manualChunks: {
-            vendor: ['solid-js', '@solidjs/router'],
+          manualChunks: (id) => {
+            if (id.includes('node_modules')) {
+              if (id.includes('@solidjs/router')) return 'router';
+              if (id.includes('web-vitals')) return 'vitals';
+              return 'vendor';
+            }
           },
         },
       },
@@ -30,9 +34,9 @@ export default defineConfig({
       port: 3000,
       host: '0.0.0.0',
       open: false,
-      hmr: {
-        clientPort: 3000,
-      },
+      hmr: process.env.NODE_ENV === 'development' ? {
+        port: 3000,
+      } : false,
     },
     define: {
       __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
@@ -47,7 +51,7 @@ export default defineConfig({
       },
     },
     optimizeDeps: {
-      include: ['solid-js'],
+      include: ['web-vitals'],
       exclude: ['@solidjs/start'],
     },
     esbuild: {

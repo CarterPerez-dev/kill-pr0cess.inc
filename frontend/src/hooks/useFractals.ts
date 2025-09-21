@@ -1,6 +1,5 @@
 /*
- * Fractal computation hook managing real-time mathematical visualization with performance tracking and interactive controls.
- * I'm implementing comprehensive fractal state management that bridges the gap between user interaction and high-performance Rust backend computation.
+ * ©AngelaMos | 2025
  */
 
 import { createSignal, createResource, createMemo, onCleanup } from 'solid-js';
@@ -88,7 +87,6 @@ interface FractalState {
 }
 
 export function useFractals() {
-  // I'm setting up comprehensive fractal state management
   const [state, setState] = createStore<FractalState>({
     currentFractal: null,
     isGenerating: false,
@@ -105,12 +103,10 @@ export function useFractals() {
     interactionMode: 'zoom',
   });
 
-  // I'm implementing performance tracking signals
   const [generationCount, setGenerationCount] = createSignal(0);
   const [totalComputationTime, setTotalComputationTime] = createSignal(0);
   const [averageGenerationTime, setAverageGenerationTime] = createSignal(0);
 
-  // Fractal generation resource
   const [fractalResource] = createResource(
     () => ({ 
       request: buildFractalRequest(), 
@@ -151,14 +147,12 @@ export function useFractals() {
 
         const data: FractalResponse = await response.json();
         
-        // Update performance tracking
         const newCount = generationCount() + 1;
         const newTotal = totalComputationTime() + data.computation_time_ms;
         setGenerationCount(newCount);
         setTotalComputationTime(newTotal);
         setAverageGenerationTime(newTotal / newCount);
 
-        // Add to performance history
         setState('performanceHistory', produce(history => {
           history.unshift({
             timestamp: new Date().toISOString(),
@@ -168,7 +162,6 @@ export function useFractals() {
             fractal_type: request.fractal_type,
           });
           
-          // Keep only last 50 entries
           if (history.length > 50) {
             history.splice(50);
           }
@@ -186,9 +179,8 @@ export function useFractals() {
     }
   );
 
-  // Benchmark resource for performance testing
   const [benchmarkResource] = createResource(
-    () => null, // Manual trigger
+    () => null,
     async () => {
       try {
         setState('isGenerating', true);
@@ -217,7 +209,6 @@ export function useFractals() {
     }
   );
 
-  // I'm implementing computed values for enhanced analytics
   const performanceStats = createMemo(() => {
     const history = state.performanceHistory;
     if (history.length === 0) return null;
@@ -259,7 +250,6 @@ export function useFractals() {
     };
   });
 
-  // Helper function to build fractal request from current state
   function buildFractalRequest(): Omit<FractalRequest, 'center_x' | 'center_y' | 'zoom'> {
     return {
       width: state.settings.width,
@@ -273,9 +263,7 @@ export function useFractals() {
     };
   }
 
-  // Actions for fractal management
   const actions = {
-    // Generate fractal with specific parameters
     async generateFractal(params: {
       center_x: number;
       center_y: number;
@@ -324,7 +312,6 @@ export function useFractals() {
         const data: FractalResponse = await response.json();
         setState('currentFractal', data);
         
-        // Update performance tracking
         const newCount = generationCount() + 1;
         const newTotal = totalComputationTime() + data.computation_time_ms;
         setGenerationCount(newCount);
@@ -339,26 +326,21 @@ export function useFractals() {
       }
     },
 
-    // Run comprehensive benchmark
     async runBenchmark(): Promise<void> {
       benchmarkResource.refetch();
     },
 
-    // Update fractal settings
     updateSettings(newSettings: Partial<FractalState['settings']>) {
       setState('settings', produce(current => Object.assign(current, newSettings)));
       
-      // Trigger regeneration if we have current parameters
       if (state.currentFractal) {
         setGenerationCount(prev => prev + 1);
       }
     },
 
-    // Set fractal type
     setFractalType(type: 'mandelbrot' | 'julia') {
       setState('settings', 'fractalType', type);
       
-      // Adjust iterations based on fractal type
       if (type === 'julia' && state.settings.maxIterations < 150) {
         setState('settings', 'maxIterations', 150);
       } else if (type === 'mandelbrot' && state.settings.maxIterations > 1000) {
@@ -366,7 +348,6 @@ export function useFractals() {
       }
     },
 
-    // Update Julia constant
     setJuliaConstant(real: number, imag: number) {
       setState('settings', 'juliaConstant', { real, imag });
       
@@ -375,7 +356,6 @@ export function useFractals() {
       }
     },
 
-    // Set resolution
     setResolution(width: number, height: number) {
       setState('settings', produce(settings => {
         settings.width = Math.max(64, Math.min(4096, width));
@@ -383,22 +363,18 @@ export function useFractals() {
       }));
     },
 
-    // Set maximum iterations
     setMaxIterations(iterations: number) {
       setState('settings', 'maxIterations', Math.max(50, Math.min(10000, iterations)));
     },
 
-    // Set interaction mode
     setInteractionMode(mode: 'pan' | 'zoom' | 'parameter') {
       setState('interactionMode', mode);
     },
 
-    // Clear error state
     clearError() {
       setState('error', null);
     },
 
-    // Clear performance history
     clearHistory() {
       setState('performanceHistory', []);
       setGenerationCount(0);
@@ -406,7 +382,6 @@ export function useFractals() {
       setAverageGenerationTime(0);
     },
 
-    // Export fractal data
     exportFractalData() {
       const current = state.currentFractal;
       if (!current) return null;
@@ -415,12 +390,11 @@ export function useFractals() {
         fractal_data: current,
         settings: state.settings,
         performance_stats: performanceStats(),
-        generation_history: state.performanceHistory.slice(0, 10), // Last 10 generations
+        generation_history: state.performanceHistory.slice(0, 10),
         export_timestamp: new Date().toISOString(),
       };
     },
 
-    // Get optimal iterations for zoom level
     getOptimalIterations(zoomLevel: number): number {
       const baseIterations = state.settings.fractalType === 'mandelbrot' ? 100 : 150;
       const zoomFactor = Math.log10(Math.max(1, zoomLevel));
@@ -430,12 +404,9 @@ export function useFractals() {
     },
   };
 
-  // I'm implementing automatic cleanup
   onCleanup(() => {
-    // Clear any pending requests or timers
   });
 
-  // Helper functions
   function getPerformanceRating(pixelsPerSecond: number): string {
     if (pixelsPerSecond > 10000) return 'Exceptional';
     if (pixelsPerSecond > 5000) return 'Excellent';
@@ -446,29 +417,24 @@ export function useFractals() {
   }
 
   return {
-    // State
     currentFractal: () => state.currentFractal,
     isGenerating: () => state.isGenerating,
     error: () => state.error,
     settings: () => state.settings,
     interactionMode: () => state.interactionMode,
     
-    // Performance data
     performanceHistory: () => state.performanceHistory,
     performanceStats,
     currentPerformance,
     benchmarkResults: () => state.benchmarkResults,
     
-    // Metrics
     generationCount,
     averageGenerationTime,
     totalComputationTime,
     
-    // Resources
     fractalResource,
     benchmarkResource,
     
-    // Actions
     ...actions,
   };
 }

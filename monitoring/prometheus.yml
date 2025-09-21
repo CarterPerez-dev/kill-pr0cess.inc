@@ -12,7 +12,7 @@ scrape_configs:
   # Backend metrics
   - job_name: 'backend'
     static_configs:
-      - targets: ['backend:3001']
+      - targets: ['backend:8000']
     metrics_path: '/metrics'
     scrape_interval: 5s
 

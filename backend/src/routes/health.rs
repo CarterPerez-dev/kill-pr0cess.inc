@@ -1,6 +1,5 @@
 /*
- * Health check and monitoring endpoints providing comprehensive service status and diagnostic information.
- * I'm implementing production-ready health checks that integrate with load balancers and monitoring systems for reliable deployment.
+ * ©AngelaMos | 2025
  */
 
 use axum::{

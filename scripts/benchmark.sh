@@ -23,8 +23,8 @@ readonly RESULTS_FILE="$RESULTS_DIR/benchmark_$TIMESTAMP.json"
 readonly LOG_FILE="$RESULTS_DIR/benchmark_$TIMESTAMP.log"
 
 # API endpoints
-readonly BACKEND_URL="http://localhost:3001"
-readonly FRONTEND_URL="http://localhost:3000"
+readonly BACKEND_URL="http://localhost:8000"
+readonly FRONTEND_URL="http://localhost:4000"
 
 # Benchmark configuration
 readonly WARMUP_REQUESTS=5

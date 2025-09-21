@@ -67,7 +67,7 @@ struct GitHubLicense {
 }
 
 #[derive(Debug, Deserialize)]
-struct GitHubRateLimit {
+pub struct GitHubRateLimit {
     pub limit: u32,
     pub remaining: u32,
     pub reset: u64,
@@ -453,7 +453,7 @@ async fn get_repository_readme(&self, owner: &str, name: &str) -> Result<String>
         repositories: &[Repository],
     ) -> Result<()> {
         for repo in repositories {
-            let result = sqlx::query!(
+            let result = sqlx::query(
                 r#"
                 INSERT INTO repositories (
                     github_id, owner_login, name, full_name, description, html_url, clone_url, ssh_url,
@@ -477,32 +477,32 @@ async fn get_repository_readme(&self, owner: &str, name: &str) -> Result<String>
                 license_name = EXCLUDED.license_name,
                 cache_updated_at = EXCLUDED.cache_updated_at,
                 cache_expires_at = EXCLUDED.cache_expires_at
-                "#,
-                repo.github_id,
-                repo.owner_login,
-                repo.name,
-                repo.full_name,
-                repo.description,
-                repo.html_url,
-                repo.clone_url,
-                repo.ssh_url,
-                repo.language,
-                repo.size_kb,
-                repo.stargazers_count,
-                repo.watchers_count,
-                repo.forks_count,
-                repo.open_issues_count,
-                repo.created_at,
-                repo.updated_at,
-                repo.pushed_at,
-                repo.is_private,
-                repo.is_fork,
-                repo.is_archived,
-                repo.topics.as_deref().unwrap_or(&[]),
-                repo.license_name,
-                repo.cache_updated_at,
-                repo.cache_expires_at
+                "#
             )
+            .bind(repo.github_id)
+            .bind(&repo.owner_login)
+            .bind(&repo.name)
+            .bind(&repo.full_name)
+            .bind(&repo.description)
+            .bind(&repo.html_url)
+            .bind(&repo.clone_url)
+            .bind(&repo.ssh_url)
+            .bind(&repo.language)
+            .bind(repo.size_kb)
+            .bind(repo.stargazers_count)
+            .bind(repo.watchers_count)
+            .bind(repo.forks_count)
+            .bind(repo.open_issues_count)
+            .bind(repo.created_at)
+            .bind(repo.updated_at)
+            .bind(repo.pushed_at)
+            .bind(repo.is_private)
+            .bind(repo.is_fork)
+            .bind(repo.is_archived)
+            .bind(&repo.topics)
+            .bind(&repo.license_name)
+            .bind(repo.cache_updated_at)
+            .bind(repo.cache_expires_at)
             .execute(db_pool)
             .await;
 

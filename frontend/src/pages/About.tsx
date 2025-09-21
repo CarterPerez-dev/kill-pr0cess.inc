@@ -1,6 +1,5 @@
 /*
- * Comprehensive About page showcasing the technical architecture and philosophical foundations of the performance showcase application.
- * I'm implementing a deep dive into the system's design principles, technical stack, and existential contemplation of computational precision that aligns with the dark, eerie aesthetic.
+ * ©AngelaMos | 2025
  */
 
 import { Component, createSignal, onMount, Show, For } from 'solid-js';
@@ -25,7 +24,6 @@ export default function About(): Component {
   const [isVisible, setIsVisible] = createSignal(false);
   const [activeSection, setActiveSection] = createSignal('philosophy');
 
-  // I'm defining the technical stack with philosophical context
   const techStack: TechStackItem[] = [
     {
       category: 'Backend Runtime',

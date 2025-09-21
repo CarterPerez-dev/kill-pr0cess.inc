@@ -103,7 +103,7 @@ export const MetricsDisplay: Component = () => {
       {
         id: 'cpu',
         label: 'CPU Usage',
-        value: m.cpu_usage_percent.toFixed(1),
+        value: m.cpu_usage_percent?.toFixed(1) || '0.0',
         unit: '%',
         trend: 'stable', // Would calculate from history
         status: m.cpu_usage_percent > 80 ? 'critical' : m.cpu_usage_percent > 60 ? 'warning' : 'good',
@@ -112,16 +112,16 @@ export const MetricsDisplay: Component = () => {
       {
         id: 'memory',
         label: 'Memory Usage',
-        value: m.memory_usage_percent.toFixed(1),
+        value: m.memory_usage_percent?.toFixed(1) || '0.0',
         unit: '%',
         trend: 'stable',
         status: m.memory_usage_percent > 85 ? 'critical' : m.memory_usage_percent > 70 ? 'warning' : 'good',
-        description: `${m.memory_available_gb.toFixed(1)}GB available of ${m.memory_total_gb.toFixed(1)}GB`
+        description: `${m.memory_available_gb?.toFixed(1) || '0.0'}GB available of ${m.memory_total_gb?.toFixed(1) || '0.0'}GB`
       },
       {
         id: 'load',
         label: 'Load Average',
-        value: m.load_average_1m.toFixed(2),
+        value: m.load_average_1m?.toFixed(2) || '0.00',
         unit: '',
         trend: 'stable',
         status: m.load_average_1m > m.cpu_cores * 2 ? 'critical' : m.load_average_1m > m.cpu_cores ? 'warning' : 'good',
@@ -373,10 +373,10 @@ export const MetricsDisplay: Component = () => {
             <div>
               <div class="text-neutral-500 mb-2">MEMORY</div>
               <div class="text-neutral-300 font-mono mb-1">
-                {metrics()!.memory_total_gb.toFixed(1)} GB Total
+                {metrics()?.memory_total_gb?.toFixed(1) || '0.0'} GB Total
               </div>
               <div class="text-neutral-600 text-xs">
-                {metrics()!.memory_available_gb.toFixed(1)} GB available
+                {metrics()?.memory_available_gb?.toFixed(1) || '0.0'} GB available
               </div>
             </div>
 

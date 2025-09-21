@@ -1,6 +1,5 @@
 /*
- * Performance benchmark visualization component that displays comparative analysis of system performance against industry standards.
- * I'm implementing interactive charts, statistical analysis, and benchmark execution with real-time progress tracking using the performance service.
+ * ©AngelaMos | 2025
  */
 
 import { Component, createSignal, onMount, Show, For } from 'solid-js';

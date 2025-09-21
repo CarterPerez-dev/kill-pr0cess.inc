@@ -1,6 +1,5 @@
 /*
- * Interactive technology stack presentation component that explains tech choices, performance characteristics, and architectural decisions.
- * I'm implementing comprehensive technology showcase with interactive explanations, performance justifications, and educational content to demonstrate the philosophy behind each tech choice.
+ * ©AngelaMos | 2025
  */
 
 import { Component, createSignal, Show, For } from 'solid-js';

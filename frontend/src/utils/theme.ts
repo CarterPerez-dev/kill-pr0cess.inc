@@ -1,6 +1,5 @@
 /*
- * Theme management utilities providing consistent dark aesthetic, color systems, and visual hierarchy throughout the application.
- * I'm implementing the eerie, contemplative Mr. Robot-inspired design system with programmatic theme switching and dynamic color generation for the philosophical atmosphere.
+ * ©AngelaMos | 2025
  */
 
 interface ColorPalette {

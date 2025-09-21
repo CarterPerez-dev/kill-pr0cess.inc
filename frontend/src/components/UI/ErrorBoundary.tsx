@@ -46,7 +46,7 @@ export const ErrorBoundary: Component<ErrorBoundaryProps> = (props) => {
     };
 
     // Handle general JavaScript errors
-    const handleError = (event: ErrorEvent) => {
+    const handleJSError = (event: ErrorEvent) => {
       const errorInfo: ErrorInfo = {
         error: event.error || new Error(event.message),
         timestamp: new Date(),
@@ -60,11 +60,11 @@ export const ErrorBoundary: Component<ErrorBoundaryProps> = (props) => {
     };
 
     window.addEventListener('unhandledrejection', handleUnhandledRejection);
-    window.addEventListener('error', handleError);
+    window.addEventListener('error', handleJSError);
 
     return () => {
       window.removeEventListener('unhandledrejection', handleUnhandledRejection);
-      window.removeEventListener('error', handleError);
+      window.removeEventListener('error', handleJSError);
     };
   });
 

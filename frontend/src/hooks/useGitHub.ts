@@ -1,10 +1,10 @@
 /*
- * GitHub data management hook providing reactive state management and intelligent caching for repository data.
- * I'm implementing comprehensive GitHub API integration with SolidJS reactivity, error handling, and performance optimization.
+ * ©AngelaMos | 2025
  */
 
 import { createSignal, createResource, createMemo, createEffect, onCleanup } from 'solid-js';
 import { createStore, produce } from 'solid-js/store';
+import { apiClient } from '../services/api';
 
 interface Repository {
     id: number;
@@ -161,13 +161,9 @@ export function useGitHub() {
                                                    ),
                 });
 
-                const response = await fetch(`/api/github/repos?${params}`);
+                const response = await apiClient.get(`/api/github/repos?${params}`);
 
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-
-                const data: RepositoryResponse = await response.json();
+                const data: RepositoryResponse = response;
 
                 setState('repositories', data.repositories);
                 setState('totalPages', data.pagination.total_pages);
@@ -191,12 +187,7 @@ export function useGitHub() {
         () => cacheTimestamp(),
                                           async () => {
                                               try {
-                                                  const response = await fetch('/api/github/language-distribution');
-                                                  if (!response.ok) {
-                                                      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                                                  }
-
-                                                  const data: LanguageDistribution = await response.json();
+                                                  const data: LanguageDistribution = await apiClient.get('/api/github/language-distribution');
                                                   setState('languageDistribution', data);
                                                   return data;
                                               } catch (error) {
@@ -292,12 +283,7 @@ export function useGitHub() {
             try {
                 setState('isLoading', true);
 
-                const response = await fetch(`/api/github/repo/${owner}/${name}`);
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-
-                const data: RepositoryDetailed = await response.json();
+                const data: RepositoryDetailed = await apiClient.get(`/api/github/repo/${owner}/${name}`);
                 setState('selectedRepository', data);
                 return data;
             } catch (error) {
@@ -312,12 +298,7 @@ export function useGitHub() {
         // Get repository statistics
         async getRepositoryStats(owner: string, name: string) {
             try {
-                const response = await fetch(`/api/github/repo/${owner}/${name}/stats`);
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-
-                return await response.json();
+                return await apiClient.get(`/api/github/repo/${owner}/${name}/stats`);
             } catch (error) {
                 console.warn('Failed to fetch repository stats:', error);
                 return null;

@@ -68,3 +68,8 @@ env.bak/
 venv.bak/
 
 **/.claude/settings.local.json
+API/
+/API/
+API
+.claude
+CONTEXT.md

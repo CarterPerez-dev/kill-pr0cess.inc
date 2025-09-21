@@ -68,7 +68,7 @@ export const Footer: Component = () => {
 
   const fetchBuildInfo = async () => {
     try {
-      const response = await fetch('/api/health');
+      const response = await fetch('/v1/health');
       if (response.ok) {
         const data = await response.json();
         setBuildInfo(data.version);
@@ -249,15 +249,15 @@ export const Footer: Component = () => {
             {buildInfo() && (
               <>
                 <span class="font-mono">
-                  Built: {new Date(buildInfo()!.buildTime).toLocaleDateString()}
+                  Built: {buildInfo()?.buildTime ? new Date(buildInfo()!.buildTime).toLocaleDateString() : 'unknown'}
                 </span>
                 <span class="hidden md:block text-neutral-800">•</span>
                 <span class="font-mono">
-                  Commit: {buildInfo()!.gitCommit.substring(0, 7)}
+                  Commit: {buildInfo()?.gitCommit?.substring(0, 7) || 'unknown'}
                 </span>
                 <span class="hidden md:block text-neutral-800">•</span>
                 <span class="font-mono">
-                  Rust: {buildInfo()!.rustVersion}
+                  Rust: {buildInfo()?.rustVersion || 'unknown'}
                 </span>
               </>
             )}

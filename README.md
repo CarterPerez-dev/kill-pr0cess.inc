@@ -100,9 +100,9 @@ cd ..
 Once the daemons are stirring and the ports are listening:
 
 *   **Main Application (via Nginx):** `http://localhost` (or `http://localhost:80`)
-*   **Frontend Direct (if running dev server):** `http://localhost:3000`
-*   **Backend API Direct (if running dev server):** `http://localhost:3001`
-*   **Backend Health:** `http://localhost:3001/health`
+*   **Frontend Direct (if running dev server):** `http://localhost:4000`
+*   **Backend API Direct (if running dev server):** `http://localhost:8000`
+*   **Backend Health:** `http://localhost:8000/health`
 *   **Prometheus Metrics:** `http://localhost:9090`
 
 ## VII. Navigating the Void - Key Interfaces

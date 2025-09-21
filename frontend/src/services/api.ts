@@ -1,6 +1,5 @@
 /*
- * Core API service providing robust HTTP client configuration and error handling for all backend communication.
- * I'm implementing comprehensive request/response interceptors, retry logic, and performance monitoring for reliable API integration across the application.
+ * ©AngelaMos | 2025
  */
 
 interface ApiResponse<T> {
@@ -29,20 +28,19 @@ class ApiClient {
     private defaultTimeout: number;
     private requestInterceptors: ((config: RequestInit) => RequestInit)[];
     private responseInterceptors: ((response: Response) => Promise<Response>)[];
+    private circuitBreaker: Map<string, { failures: number; lastFailure: number; isOpen: boolean }>;
 
     constructor() {
-        // I'm setting up the base configuration from the environment
-        this.baseURL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+        this.baseURL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
         this.defaultTimeout = 30000; // 30 seconds default timeout
         this.requestInterceptors = [];
         this.responseInterceptors = [];
+        this.circuitBreaker = new Map();
 
-        // Set up default interceptors
         this.setupDefaultInterceptors();
     }
 
     private setupDefaultInterceptors() {
-        // I'm adding request timing and correlation ID tracking
         this.addRequestInterceptor((config: RequestInit) => {
             const correlationId = crypto.randomUUID();
 
@@ -57,7 +55,6 @@ class ApiClient {
             };
         });
 
-        // I'm adding response timing and error standardization
         this.addResponseInterceptor(async (response: Response) => {
             const requestStart = response.headers.get('X-Request-Start');
             if (requestStart) {
@@ -81,14 +78,49 @@ class ApiClient {
         this.responseInterceptors.push(interceptor);
     }
 
+    private checkCircuitBreaker(endpoint: string): boolean {
+        const circuit = this.circuitBreaker.get(endpoint);
+        if (!circuit) return true;
+
+        if (circuit.isOpen && Date.now() - circuit.lastFailure > 30000) {
+            circuit.isOpen = false;
+            circuit.failures = 0;
+        }
+
+        return !circuit.isOpen;
+    }
+
+    private recordFailure(endpoint: string) {
+        const circuit = this.circuitBreaker.get(endpoint) || { failures: 0, lastFailure: 0, isOpen: false };
+        circuit.failures++;
+        circuit.lastFailure = Date.now();
+
+        // Open circuit after 2 failures
+        if (circuit.failures >= 2) {
+            circuit.isOpen = true;
+            console.warn(`Circuit breaker opened for ${endpoint} after ${circuit.failures} failures`);
+        }
+
+        this.circuitBreaker.set(endpoint, circuit);
+    }
+
+    private recordSuccess(endpoint: string) {
+        this.circuitBreaker.delete(endpoint);
+    }
+
     private async executeRequest<T>(
         endpoint: string,
         config: RequestInit = {},
         options: RequestConfig = {}
     ): Promise<T> {
+        // Check circuit breaker first
+        if (!this.checkCircuitBreaker(endpoint)) {
+            throw new Error(`Circuit breaker is open for ${endpoint}. Too many recent failures.`);
+        }
+
         const {
             timeout = this.defaultTimeout,
-            retries = 3,
+            retries = 2, // Reduced from 3 to 2
             retryDelay = 1000,
             skipCache = false,
         } = options;
@@ -132,6 +164,7 @@ class ApiClient {
                 }
 
                 const data = await finalResponse.json();
+                this.recordSuccess(endpoint);
                 return data;
 
             } catch (error) {
@@ -160,6 +193,7 @@ class ApiClient {
             }
         }
 
+        this.recordFailure(endpoint);
         throw lastError || new Error('Max retries exceeded');
     }
 

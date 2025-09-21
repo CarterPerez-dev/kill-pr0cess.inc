@@ -1,6 +1,5 @@
 /*
- * Manual layout solution that bypasses SolidStart's _layout.tsx system by wrapping routes directly in app.tsx.
- * I'm implementing this approach when the automatic layout system isn't working, ensuring we still get our header, footer, and dark theme.
+ * ©AngelaMos | 2025
  */
 
 import { Router } from "@solidjs/router";
@@ -9,15 +8,11 @@ import { Suspense, ErrorBoundary, Component, JSX, createSignal, onMount, Show } 
 import { MetaProvider } from "@solidjs/meta";
 import "./app.css";
 
-// I'm importing our layout components directly
 import { Header } from "./components/Layout/Header";
 import { Footer } from "./components/Layout/Footer";
 import { ErrorBoundary as CustomErrorBoundary } from "./components/UI/ErrorBoundary";
-
-// I'm importing theme initialization
 import { initializeTheme } from "./utils/theme";
 
-// I'm creating a manual layout wrapper component
 const ManualLayoutWrapper: Component<{ children: JSX.Element }> = (props) => {
   const [isLoaded, setIsLoaded] = createSignal(false);
   const [scrollY, setScrollY] = createSignal(0);
@@ -25,14 +20,11 @@ const ManualLayoutWrapper: Component<{ children: JSX.Element }> = (props) => {
   onMount(() => {
     console.log('[MANUAL LAYOUT] Layout wrapper mounting...');
 
-    // I'm initializing the theme
     initializeTheme();
 
-    // I'm setting up scroll tracking
     const handleScroll = () => setScrollY(window.scrollY);
     window.addEventListener('scroll', handleScroll, { passive: true });
 
-    // I'm implementing the loading delay for the eerie effect
     setTimeout(() => {
       setIsLoaded(true);
       console.log('[MANUAL LAYOUT] Layout loaded and ready');
@@ -47,7 +39,6 @@ const ManualLayoutWrapper: Component<{ children: JSX.Element }> = (props) => {
 
   return (
     <div class="min-h-screen bg-black text-neutral-100 relative overflow-x-hidden">
-      {/* I'm adding the atmospheric background */}
       <div class="fixed inset-0 pointer-events-none">
         <div
           class="absolute inset-0 opacity-[0.02]"
@@ -65,7 +56,6 @@ const ManualLayoutWrapper: Component<{ children: JSX.Element }> = (props) => {
         ></div>
       </div>
 
-      {/* I'm creating the main application structure */}
       <div class={`relative z-10 flex flex-col min-h-screen transition-opacity duration-1000 ${isLoaded() ? 'opacity-100' : 'opacity-0'}`}>
         <CustomErrorBoundary context="Header" level="component">
           <Header />
@@ -82,7 +72,6 @@ const ManualLayoutWrapper: Component<{ children: JSX.Element }> = (props) => {
         </CustomErrorBoundary>
       </div>
 
-      {/* I'm implementing the loading screen */}
       <Show when={!isLoaded()}>
         <div class="fixed inset-0 bg-black z-[60] flex items-center justify-center">
           <div class="text-center">
@@ -100,7 +89,6 @@ const ManualLayoutWrapper: Component<{ children: JSX.Element }> = (props) => {
         </div>
       </Show>
 
-      {/* I'm adding scroll progress indicator */}
       <Show when={isLoaded()}>
         <div class="fixed top-0 left-0 right-0 h-0.5 bg-neutral-900 z-40">
           <div
@@ -112,7 +100,6 @@ const ManualLayoutWrapper: Component<{ children: JSX.Element }> = (props) => {
         </div>
       </Show>
 
-      {/* I'm adding corner accents */}
       <div class="fixed top-0 left-0 w-32 h-32 border-l border-t border-neutral-800/30 opacity-20 pointer-events-none z-10"></div>
       <div class="fixed top-0 right-0 w-32 h-32 border-r border-t border-neutral-800/30 opacity-20 pointer-events-none z-10"></div>
       <div class="fixed bottom-0 left-0 w-32 h-32 border-l border-b border-neutral-800/30 opacity-20 pointer-events-none z-10"></div>

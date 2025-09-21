@@ -1,6 +1,5 @@
 /*
- * Fractal generation API service managing computation requests, progress tracking, and result processing for interactive mathematical visualization.
- * I'm implementing smart parameter optimization, computation caching, and real-time performance monitoring to deliver smooth fractal rendering experiences.
+ * ©AngelaMos | 2025
  */
 
 import { apiClient } from './api';

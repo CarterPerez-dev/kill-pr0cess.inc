@@ -1,5 +1,5 @@
-# Production-optimized Docker Compose configuration for the dark performance showcase.
-# I'm focusing on security, performance, resource limits, and production-ready settings for maximum throughput and reliability.
+# ©AngelaMos | 2025
+# Prod
 
 services:
   postgres:
@@ -43,7 +43,6 @@ services:
         max-size: "10m"
         max-file: "3"
 
-  # Production Redis with persistence and memory optimization
   redis:
     image: redis:7-alpine
     restart: unless-stopped
@@ -79,19 +78,18 @@ services:
         max-size: "10m"
         max-file: "3"
 
-  # Production Rust backend with optimizations and security
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile.prod
       args:
-        RUST_VERSION: 1.75
+        RUST_VERSION: 1.87
     restart: unless-stopped
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-darkuser}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-dark_performance}
       REDIS_URL: redis://redis:6379
       RUST_LOG: ${RUST_LOG:-info}
-      PORT: 3001
+      PORT: 8000
       ENVIRONMENT: production
       GITHUB_TOKEN: ${GITHUB_TOKEN}
       GITHUB_USERNAME: ${GITHUB_USERNAME}
@@ -112,7 +110,7 @@ services:
           cpus: '1.0'
       replicas: 2
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      test: ["CMD", "/app/backend", "--health-check"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -128,7 +126,6 @@ services:
     tmpfs:
       - /tmp
 
-  # Production SolidJS frontend with static serving optimization
   frontend:
     build:
       context: ./frontend
@@ -138,7 +135,7 @@ services:
     restart: unless-stopped
     environment:
       NODE_ENV: production
-      VITE_API_URL: ${FRONTEND_API_URL:-http://backend:3001}
+      VITE_API_URL: ${FRONTEND_API_URL:-http://backend:8000}
     networks:
       - dark_network
     depends_on:
@@ -169,7 +166,6 @@ services:
     tmpfs:
       - /tmp
 
-  # Production Nginx with advanced optimization and security
   nginx:
     image: nginx:1.27-alpine
     restart: unless-stopped
@@ -207,7 +203,6 @@ services:
     security_opt:
       - no-new-privileges:true
 
-  # Production Prometheus with retention and performance tuning
   prometheus:
     image: prom/prometheus:v2.47.2
     restart: unless-stopped
@@ -246,7 +241,6 @@ services:
     security_opt:
       - no-new-privileges:true
 
-  # Grafana for advanced visualization and monitoring
   grafana:
     image: grafana/grafana:10.2.2
     restart: unless-stopped
@@ -283,38 +277,20 @@ services:
     security_opt:
       - no-new-privileges:true
 
-# Production-optimized volumes with performance settings
 volumes:
   postgres_data:
     driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: /opt/dark-performance/postgres
   redis_data:
     driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: /opt/dark-performance/redis
   prometheus_data:
     driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: /opt/dark-performance/prometheus
   grafana_data:
     driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: /opt/dark-performance/grafana
   nginx_cache:
     driver: local
   nginx_logs:
     driver: local
 
-# Production network with custom configuration
 networks:
   dark_network:
     driver: bridge

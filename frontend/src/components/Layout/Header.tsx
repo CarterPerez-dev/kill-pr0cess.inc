@@ -62,7 +62,7 @@ export const Header: Component = () => {
 
   const fetchSystemStatus = async () => {
     try {
-      const response = await fetch('/api/health');
+      const response = await fetch('/v1/health');
       if (response.ok) {
         const data = await response.json();
         setSystemStatus(data.status === 'Healthy' ? 'healthy' :
@@ -94,9 +94,9 @@ export const Header: Component = () => {
 
   return (
     <>
-      <header class={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+      <header class={`fixed top-0 left-0 right-0 z-50 transition-all duration-700 ease-out ${
         isScrolled()
-          ? 'bg-black/90 backdrop-blur-md border-b border-neutral-800/50'
+          ? 'glass-dark border-b border-neutral-800/30 shadow-lg'
           : 'bg-transparent'
       }`}>
         <div class="container mx-auto px-6">
@@ -107,10 +107,10 @@ export const Header: Component = () => {
               class="group flex items-center gap-3 text-neutral-100 hover:text-white transition-colors duration-300"
             >
               <div class="relative">
-                <div class={`w-2 h-2 rounded-full ${getStatusColor()} ${getStatusPulse()}`}></div>
+                <div class={`w-2 h-2 rounded-full ${getStatusColor()} ${getStatusPulse()} shadow-[0_0_10px_currentColor]`}></div>
                 <div class="absolute inset-0 w-2 h-2 rounded-full bg-white/20 animate-ping"></div>
               </div>
-              <span class="font-mono text-sm tracking-wider">
+              <span class="font-mono text-sm tracking-wider text-gradient-animate">
                 PERFORMANCE.SHOWCASE
               </span>
             </A>
@@ -120,22 +120,32 @@ export const Header: Component = () => {
               {navItems.map((item) => (
                 <A
                   href={item.path}
-                  class={`group relative font-mono text-xs tracking-wider transition-all duration-300 ${
+                  class={`group relative font-mono text-xs tracking-wider transition-all duration-500 ease-out ${
                     isActiveRoute(item.path)
-                      ? 'text-neutral-100'
-                      : 'text-neutral-500 hover:text-neutral-300'
+                      ? 'text-neutral-100 text-shadow-glow'
+                      : 'text-neutral-500 hover:text-neutral-200'
                   }`}
                 >
-                  {item.label}
+                  <span class="relative z-10">{item.label}</span>
+
+                  {/* Active/hover glow effect */}
+                  <div class={`absolute inset-0 rounded transition-all duration-500 ${
+                    isActiveRoute(item.path) 
+                      ? 'bg-gradient-to-r from-cyan-500/10 to-blue-500/10 opacity-100' 
+                      : 'bg-gradient-to-r from-cyan-500/0 to-blue-500/0 opacity-0 group-hover:opacity-100 group-hover:from-cyan-500/10 group-hover:to-blue-500/10'
+                  }`}></div>
 
                   {/* Active indicator */}
-                  <div class={`absolute -bottom-1 left-0 h-px bg-neutral-100 transition-all duration-300 ${
-                    isActiveRoute(item.path) ? 'w-full' : 'w-0 group-hover:w-full'
+                  <div class={`absolute -bottom-1 left-0 h-px transition-all duration-500 ease-out ${
+                    isActiveRoute(item.path) 
+                      ? 'w-full bg-gradient-to-r from-transparent via-cyan-400 to-transparent' 
+                      : 'w-0 bg-neutral-400 group-hover:w-full'
                   }`}></div>
 
                   {/* Hover description */}
-                  <div class="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-1 bg-black/90 backdrop-blur-sm border border-neutral-700 rounded text-xs text-neutral-400 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+                  <div class="absolute top-full left-1/2 transform -translate-x-1/2 mt-3 px-4 py-2 glass-effect border border-neutral-700/50 rounded-md text-xs text-neutral-300 whitespace-nowrap opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300 pointer-events-none shadow-xl">
                     {item.description}
+                    <div class="absolute -top-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-inherit border-l border-t border-neutral-700/50 rotate-45"></div>
                   </div>
                 </A>
               ))}
@@ -144,9 +154,9 @@ export const Header: Component = () => {
             {/* System Status & Mobile Menu Button */}
             <div class="flex items-center gap-4">
               {/* System Status Indicator */}
-              <div class="hidden lg:flex items-center gap-2 px-3 py-1 bg-neutral-900/50 backdrop-blur-sm border border-neutral-800 rounded-sm">
-                <div class={`w-1.5 h-1.5 rounded-full ${getStatusColor()}`}></div>
-                <span class="text-xs font-mono text-neutral-400 tracking-wide">
+              <div class="hidden lg:flex items-center gap-2 px-4 py-2 glass-effect border border-neutral-800/50 rounded-full hover:border-neutral-700/50 transition-all duration-300">
+                <div class={`w-1.5 h-1.5 rounded-full ${getStatusColor()} shadow-[0_0_8px_currentColor]`}></div>
+                <span class="text-xs font-mono text-neutral-300 tracking-wide">
                   {systemStatus().toUpperCase()}
                 </span>
               </div>
@@ -158,14 +168,14 @@ export const Header: Component = () => {
                 aria-label="Toggle mobile menu"
               >
                 <div class="w-5 h-5 flex flex-col justify-center gap-1">
-                  <div class={`h-px bg-current transition-all duration-300 ${
-                    isMobileMenuOpen() ? 'rotate-45 translate-y-1' : ''
+                  <div class={`h-px bg-current transition-all duration-500 ease-out origin-center ${
+                    isMobileMenuOpen() ? 'rotate-45 translate-y-1.5' : ''
                   }`}></div>
                   <div class={`h-px bg-current transition-all duration-300 ${
-                    isMobileMenuOpen() ? 'opacity-0' : ''
+                    isMobileMenuOpen() ? 'opacity-0 scale-0' : ''
                   }`}></div>
-                  <div class={`h-px bg-current transition-all duration-300 ${
-                    isMobileMenuOpen() ? '-rotate-45 -translate-y-1' : ''
+                  <div class={`h-px bg-current transition-all duration-500 ease-out origin-center ${
+                    isMobileMenuOpen() ? '-rotate-45 -translate-y-1.5' : ''
                   }`}></div>
                 </div>
               </button>
@@ -187,8 +197,8 @@ export const Header: Component = () => {
         ></div>
 
         {/* Menu Content */}
-        <div class={`absolute top-16 left-0 right-0 bg-black/95 backdrop-blur-md border-b border-neutral-800 transition-all duration-500 ${
-          isMobileMenuOpen() ? 'translate-y-0' : '-translate-y-full'
+        <div class={`absolute top-16 left-0 right-0 glass-dark border-b border-neutral-800/50 transition-all duration-700 ease-out shadow-2xl ${
+          isMobileMenuOpen() ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'
         }`}>
           <nav class="container mx-auto px-6 py-8">
             <div class="space-y-6">
@@ -196,23 +206,25 @@ export const Header: Component = () => {
                 <A
                   href={item.path}
                   onClick={() => setIsMobileMenuOpen(false)}
-                  class={`block group transition-all duration-300 ${
+                  class={`block group transition-all duration-500 ease-out hover-lift ${
                     isActiveRoute(item.path)
                       ? 'text-neutral-100'
                       : 'text-neutral-400 hover:text-neutral-200'
                   }`}
                 >
-                  <div class="flex items-center justify-between py-2">
+                  <div class="flex items-center justify-between py-3 px-2 rounded-lg hover:bg-neutral-900/50 transition-all duration-300">
                     <div>
-                      <div class="font-mono text-sm tracking-wider mb-1">
+                      <div class="font-mono text-sm tracking-wider mb-1 group-hover:text-shadow-glow transition-all duration-300">
                         {item.label}
                       </div>
-                      <div class="text-xs text-neutral-600">
+                      <div class="text-xs text-neutral-500 group-hover:text-neutral-400 transition-colors duration-300">
                         {item.description}
                       </div>
                     </div>
-                    <div class={`w-1 h-6 bg-neutral-100 transition-all duration-300 ${
-                      isActiveRoute(item.path) ? 'opacity-100' : 'opacity-0 group-hover:opacity-50'
+                    <div class={`w-1 h-8 rounded-full transition-all duration-500 ease-out ${
+                      isActiveRoute(item.path) 
+                        ? 'opacity-100 bg-gradient-to-b from-cyan-400 to-blue-400 shadow-[0_0_10px_rgba(34,211,238,0.5)]' 
+                        : 'opacity-0 bg-neutral-100 group-hover:opacity-30'
                     }`}></div>
                   </div>
                 </A>
@@ -220,14 +232,14 @@ export const Header: Component = () => {
             </div>
 
             {/* Mobile System Status */}
-            <div class="mt-8 pt-6 border-t border-neutral-800">
-              <div class="flex items-center justify-between">
+            <div class="mt-8 pt-6 border-t border-neutral-800/50">
+              <div class="flex items-center justify-between px-2">
                 <span class="text-xs font-mono text-neutral-500 tracking-wide">
                   SYSTEM STATUS
                 </span>
-                <div class="flex items-center gap-2">
-                  <div class={`w-2 h-2 rounded-full ${getStatusColor()} ${getStatusPulse()}`}></div>
-                  <span class="text-xs font-mono text-neutral-400">
+                <div class="flex items-center gap-2 px-3 py-1.5 glass-effect rounded-full">
+                  <div class={`w-2 h-2 rounded-full ${getStatusColor()} ${getStatusPulse()} shadow-[0_0_8px_currentColor]`}></div>
+                  <span class="text-xs font-mono text-neutral-300">
                     {systemStatus().toUpperCase()}
                   </span>
                 </div>

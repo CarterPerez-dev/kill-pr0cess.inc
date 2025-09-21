@@ -1,6 +1,5 @@
 /*
- * Animation utilities providing smooth, eerie transitions and effects that reinforce the dark, contemplative aesthetic throughout the application.
- * I'm implementing performance-optimized animations using CSS transforms and requestAnimationFrame for fluid user interactions without sacrificing the philosophical atmosphere.
+ * ©AngelaMos | 2025
  */
 
 interface AnimationConfig {
@@ -16,7 +15,6 @@ interface SpringConfig {
     mass?: number;
 }
 
-// I'm creating smooth entrance animations for the dark theme
 export const fadeInUp = (element: HTMLElement, config: Partial<AnimationConfig> = {}) => {
     const defaultConfig: AnimationConfig = {
         duration: 800,

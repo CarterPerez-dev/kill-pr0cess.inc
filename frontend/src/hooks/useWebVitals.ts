@@ -1,6 +1,5 @@
 /*
- * Web Vitals monitoring hook providing comprehensive performance tracking and real-time metrics collection for the performance showcase.
- * I'm implementing Core Web Vitals measurement, custom performance markers, and reactive state management that integrates with the application's performance analysis and dark theme presentation.
+ * ©AngelaMos | 2025
  */
 
 import { createSignal, createEffect, onCleanup, onMount } from 'solid-js';
@@ -40,7 +39,6 @@ interface WebVitalsConfig {
 }
 
 export function useWebVitals(config: WebVitalsConfig = {}) {
-  // I'm setting up reactive signals for all metrics
   const [metrics, setMetrics] = createSignal<WebVitalsMetrics>({
     lcp: null,
     fid: null,
@@ -60,11 +58,9 @@ export function useWebVitals(config: WebVitalsConfig = {}) {
   const [isLoading, setIsLoading] = createSignal(true);
   const [lastUpdate, setLastUpdate] = createSignal<Date>(new Date());
 
-  // I'm implementing performance observer for modern metrics
   let performanceObserver: PerformanceObserver | null = null;
   let navigationObserver: PerformanceObserver | null = null;
 
-  // I'm defining thresholds for rating performance metrics
   const getMetricRating = (metricName: string, value: number): 'good' | 'needs-improvement' | 'poor' => {
     const thresholds = {
       lcp: { good: 2500, poor: 4000 },
@@ -82,7 +78,6 @@ export function useWebVitals(config: WebVitalsConfig = {}) {
     return 'poor';
   };
 
-  // I'm updating metrics and creating performance entries
   const updateMetric = (name: string, value: number) => {
     setMetrics(prev => ({
       ...prev,
@@ -99,22 +94,18 @@ export function useWebVitals(config: WebVitalsConfig = {}) {
     setPerformanceEntries(prev => [...prev, entry]);
     setLastUpdate(new Date());
 
-    // I'm logging performance metrics in development
     if (config.debug || import.meta.env.DEV) {
       console.log(`[WebVitals] ${name}:`, value, `(${entry.rating})`);
     }
 
-    // I'm reporting metrics if enabled
     if (config.enableReporting) {
       reportMetric(entry);
     }
   };
 
-  // I'm implementing metric reporting to backend
   const reportMetric = async (entry: PerformanceEntry) => {
     if (!config.reportingEndpoint) return;
 
-    // I'm implementing sampling to reduce server load
     if (config.samplingRate && Math.random() > config.samplingRate) return;
 
     try {

@@ -1,6 +1,5 @@
 /*
- * Performance monitoring hook providing reactive state management for real-time system metrics, benchmarks, and performance analysis throughout the application.
- * I'm implementing comprehensive performance tracking with WebSocket connections, historical data management, and intelligent alerting that integrates seamlessly with the dark aesthetic's focus on computational precision.
+ * ©AngelaMos | 2025
  */
 
 import { createSignal, createResource, createMemo, createEffect, onMount, onCleanup } from 'solid-js';
@@ -70,7 +69,6 @@ interface PerformanceState {
 }
 
 export function usePerformance() {
-  // I'm setting up comprehensive performance state management
   const [state, setState] = createStore<PerformanceState>({
     currentMetrics: null,
     benchmarkResults: null,
@@ -83,7 +81,6 @@ export function usePerformance() {
     webVitals: null,
   });
 
-  // I'm implementing real-time metrics fetching
   const [metricsResource] = createResource(
     () => ({ monitoring: state.isMonitoring }),
     async () => {
@@ -100,16 +97,13 @@ export function usePerformance() {
         setState('currentMetrics', metrics);
         setState('connectionStatus', 'connected');
         
-        // I'm updating metrics history
         setState('metricsHistory', produce(history => {
           history.push(metrics);
-          // Keep only last 100 entries for performance
           if (history.length > 100) {
             history.shift();
           }
         }));
 
-        // I'm checking for alerts
         checkForAlerts(metrics);
 
         return metrics;
@@ -122,7 +116,6 @@ export function usePerformance() {
     }
   );
 
-  // I'm implementing benchmark execution
   const [benchmarkResource] = createResource(
     () => ({ running: state.isRunningBenchmark }),
     async () => {
@@ -153,16 +146,13 @@ export function usePerformance() {
     }
   );
 
-  // I'm implementing periodic metrics collection
   let metricsInterval: number | null = null;
   let webVitalsInterval: number | null = null;
 
   onMount(() => {
-    // I'm collecting initial Web Vitals
     collectWebVitals();
 
-    // I'm setting up periodic Web Vitals collection
-    webVitalsInterval = setInterval(collectWebVitals, 30000); // Every 30 seconds
+    webVitalsInterval = setInterval(collectWebVitals, 30000);
   });
 
   onCleanup(() => {
@@ -170,13 +160,11 @@ export function usePerformance() {
     if (webVitalsInterval) clearInterval(webVitalsInterval);
   });
 
-  // I'm implementing Web Vitals collection
   const collectWebVitals = async () => {
     try {
       const vitals = await performanceUtils.getWebVitals();
       setState('webVitals', vitals);
       
-      // I'm adding Web Vitals to performance monitoring
       performanceMonitor.addMetric('web_vitals_fcp', vitals.fcp, 'ms', 'web_vitals');
       performanceMonitor.addMetric('web_vitals_lcp', vitals.lcp, 'ms', 'web_vitals');
       performanceMonitor.addMetric('web_vitals_fid', vitals.fid, 'ms', 'web_vitals');
@@ -187,11 +175,9 @@ export function usePerformance() {
     }
   };
 
-  // I'm implementing alert checking logic
   const checkForAlerts = (metrics: SystemMetrics) => {
     const newAlerts: Alert[] = [];
 
-    // CPU usage alerts
     if (metrics.cpu_usage_percent > 90) {
       newAlerts.push({
         id: `cpu_high_${Date.now()}`,
@@ -216,7 +202,6 @@ export function usePerformance() {
       });
     }
 
-    // Memory usage alerts
     if (metrics.memory_usage_percent > 85) {
       newAlerts.push({
         id: `memory_high_${Date.now()}`,
@@ -241,7 +226,6 @@ export function usePerformance() {
       });
     }
 
-    // Load average alerts
     if (metrics.load_average_1m > metrics.cpu_cores * 2) {
       newAlerts.push({
         id: `load_high_${Date.now()}`,
@@ -255,7 +239,6 @@ export function usePerformance() {
       });
     }
 
-    // I'm adding new alerts to the state
     if (newAlerts.length > 0) {
       setState('alerts', produce(alerts => {
         alerts.push(...newAlerts);
@@ -267,7 +250,6 @@ export function usePerformance() {
     }
   };
 
-  // I'm implementing computed values for enhanced analytics
   const performanceInsights = createMemo(() => {
     const metrics = state.currentMetrics;
     if (!metrics) return null;
@@ -311,7 +293,6 @@ export function usePerformance() {
     return activeAlerts().filter(alert => alert.severity === 'critical');
   });
 
-  // I'm implementing helper functions
   const generateRecommendations = (metrics: SystemMetrics): string[] => {
     const recommendations: string[] = [];
 
@@ -334,16 +315,13 @@ export function usePerformance() {
     return recommendations;
   };
 
-  // I'm implementing actions for performance management
   const actions = {
-    // Start/stop monitoring
     startMonitoring() {
       setState('isMonitoring', true);
       
-      // I'm setting up periodic metrics collection
       metricsInterval = setInterval(() => {
         metricsResource.refetch();
-      }, 5000); // Every 5 seconds
+      }, 12000); // Every 12 seconds
     },
 
     stopMonitoring() {
@@ -395,12 +373,10 @@ export function usePerformance() {
       return performanceUtils.getPerformanceGrade();
     },
 
-    // Detect performance issues
     detectIssues() {
       return performanceUtils.detectPerformanceIssues();
     },
 
-    // Export performance data
     exportData() {
       return {
         currentMetrics: state.currentMetrics,
@@ -413,19 +389,16 @@ export function usePerformance() {
       };
     },
 
-    // Measure custom operation
     measureOperation<T>(name: string, operation: () => T): T {
       return performanceUtils.measure(name, operation);
     },
 
-    // Measure async operation
     async measureAsyncOperation<T>(name: string, operation: () => Promise<T>): Promise<T> {
       return performanceUtils.measureAsync(name, operation);
     }
   };
 
   return {
-    // State
     currentMetrics: () => state.currentMetrics,
     benchmarkResults: () => state.benchmarkResults,
     alerts: activeAlerts,

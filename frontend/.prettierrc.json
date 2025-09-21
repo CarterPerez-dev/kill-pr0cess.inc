@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json.schemastore.org/prettierrc",
+  "printWidth": 77,
+  "tabWidth": 2,
+  "useTabs": false,
+  "semi": true,
+  "singleQuote": true,
+  "quoteProps": "consistent",
+  "jsxSingleQuote": false,
+  "trailingComma": "all",
+  "bracketSpacing": true,
+  "bracketSameLine": false,
+  "arrowParens": "always",
+  "proseWrap": "always",
+  "htmlWhitespaceSensitivity": "strict",
+  "endOfLine": "lf",
+  "embeddedLanguageFormatting": "auto",
+  "singleAttributePerLine": true,
+  "overrides": [
+    {
+      "files": "*.tsx",
+      "options": {
+        "printWidth": 77,      
+        "jsxSingleQuote": false,
+        "bracketSameLine": false
+      }
+    },
+    {
+      "files": "*.ts",
+      "options": {
+        "printWidth": 77,      
+        "parser": "typescript"
+      }
+    },
+    {
+      "files": ["*.json", "*.jsonc"],
+      "options": {
+        "printWidth": 80,
+        "trailingComma": "none"
+      }
+    },
+    {
+      "files": "*.scss",
+      "options": {
+        "singleQuote": false,
+        "printWidth": 100
+      }
+    },
+    {
+      "files": "*.md",
+      "options": {
+        "proseWrap": "always",
+        "printWidth": 80
+      }
+    },
+    {
+      "files": ["*.yml", "*.yaml"],
+      "options": {
+        "singleQuote": false,
+        "bracketSpacing": true
+      }
+    },
+    {
+      "files": ".prettierrc",
+      "options": {
+        "parser": "json"
+      }
+    },
+    {
+      "files": "package.json",
+      "options": {
+        "printWidth": 1000
+      }
+    }
+  ]
+}

@@ -7,12 +7,14 @@ pub mod github;
 pub mod fractals;
 pub mod performance;
 pub mod health;
+pub mod docs;
 
 // Re-export all route handlers for convenient access from main.rs
 pub use github::*;
 pub use fractals::*;
 pub use performance::*;
 pub use health::*;
+pub use docs::*;
 
 use crate::utils::config::Config;
 
@@ -20,7 +22,7 @@ use axum::{
     Router,
     response::IntoResponse,
     routing::{get, post, Route},
-    http::{Method, HeaderValue, header},
+    http::{Method, HeaderValue, HeaderName, header},
 };
 use tower_http::{
     cors::{CorsLayer, Any},
@@ -46,6 +48,9 @@ pub fn create_router() -> Router<AppState> {
         .route("/health", get(health::health_check))
         .route("/health/ready", get(health::readiness_check))
         .route("/health/live", get(health::liveness_check))
+        
+        .route("/docs", get(docs::get_api_docs_html))
+        .route("/docs.json", get(docs::get_api_docs_json))
 
         .route("/api/github/repos", get(github::get_repositories))
         .route("/api/github/repo/:owner/:name", get(github::get_repository_details))
@@ -82,7 +87,13 @@ fn create_cors_layer(config: &Config) -> CorsLayer {
             Method::GET, Method::POST, Method::PUT, Method::DELETE, Method::HEAD, Method::OPTIONS,
         ])
         .allow_headers([
-            header::CONTENT_TYPE, header::AUTHORIZATION, header::ACCEPT, header::USER_AGENT,
+            header::CONTENT_TYPE,
+            header::AUTHORIZATION,
+            header::ACCEPT,
+            header::USER_AGENT,
+            HeaderName::from_static("x-correlation-id"),
+            HeaderName::from_static("x-request-id"),
+            HeaderName::from_static("x-request-start"),
         ]);
 
     if config.is_development() {

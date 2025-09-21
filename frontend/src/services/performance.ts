@@ -178,7 +178,7 @@ class PerformanceService {
     }
 
     private initializeRealTimeMonitoring() {
-        // I'm starting with a 5-second polling interval, will upgrade to WebSocket later
+        // I'm starting with a 15-second polling interval, will upgrade to WebSocket later
         setInterval(async () => {
             try {
                 const metrics = await this.getCurrentMetrics();
@@ -186,7 +186,7 @@ class PerformanceService {
             } catch (error) {
                 console.warn('Failed to fetch real-time metrics:', error);
             }
-        }, 5000);
+        }, 15000);
     }
 
     private processRealTimeMetrics(metrics: SystemMetrics) {

@@ -1,8 +1,7 @@
-# Development Docker Compose configuration for the performance showcase with hot reload and debugging capabilities.
-# I'm setting up a complete development environment with database, cache, services, and monitoring for local development.
+# ©AngelaMos | 2025
+# Dev
 
 services:
-  # PostgreSQL for caching GitHub data and performance metrics
   postgres:
     image: postgres:15-alpine
     environment:
@@ -22,14 +21,13 @@ services:
       timeout: 5s
       retries: 5
 
-  # Redis for real-time performance data and caching
   redis:
     image: redis:7-alpine
     command: redis-server --appendonly yes
     volumes:
       - redis_data:/data
     ports:
-      - "6379:6379"
+      - "6377:6379"
     networks:
       - dark_network
     healthcheck:
@@ -38,7 +36,6 @@ services:
       timeout: 3s
       retries: 3
 
-  # Rust backend with hot reload for development
   backend:
     build:
       context: ./backend
@@ -47,13 +44,13 @@ services:
       DATABASE_URL: postgresql://darkuser:darkpass@postgres:5432/dark_performance
       REDIS_URL: redis://redis:6379
       RUST_LOG: debug
-      PORT: 3001
+      PORT: 8000
       ENVIRONMENT: development
       GITHUB_TOKEN: ${GITHUB_TOKEN}
       GITHUB_USERNAME: ${GITHUB_USERNAME}
       SQLX_OFFLINE: "true"
     ports:
-      - "3001:3001"
+      - "8000:8000"
     depends_on:
       postgres:
         condition: service_healthy
@@ -67,16 +64,15 @@ services:
       - backend_cargo_registry:/usr/local/cargo/registry
     restart: unless-stopped
 
-  # SolidJS frontend with hot module replacement
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile.dev
     ports:
-      - "3000:3000"
+      - "4000:3001"
     environment:
       NODE_ENV: development
-      VITE_API_URL: http://localhost:3001
+      VITE_API_URL: http://localhost:8090
       VITE_DEV_MODE: true
     depends_on:
       - backend
@@ -87,11 +83,10 @@ services:
       - frontend_node_modules:/app/node_modules
     restart: unless-stopped
 
-  # Nginx reverse proxy for development
   nginx:
     image: nginx:1.27-alpine
     ports:
-      - "80:80"
+      - "8090:80"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/sites-enabled:/etc/nginx/sites-enabled:ro
@@ -102,7 +97,6 @@ services:
       - dark_network
     restart: unless-stopped
 
-  # Prometheus for metrics collection in development
   prometheus:
     image: prom/prometheus:v2.47.2
     ports:
@@ -119,7 +113,6 @@ services:
       - dark_network
     restart: unless-stopped
 
-  # Grafana for development monitoring dashboards
   grafana:
     image: grafana/grafana:10.2.2
     ports:
@@ -136,7 +129,6 @@ services:
       - dark_network
     restart: unless-stopped
 
-# Named volumes for persistent data and performance optimization
 volumes:
   postgres_data:
     driver: local
@@ -151,7 +143,6 @@ volumes:
   backend_cargo_registry:
     driver: local
 
-# Development network configuration
 networks:
   dark_network:
     driver: bridge

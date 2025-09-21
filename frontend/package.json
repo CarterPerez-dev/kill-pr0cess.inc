@@ -1,7 +1,7 @@
 {
   "name": "performance-showcase-frontend",
   "version": "1.0.0",
-  "description": "High-performance SolidJS frontend for computational showcase",
+  "description": "High performance SolidJS frontend",
   "type": "module",
   "scripts": {
     "postinstall": "echo 'NPM Postinstall: Attempting to run patch script...' && node ./vite-plugin-solid-patch.js && echo 'NPM Postinstall: Patch script finished.'",
@@ -10,7 +10,7 @@
     "start": "vinxi start",
     "preview": "vinxi preview",
     "type-check": "tsc --noEmit",
-    "lint": "eslint src/**/*.{js,ts,tsx} --fix",
+    "lint": "eslint src/**/*.{js,ts,tsx}",
     "format": "prettier --write src/**/*.{js,ts,tsx,css,scss,md}",
     "test": "vitest",
     "test:ui": "vitest --ui",
@@ -22,7 +22,8 @@
     "@solidjs/start": "^1.0.8",
     "package.json": "^0.0.0",
     "solid-js": "^1.9.3",
-    "vinxi": "^0.5.6"
+    "vinxi": "^0.5.6",
+    "web-vitals": "^5.0.2"
   },
   "devDependencies": {
     "@types/node": "^20.12.7",

@@ -1,6 +1,5 @@
 /*
- * Comprehensive metrics collection system providing real-time performance monitoring, timing utilities, and statistical analysis for the showcase backend.
- * I'm implementing intelligent metrics aggregation with automatic flushing, memory-efficient storage, and integration with Prometheus for production monitoring.
+ * ©AngelaMos | 2025
  */
 
 use serde::{Deserialize, Serialize};
@@ -12,7 +11,6 @@ use tracing::{debug, warn, error};
 
 use crate::utils::error::{AppError, Result};
 
-/// High-performance metrics collector with real-time aggregation and automatic flushing
 /// I'm implementing a thread-safe metrics collection system that minimizes performance impact
 #[derive(Debug, Clone)]
 pub struct MetricsCollector {
@@ -29,7 +27,6 @@ struct MetricsCollectorInner {
     start_time: Instant,
 }
 
-/// Configuration for metrics collection behavior and optimization
 /// I'm providing flexible configuration for different deployment scenarios
 #[derive(Debug, Clone)]
 pub struct MetricsConfig {
@@ -56,7 +53,6 @@ impl Default for MetricsConfig {
     }
 }
 
-/// Counter metric for tracking cumulative values
 /// I'm implementing lock-free counter operations for high-throughput scenarios
 #[derive(Debug)]
 pub struct Counter {
@@ -97,7 +93,6 @@ impl Counter {
     }
 }
 
-/// Gauge metric for tracking current values that can go up or down
 /// I'm implementing efficient gauge operations with automatic cleanup
 #[derive(Debug)]
 pub struct Gauge {
@@ -143,7 +138,6 @@ impl Gauge {
     }
 }
 
-/// Histogram metric for tracking distributions of values
 /// I'm implementing memory-efficient histograms with configurable buckets
 #[derive(Debug)]
 pub struct Histogram {
@@ -176,7 +170,6 @@ impl Histogram {
         self.count += 1;
         self.last_updated = Instant::now();
 
-        // I'm finding the appropriate bucket for this value
         for (upper_bound, count) in &mut self.buckets {
             if value <= *upper_bound {
                 *count += 1;
@@ -210,7 +203,6 @@ impl Histogram {
     }
 }
 
-/// Timer metric for measuring operation durations with statistical analysis
 /// I'm implementing comprehensive timing statistics with percentile calculations
 #[derive(Debug)]
 pub struct Timer {
@@ -258,7 +250,6 @@ impl Timer {
             _ => {}
         }
 
-        // I'm keeping only recent measurements to manage memory
         if self.measurements.len() > 1000 {
             self.measurements.drain(0..500); // Keep last 500 measurements
         }
@@ -408,14 +399,10 @@ pub struct PerformanceInterval {
 }
 
 impl MetricsCollector {
-    /// Create a new metrics collector with default configuration
-    /// I'm setting up comprehensive metrics collection with optimal defaults
     pub fn new() -> Result<Self> {
         Self::with_config(MetricsConfig::default())
     }
 
-    /// Create a new metrics collector with custom configuration
-    /// I'm providing flexible configuration for different deployment needs
     pub fn with_config(config: MetricsConfig) -> Result<Self> {
         let inner = Arc::new(MetricsCollectorInner {
             counters: RwLock::new(HashMap::new()),
@@ -429,14 +416,10 @@ impl MetricsCollector {
         Ok(Self { inner })
     }
 
-    /// Increment a counter metric by 1
-    /// I'm providing convenient counter operations with automatic creation
     pub async fn increment_counter(&self, name: &str) -> Result<()> {
         self.add_to_counter(name, 1).await
     }
 
-    /// Add a value to a counter metric
-    /// I'm implementing efficient counter updates with minimal locking
     pub async fn add_to_counter(&self, name: &str, value: u64) -> Result<()> {
         let counters = self.inner.counters.read().await;
 
@@ -457,8 +440,6 @@ impl MetricsCollector {
         Ok(())
     }
 
-    /// Set a gauge metric value
-    /// I'm implementing efficient gauge operations with automatic metric creation
     pub async fn set_gauge(&self, name: &str, value: f64) -> Result<()> {
         let gauges = self.inner.gauges.read().await;
 
@@ -479,8 +460,6 @@ impl MetricsCollector {
         Ok(())
     }
 
-    /// Record a value in a histogram
-    /// I'm implementing histogram operations with automatic bucket management
     pub async fn record_histogram(&self, name: &str, value: f64) -> Result<()> {
         let histograms = self.inner.histograms.read().await;
 
@@ -501,8 +480,6 @@ impl MetricsCollector {
         Ok(())
     }
 
-    /// Record a timing measurement
-    /// I'm implementing timing operations with statistical analysis
     pub async fn record_timing(&self, name: &str, duration: Duration) -> Result<()> {
         let timers = self.inner.timers.read().await;
 
@@ -523,7 +500,6 @@ impl MetricsCollector {
         Ok(())
     }
 
-    /// Start timing an operation with RAII guard
     /// I'm providing convenient automatic timing with cleanup
     pub fn start_timing(&self, name: impl Into<String>) -> TimingGuard {
         TimingGuard::new(name.into(), self.clone())
