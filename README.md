@@ -1,4 +1,4 @@
-# `kill-pr0cess.inc`
+# kill-pr0cess.inc
 ### _An Inquiry into the Ephemeral Architecture of Computation_
 
 > "We live in a world built on layers of abstraction. Below the surface, cold logic executes, indifferent. This project is an attempt to peer into that digital abyss, to find the unsettling beauty in its precision, and to question the reflections we see in its dark mirror."
