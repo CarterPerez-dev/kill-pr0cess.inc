@@ -72,8 +72,8 @@ export const ProjectGrid: Component<ProjectGridProps> = (props) => {
       {/* View Controls */}
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-4">
-          <h2 class="text-2xl font-mono text-neutral-200">REPOSITORIES</h2>
-          <div class="text-sm text-neutral-500 font-mono">
+          <h2 class="text-2xl font-sans text-neutral-200">REPOSITORIES</h2>
+          <div class="text-sm text-neutral-500 font-sans">
             {github.repositories().length} / {github.totalCount()}
           </div>
         </div>
@@ -118,7 +118,7 @@ export const ProjectGrid: Component<ProjectGridProps> = (props) => {
           <button
             onClick={() => github.refreshRepositories()}
             disabled={github.isLoading()}
-            class="px-4 py-2 bg-neutral-800 hover:bg-neutral-700 disabled:opacity-50 text-neutral-300 rounded font-mono text-sm transition-colors duration-200"
+            class="px-4 py-2 bg-neutral-800 hover:bg-neutral-700 disabled:opacity-50 text-neutral-300 rounded font-sans text-sm transition-colors duration-200"
           >
             {github.isLoading() ? 'REFRESHING...' : 'REFRESH'}
           </button>
@@ -139,11 +139,11 @@ export const ProjectGrid: Component<ProjectGridProps> = (props) => {
       {/* Error State */}
       <Show when={github.error() && !github.isLoading()}>
         <div class="bg-red-900/20 border border-red-800 rounded-lg p-8 text-center">
-          <div class="text-red-400 text-lg font-mono mb-2">FETCH ERROR</div>
+          <div class="text-red-400 text-lg font-sans mb-2">FETCH ERROR</div>
           <div class="text-neutral-300 mb-4">{github.error()}</div>
           <button
             onClick={() => github.refreshRepositories()}
-            class="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded font-mono text-sm transition-colors duration-200"
+            class="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded font-sans text-sm transition-colors duration-200"
           >
             RETRY
           </button>
@@ -171,7 +171,7 @@ export const ProjectGrid: Component<ProjectGridProps> = (props) => {
           <Show when={github.allRepositories().length > 0}>
             <button
               onClick={() => github.clearFilters()}
-              class="mt-6 px-6 py-2 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 rounded font-mono text-sm transition-colors duration-200"
+              class="mt-6 px-6 py-2 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 rounded font-sans text-sm transition-colors duration-200"
             >
               CLEAR FILTERS
             </button>
@@ -211,7 +211,7 @@ export const ProjectGrid: Component<ProjectGridProps> = (props) => {
             <button
               onClick={() => github.goToPage(github.currentPage() - 1)}
               disabled={!github.hasPreviousPage()}
-              class="px-4 py-2 bg-neutral-800 hover:bg-neutral-700 disabled:opacity-50 disabled:cursor-not-allowed text-neutral-300 rounded font-mono text-sm transition-colors duration-200"
+              class="px-4 py-2 bg-neutral-800 hover:bg-neutral-700 disabled:opacity-50 disabled:cursor-not-allowed text-neutral-300 rounded font-sans text-sm transition-colors duration-200"
             >
               PREV
             </button>
@@ -227,7 +227,7 @@ export const ProjectGrid: Component<ProjectGridProps> = (props) => {
                   return (
                     <button
                       onClick={() => github.goToPage(pageNum)}
-                      class={`w-10 h-10 rounded font-mono text-sm transition-colors duration-200 ${
+                      class={`w-10 h-10 rounded font-sans text-sm transition-colors duration-200 ${
                         pageNum === github.currentPage()
                           ? 'bg-cyan-600 text-white'
                           : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'
@@ -243,13 +243,13 @@ export const ProjectGrid: Component<ProjectGridProps> = (props) => {
             <button
               onClick={() => github.goToPage(github.currentPage() + 1)}
               disabled={!github.hasNextPage()}
-              class="px-4 py-2 bg-neutral-800 hover:bg-neutral-700 disabled:opacity-50 disabled:cursor-not-allowed text-neutral-300 rounded font-mono text-sm transition-colors duration-200"
+              class="px-4 py-2 bg-neutral-800 hover:bg-neutral-700 disabled:opacity-50 disabled:cursor-not-allowed text-neutral-300 rounded font-sans text-sm transition-colors duration-200"
             >
               NEXT
             </button>
           </div>
 
-          <div class="text-center text-xs text-neutral-500 font-mono">
+          <div class="text-center text-xs text-neutral-500 font-sans">
             Page {github.currentPage()} of {github.totalPages()} •{' '}
             {github.totalCount()} total repositories
           </div>
@@ -264,7 +264,7 @@ export const ProjectGrid: Component<ProjectGridProps> = (props) => {
         }
       >
         <div class="fixed bottom-4 right-4 bg-yellow-900/90 border border-yellow-700 rounded-lg p-4 max-w-sm backdrop-blur-sm">
-          <div class="text-yellow-400 font-mono text-sm mb-2">
+          <div class="text-yellow-400 font-sans text-sm mb-2">
             API RATE LIMIT {github.rateLimit()?.status.toUpperCase()}
           </div>
           <div class="text-neutral-300 text-xs">

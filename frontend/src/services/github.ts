@@ -454,7 +454,7 @@ class GitHubService {
 
     await Promise.allSettled(
       priorityRepos.map((repo) =>
-        this.prefetchRepository(repo.owner, repo.name),
+        this.prefetchRepository(repo.owner_login, repo.name),
       ),
     );
   }

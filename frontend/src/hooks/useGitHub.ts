@@ -13,9 +13,9 @@ import { createStore, produce } from 'solid-js/store';
 import { apiClient } from '../services/api';
 
 interface Repository {
-  id: number;
+  id: string;
   github_id: number;
-  owner: string;
+  owner_login: string;
   name: string;
   full_name: string;
   description?: string;

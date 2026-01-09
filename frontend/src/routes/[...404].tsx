@@ -1,17 +1,9 @@
-// src/routes/[...404].tsx (Temporary Simplification)
-import { type Component } from 'solid-js';
-import { Title } from '@solidjs/meta';
+/*
+ * ©AngelaMos | 2025
+ */
 
-const MinimalNotFound: Component = () => {
-  return (
-    <>
-      <Title>404 - Page Not Found</Title>
-      <div>
-        <h1>404 - Page Not Found</h1>
-        <p>The requested page could not be found.</p>
-      </div>
-    </>
-  );
-};
+import { Navigate } from '@solidjs/router';
 
-export default MinimalNotFound;
+export default function CatchAll() {
+  return <Navigate href="/" />;
+}

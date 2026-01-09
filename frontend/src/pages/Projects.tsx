@@ -11,6 +11,7 @@ import {
   For,
   onMount,
 } from 'solid-js';
+import { isServer } from 'solid-js/web';
 import { useGitHub, type Repository } from '../hooks/useGitHub';
 
 export default function Projects(): Component {
@@ -21,6 +22,7 @@ export default function Projects(): Component {
   const [viewMode, setViewMode] = createSignal<'grid' | 'list'>('grid');
   const [showArchived, setShowArchived] = createSignal(false);
   const [isVisible, setIsVisible] = createSignal(false);
+  const [isHydrated, setIsHydrated] = createSignal(false);
 
   const filteredRepositories = createMemo(() => {
     let repos = github.repositories();
@@ -85,6 +87,7 @@ export default function Projects(): Component {
   });
 
   onMount(() => {
+    setIsHydrated(true);
     github.refreshRepositories();
 
     setTimeout(() => setIsVisible(true), 10);
@@ -291,8 +294,8 @@ export default function Projects(): Component {
           </div>
         </section>
 
-        {/* Loading State */}
-        <Show when={github.isLoading()}>
+        {/* Loading State - show during SSR, before hydration, or while loading */}
+        <Show when={isServer || !isHydrated() || github.isLoading()}>
           <div class="container-custom py-16 text-center">
             <div class="w-12 h-12 border-2 border-[hsl(0,0%,18%)] border-t-[#C15F3C] rounded-full animate-spin mx-auto mb-4"></div>
             <div class="text-[hsl(0,0%,53.7%)] font-mono text-sm">
@@ -301,8 +304,8 @@ export default function Projects(): Component {
           </div>
         </Show>
 
-        {/* Error State */}
-        <Show when={github.error()}>
+        {/* Error State - only show after hydration */}
+        <Show when={isHydrated() && !isServer && github.error()}>
           <div class="container-custom py-16 text-center">
             <div class="bg-[hsl(0,0%,12.2%)] border border-[hsl(0,0%,18%)] rounded-md p-6 max-w-md mx-auto">
               <div class="text-[hsl(0,0%,70.6%)] font-mono text-sm mb-2">
@@ -332,7 +335,7 @@ export default function Projects(): Component {
           }}
         >
           <div class="container-custom">
-            <Show when={!github.isLoading() && !github.error()}>
+            <Show when={isHydrated() && !isServer && !github.isLoading() && !github.error()}>
               <Show
                 when={filteredRepositories().length > 0}
                 fallback={
@@ -358,9 +361,6 @@ export default function Projects(): Component {
                       <RepositoryCard
                         repository={repo}
                         viewMode={viewMode()}
-                        onSelect={() =>
-                          github.getRepositoryDetails(repo.owner, repo.name)
-                        }
                       />
                     )}
                   </For>
@@ -396,7 +396,6 @@ export default function Projects(): Component {
 interface RepositoryCardProps {
   repository: Repository;
   viewMode: 'grid' | 'list';
-  onSelect: () => void;
 }
 
 const RepositoryCard: Component<RepositoryCardProps> = (props) => {
@@ -418,9 +417,11 @@ const RepositoryCard: Component<RepositoryCardProps> = (props) => {
 
   if (props.viewMode === 'list') {
     return (
-      <div
-        class="bg-[hsl(0,0%,12.2%)] border border-[hsl(0,0%,18%)] rounded-md p-4 cursor-pointer transition-[filter] duration-100 hover:brightness-110"
-        onClick={props.onSelect}
+      <a
+        href={repo().html_url}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="block bg-[hsl(0,0%,12.2%)] border border-[hsl(0,0%,18%)] rounded-md p-4 cursor-pointer transition-[filter] duration-100 hover:brightness-110"
       >
         <div class="flex items-start justify-between">
           <div class="flex-1">
@@ -485,14 +486,16 @@ const RepositoryCard: Component<RepositoryCardProps> = (props) => {
             </div>
           </div>
         </div>
-      </div>
+      </a>
     );
   }
 
   return (
-    <div
-      class="bg-[hsl(0,0%,12.2%)] border border-[hsl(0,0%,18%)] rounded-md p-4 cursor-pointer transition-[filter] duration-100 hover:brightness-110"
-      onClick={props.onSelect}
+    <a
+      href={repo().html_url}
+      target="_blank"
+      rel="noopener noreferrer"
+      class="block bg-[hsl(0,0%,12.2%)] border border-[hsl(0,0%,18%)] rounded-md p-4 cursor-pointer transition-[filter] duration-100 hover:brightness-110"
     >
       <div class="flex items-start justify-between mb-3">
         <h3 class="font-mono text-sm font-medium text-[hsl(0,0%,98%)] truncate">
@@ -570,6 +573,6 @@ const RepositoryCard: Component<RepositoryCardProps> = (props) => {
           </Show>
         </div>
       </Show>
-    </div>
+    </a>
   );
 };

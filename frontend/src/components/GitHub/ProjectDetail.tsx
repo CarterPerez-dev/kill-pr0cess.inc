@@ -184,23 +184,23 @@ export const ProjectDetail: Component<ProjectDetailProps> = (props) => {
         {/* Header */}
         <div class="flex items-center justify-between p-6 border-b border-neutral-800">
           <div class="flex-1 min-w-0">
-            <h1 class="text-2xl font-mono text-neutral-100 mb-2">
+            <h1 class="text-2xl font-sans text-neutral-100 mb-2">
               {repo.name}
             </h1>
             <div class="flex items-center gap-2 text-sm text-neutral-500">
               <span>{repo.full_name}</span>
               <Show when={repo.is_private}>
-                <span class="px-2 py-1 bg-yellow-900/30 text-yellow-400 border border-yellow-800 rounded text-xs font-mono">
+                <span class="px-2 py-1 bg-yellow-900/30 text-yellow-400 border border-yellow-800 rounded text-xs font-sans">
                   PRIVATE
                 </span>
               </Show>
               <Show when={repo.is_fork}>
-                <span class="px-2 py-1 bg-blue-900/30 text-blue-400 border border-blue-800 rounded text-xs font-mono">
+                <span class="px-2 py-1 bg-blue-900/30 text-blue-400 border border-blue-800 rounded text-xs font-sans">
                   FORK
                 </span>
               </Show>
               <Show when={repo.is_archived}>
-                <span class="px-2 py-1 bg-neutral-800 text-neutral-500 border border-neutral-700 rounded text-xs font-mono">
+                <span class="px-2 py-1 bg-neutral-800 text-neutral-500 border border-neutral-700 rounded text-xs font-sans">
                   ARCHIVED
                 </span>
               </Show>
@@ -212,13 +212,13 @@ export const ProjectDetail: Component<ProjectDetailProps> = (props) => {
               href={repo.html_url}
               target="_blank"
               rel="noopener noreferrer"
-              class="px-4 py-2 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 rounded font-mono text-sm transition-colors duration-200"
+              class="px-4 py-2 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 rounded font-sans text-sm transition-colors duration-200"
             >
               VIEW ON GITHUB ↗
             </a>
             <button
               onClick={props.onClose}
-              class="px-4 py-2 bg-transparent border border-neutral-600 hover:border-neutral-500 text-neutral-400 hover:text-neutral-300 rounded font-mono text-sm transition-colors duration-200"
+              class="px-4 py-2 bg-transparent border border-neutral-600 hover:border-neutral-500 text-neutral-400 hover:text-neutral-300 rounded font-sans text-sm transition-colors duration-200"
             >
               CLOSE
             </button>
@@ -231,7 +231,7 @@ export const ProjectDetail: Component<ProjectDetailProps> = (props) => {
             (tab) => (
               <button
                 onClick={() => setActiveTab(tab)}
-                class={`px-6 py-3 font-mono text-sm uppercase tracking-wide transition-colors duration-200 ${
+                class={`px-6 py-3 font-sans text-sm uppercase tracking-wide transition-colors duration-200 ${
                   activeTab() === tab
                     ? 'bg-neutral-800 text-neutral-200 border-b-2 border-cyan-400'
                     : 'text-neutral-500 hover:text-neutral-300'
@@ -252,7 +252,7 @@ export const ProjectDetail: Component<ProjectDetailProps> = (props) => {
               <div class="lg:col-span-2 space-y-6">
                 <Show when={repo.description}>
                   <Card>
-                    <h3 class="text-lg font-mono text-neutral-300 mb-3">
+                    <h3 class="text-lg font-sans text-neutral-300 mb-3">
                       Description
                     </h3>
                     <p class="text-neutral-400 leading-relaxed">
@@ -264,13 +264,13 @@ export const ProjectDetail: Component<ProjectDetailProps> = (props) => {
                 {/* Topics */}
                 <Show when={repo.topics.length > 0}>
                   <Card>
-                    <h3 class="text-lg font-mono text-neutral-300 mb-3">
+                    <h3 class="text-lg font-sans text-neutral-300 mb-3">
                       Topics
                     </h3>
                     <div class="flex flex-wrap gap-2">
                       <For each={repo.topics}>
                         {(topic) => (
-                          <span class="px-3 py-1 bg-neutral-800 text-neutral-400 rounded font-mono text-sm border border-neutral-700">
+                          <span class="px-3 py-1 bg-neutral-800 text-neutral-400 rounded font-sans text-sm border border-neutral-700">
                             {topic}
                           </span>
                         )}
@@ -281,12 +281,12 @@ export const ProjectDetail: Component<ProjectDetailProps> = (props) => {
 
                 {/* Clone URLs */}
                 <Card>
-                  <h3 class="text-lg font-mono text-neutral-300 mb-3">
+                  <h3 class="text-lg font-sans text-neutral-300 mb-3">
                     Clone Repository
                   </h3>
                   <div class="space-y-3">
                     <div>
-                      <label class="text-xs text-neutral-500 font-mono uppercase block mb-1">
+                      <label class="text-xs text-neutral-500 font-sans uppercase block mb-1">
                         HTTPS
                       </label>
                       <div class="flex items-center gap-2">
@@ -294,7 +294,7 @@ export const ProjectDetail: Component<ProjectDetailProps> = (props) => {
                           type="text"
                           value={repo.clone_url}
                           readonly
-                          class="flex-1 bg-neutral-900 border border-neutral-700 rounded px-3 py-2 text-sm font-mono text-neutral-300"
+                          class="flex-1 bg-neutral-900 border border-neutral-700 rounded px-3 py-2 text-sm font-sans text-neutral-300"
                         />
                         <button
                           onClick={() =>
@@ -307,7 +307,7 @@ export const ProjectDetail: Component<ProjectDetailProps> = (props) => {
                       </div>
                     </div>
                     <div>
-                      <label class="text-xs text-neutral-500 font-mono uppercase block mb-1">
+                      <label class="text-xs text-neutral-500 font-sans uppercase block mb-1">
                         SSH
                       </label>
                       <div class="flex items-center gap-2">
@@ -315,7 +315,7 @@ export const ProjectDetail: Component<ProjectDetailProps> = (props) => {
                           type="text"
                           value={repo.ssh_url}
                           readonly
-                          class="flex-1 bg-neutral-900 border border-neutral-700 rounded px-3 py-2 text-sm font-mono text-neutral-300"
+                          class="flex-1 bg-neutral-900 border border-neutral-700 rounded px-3 py-2 text-sm font-sans text-neutral-300"
                         />
                         <button
                           onClick={() =>
@@ -379,7 +379,7 @@ export const ProjectDetail: Component<ProjectDetailProps> = (props) => {
                           ),
                         }}
                       ></div>
-                      <span class="text-sm font-mono text-neutral-300">
+                      <span class="text-sm font-sans text-neutral-300">
                         {repo.language}
                       </span>
                     </div>
@@ -432,7 +432,7 @@ export const ProjectDetail: Component<ProjectDetailProps> = (props) => {
                 when={repo.readme_content}
                 fallback={
                   <div class="text-center py-12">
-                    <div class="text-neutral-500 font-mono mb-2">
+                    <div class="text-neutral-500 font-sans mb-2">
                       No README available
                     </div>
                     <div class="text-neutral-600 text-sm">
@@ -506,7 +506,7 @@ export const ProjectDetail: Component<ProjectDetailProps> = (props) => {
           <Show when={activeTab() === 'insights'}>
             <div class="space-y-6">
               <Card>
-                <h3 class="text-lg font-mono text-neutral-300 mb-4">
+                <h3 class="text-lg font-sans text-neutral-300 mb-4">
                   Repository Health Analysis
                 </h3>
                 <Show
@@ -514,7 +514,7 @@ export const ProjectDetail: Component<ProjectDetailProps> = (props) => {
                   fallback={
                     <div class="text-center py-8">
                       <div class="text-green-400 text-2xl mb-2">✓</div>
-                      <div class="text-neutral-300 font-mono">
+                      <div class="text-neutral-300 font-sans">
                         All health checks passed
                       </div>
                       <div class="text-neutral-500 text-sm mt-1">
@@ -544,7 +544,7 @@ export const ProjectDetail: Component<ProjectDetailProps> = (props) => {
               </Card>
 
               <Card>
-                <h3 class="text-lg font-mono text-neutral-300 mb-4">
+                <h3 class="text-lg font-sans text-neutral-300 mb-4">
                   Performance Insights
                 </h3>
                 <div class="space-y-4">
