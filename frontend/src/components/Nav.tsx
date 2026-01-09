@@ -3,7 +3,7 @@
  * I'm implementing router-aware navigation with hover effects and active states that complement the overall eerie aesthetic while maintaining excellent accessibility and keyboard navigation support.
  */
 
-import { Component } from 'solid-js';
+import { type Component } from 'solid-js';
 import { A, useLocation } from '@solidjs/router';
 
 interface NavItem {
@@ -25,23 +25,23 @@ export const Nav: Component<NavProps> = (props) => {
     {
       href: '/',
       label: 'HOME',
-      description: 'Return to the digital void'
+      description: 'Return to the digital void',
     },
     {
       href: '/projects',
       label: 'REPOSITORIES',
-      description: 'Explore code artifacts'
+      description: 'Explore code artifacts',
     },
     {
       href: '/performance',
       label: 'METRICS',
-      description: 'Witness computational precision'
+      description: 'Witness computational precision',
     },
     {
       href: '/about',
       label: 'ARCHITECTURE',
-      description: 'Understand the foundation'
-    }
+      description: 'Understand the foundation',
+    },
   ];
 
   // I'm implementing intelligent active state detection
@@ -56,33 +56,40 @@ export const Nav: Component<NavProps> = (props) => {
 
   return (
     <nav class={`${props.className || ''}`}>
-      <ul class={`flex ${variant === 'vertical' ? 'flex-col space-y-1' : 'items-center space-x-8'}`}>
+      <ul
+        class={`flex ${variant === 'vertical' ? 'flex-col space-y-1' : 'items-center space-x-8'}`}
+      >
         {navItems.map((item) => (
           <li class="relative group">
             <A
               href={item.href}
               class={`
                 block px-3 py-2 font-mono text-sm tracking-wide transition-all duration-300 relative
-                ${isActive(item.href)
-                  ? 'text-neutral-100'
-                  : 'text-neutral-500 hover:text-neutral-300'
+                ${
+                  isActive(item.href)
+                    ? 'text-neutral-100'
+                    : 'text-neutral-500 hover:text-neutral-300'
                 }
               `}
             >
               {item.label}
 
               {/* Active indicator line */}
-              <div class={`
+              <div
+                class={`
                 absolute bottom-0 left-0 h-px bg-cyan-400 transition-all duration-300
                 ${isActive(item.href) ? 'w-full' : 'w-0 group-hover:w-full'}
-              `}></div>
+              `}
+              ></div>
 
               {/* Active indicator dot for vertical layout */}
               {variant === 'vertical' && (
-                <div class={`
+                <div
+                  class={`
                   absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-4 w-1 h-1 bg-cyan-400 rounded-full transition-opacity duration-300
                   ${isActive(item.href) ? 'opacity-100' : 'opacity-0'}
-                `}></div>
+                `}
+                ></div>
               )}
 
               {/* Hover tooltip with description */}
@@ -104,7 +111,9 @@ export const SimpleNav: Component = () => {
   const location = useLocation();
 
   const isActive = (path: string) => {
-    return path === '/' ? location.pathname === '/' : location.pathname.startsWith(path);
+    return path === '/'
+      ? location.pathname === '/'
+      : location.pathname.startsWith(path);
   };
 
   return (
@@ -112,7 +121,9 @@ export const SimpleNav: Component = () => {
       <A
         href="/"
         class={`text-sm font-mono transition-colors duration-200 ${
-          isActive('/') ? 'text-neutral-100' : 'text-neutral-500 hover:text-neutral-300'
+          isActive('/')
+            ? 'text-neutral-100'
+            : 'text-neutral-500 hover:text-neutral-300'
         }`}
       >
         HOME
@@ -120,7 +131,9 @@ export const SimpleNav: Component = () => {
       <A
         href="/projects"
         class={`text-sm font-mono transition-colors duration-200 ${
-          isActive('/projects') ? 'text-neutral-100' : 'text-neutral-500 hover:text-neutral-300'
+          isActive('/projects')
+            ? 'text-neutral-100'
+            : 'text-neutral-500 hover:text-neutral-300'
         }`}
       >
         PROJECTS
@@ -128,7 +141,9 @@ export const SimpleNav: Component = () => {
       <A
         href="/performance"
         class={`text-sm font-mono transition-colors duration-200 ${
-          isActive('/performance') ? 'text-neutral-100' : 'text-neutral-500 hover:text-neutral-300'
+          isActive('/performance')
+            ? 'text-neutral-100'
+            : 'text-neutral-500 hover:text-neutral-300'
         }`}
       >
         PERFORMANCE
@@ -136,7 +151,9 @@ export const SimpleNav: Component = () => {
       <A
         href="/about"
         class={`text-sm font-mono transition-colors duration-200 ${
-          isActive('/about') ? 'text-neutral-100' : 'text-neutral-500 hover:text-neutral-300'
+          isActive('/about')
+            ? 'text-neutral-100'
+            : 'text-neutral-500 hover:text-neutral-300'
         }`}
       >
         ABOUT

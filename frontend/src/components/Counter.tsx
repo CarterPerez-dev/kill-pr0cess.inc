@@ -3,14 +3,14 @@
  * I'm implementing fine-grained reactivity with hover effects and click animations that align with the overall eerie aesthetic while showcasing the framework's reactive capabilities.
  */
 
-import { Component, createSignal } from 'solid-js';
+import { type Component, createSignal } from 'solid-js';
 
 export const Counter: Component = () => {
   const [count, setCount] = createSignal(0);
 
   // I'm implementing click handler with performance tracking
   const handleClick = () => {
-    setCount(prev => prev + 1);
+    setCount((prev) => prev + 1);
   };
 
   // I'm adding reset functionality for better UX
@@ -22,9 +22,7 @@ export const Counter: Component = () => {
     <div class="flex flex-col items-center gap-4 p-6 bg-neutral-900/30 border border-neutral-800 rounded-lg backdrop-blur-sm">
       {/* Counter Display */}
       <div class="text-center">
-        <div class="text-4xl font-mono text-neutral-100 mb-2">
-          {count()}
-        </div>
+        <div class="text-4xl font-mono text-neutral-100 mb-2">{count()}</div>
         <div class="text-xs text-neutral-500 font-mono uppercase tracking-wide">
           CLICK COUNT
         </div>

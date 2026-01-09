@@ -3,22 +3,19 @@
  * Application initialization
  */
 
+#![doc = "Dark Performance Showcase - High-performance Rust backend for computational demonstrations"]
+
 use axum::{
-    routing::{get, post},
+    routing::get,
     Router,
-    middleware,
     http::{header, Method, HeaderName},
 };
-
-use tower::ServiceBuilder;
 
 use tower_http::{
     cors::{Any, CorsLayer},
     compression::CompressionLayer,
     trace::TraceLayer,
 };
-use std::net::SocketAddr;
-use std::sync::Arc;
 use tracing::{info, warn, error};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 use tokio::signal;
@@ -36,9 +33,7 @@ use dark_performance_backend::{
         error::{AppError, Result},
         metrics::MetricsCollector,
     },
-    database::{
-        connection::{create_pool, DatabasePool},
-    },
+    database::connection::create_pool,
     AppState,
 };
 
@@ -93,6 +88,9 @@ async fn create_app_state() -> Result<AppState> {
         Ok(app_state)
 }
 
+///
+/// Creates the main application router with middleware layers
+///
 pub fn create_app_router(app_state: AppState) -> Router {
     info!("Creating application router");
     
@@ -142,6 +140,9 @@ async fn prometheus_metrics() -> Result<String> {
     Ok(metrics)
 }
 
+///
+/// Main application entry point - initializes services and starts the HTTP server
+///
 #[tokio::main]
 pub async fn main() -> Result<()> {
     tracing_subscriber::registry()

@@ -3,7 +3,7 @@
  * I'm implementing flexible styling options, interactive states, and accessibility features that align with the eerie, contemplative aesthetic while maintaining semantic HTML structure.
  */
 
-import { Component, JSX, splitProps, createMemo } from 'solid-js';
+import { type Component, type JSX, splitProps, createMemo } from 'solid-js';
 
 interface CardProps extends JSX.HTMLAttributes<HTMLDivElement> {
   variant?: 'default' | 'elevated' | 'outlined' | 'ghost' | 'glass';
@@ -22,7 +22,7 @@ export const Card: Component<CardProps> = (props) => {
     'glow',
     'interactive',
     'children',
-    'class'
+    'class',
   ]);
 
   // I'm computing the classes based on props for optimal performance
@@ -34,7 +34,8 @@ export const Card: Component<CardProps> = (props) => {
       elevated: 'bg-neutral-900/50 border border-neutral-700 shadow-lg',
       outlined: 'bg-transparent border-2 border-neutral-700',
       ghost: 'bg-neutral-900/10 border border-transparent',
-      glass: 'bg-neutral-900/20 backdrop-blur-md border border-neutral-700/50'
+      glass:
+        'bg-neutral-900/20 backdrop-blur-md border border-neutral-700/50',
     };
 
     const paddingClasses = {
@@ -42,12 +43,17 @@ export const Card: Component<CardProps> = (props) => {
       sm: 'p-3',
       md: 'p-4',
       lg: 'p-6',
-      xl: 'p-8'
+      xl: 'p-8',
     };
 
-    const hoverClasses = local.hover !== false ? 'hover:border-neutral-600' : '';
-    const glowClasses = local.glow ? 'hover:shadow-[0_0_20px_rgba(34,211,238,0.3)]' : '';
-    const interactiveClasses = local.interactive ? 'cursor-pointer hover:transform hover:scale-[1.01]' : '';
+    const hoverClasses =
+      local.hover !== false ? 'hover:border-neutral-600' : '';
+    const glowClasses = local.glow
+      ? 'hover:shadow-[0_0_20px_rgba(34,211,238,0.3)]'
+      : '';
+    const interactiveClasses = local.interactive
+      ? 'cursor-pointer hover:transform hover:scale-[1.01]'
+      : '';
 
     return [
       baseClasses,
@@ -56,8 +62,10 @@ export const Card: Component<CardProps> = (props) => {
       hoverClasses,
       glowClasses,
       interactiveClasses,
-      local.class || ''
-    ].filter(Boolean).join(' ');
+      local.class || '',
+    ]
+      .filter(Boolean)
+      .join(' ');
   });
 
   return (
@@ -82,25 +90,25 @@ export const MetricCard: Component<{
   const trendColors = {
     up: 'text-green-400',
     down: 'text-red-400',
-    stable: 'text-neutral-400'
+    stable: 'text-neutral-400',
   };
 
   const trendIcons = {
     up: '↗',
     down: '↘',
-    stable: '⟷'
+    stable: '⟷',
   };
 
   return (
-    <Card variant="elevated" hover glow>
+    <Card
+      variant="elevated"
+      hover
+      glow
+    >
       <div class="flex items-start justify-between">
         <div class="flex-1">
           <div class="flex items-center gap-2 mb-2">
-            {props.icon && (
-              <div class="text-neutral-400">
-                {props.icon}
-              </div>
-            )}
+            {props.icon && <div class="text-neutral-400">{props.icon}</div>}
             <h3 class="text-xs font-mono text-neutral-500 uppercase tracking-wide">
               {props.title}
             </h3>
@@ -111,9 +119,7 @@ export const MetricCard: Component<{
               {props.value}
             </span>
             {props.unit && (
-              <span class="text-sm text-neutral-400">
-                {props.unit}
-              </span>
+              <span class="text-sm text-neutral-400">{props.unit}</span>
             )}
           </div>
 
@@ -125,10 +131,10 @@ export const MetricCard: Component<{
         </div>
 
         {props.trend && (
-          <div class={`flex items-center gap-1 text-sm ${trendColors[props.trend]}`}>
-            <span class="font-mono">
-              {trendIcons[props.trend]}
-            </span>
+          <div
+            class={`flex items-center gap-1 text-sm ${trendColors[props.trend]}`}
+          >
+            <span class="font-mono">{trendIcons[props.trend]}</span>
           </div>
         )}
       </div>
@@ -142,12 +148,13 @@ export const CodeCard: Component<{
   children: JSX.Element;
 }> = (props) => {
   return (
-    <Card variant="glass" padding="none">
+    <Card
+      variant="glass"
+      padding="none"
+    >
       {props.title && (
         <div class="flex items-center justify-between px-4 py-2 border-b border-neutral-700">
-          <h3 class="text-sm font-mono text-neutral-300">
-            {props.title}
-          </h3>
+          <h3 class="text-sm font-mono text-neutral-300">{props.title}</h3>
           {props.language && (
             <span class="text-xs bg-neutral-800 text-neutral-500 px-2 py-1 rounded font-mono">
               {props.language}
@@ -155,9 +162,7 @@ export const CodeCard: Component<{
           )}
         </div>
       )}
-      <div class="p-4 font-mono text-sm">
-        {props.children}
-      </div>
+      <div class="p-4 font-mono text-sm">{props.children}</div>
     </Card>
   );
 };
@@ -173,26 +178,26 @@ export const StatusCard: Component<{
       color: 'text-green-400',
       bg: 'bg-green-900/20',
       border: 'border-green-800',
-      icon: '●'
+      icon: '●',
     },
     warning: {
       color: 'text-yellow-400',
       bg: 'bg-yellow-900/20',
       border: 'border-yellow-800',
-      icon: '▲'
+      icon: '▲',
     },
     error: {
       color: 'text-red-400',
       bg: 'bg-red-900/20',
       border: 'border-red-800',
-      icon: '✕'
+      icon: '✕',
     },
     unknown: {
       color: 'text-neutral-400',
       bg: 'bg-neutral-900/20',
       border: 'border-neutral-700',
-      icon: '?'
-    }
+      icon: '?',
+    },
   };
 
   const config = statusConfig[props.status];
@@ -200,24 +205,18 @@ export const StatusCard: Component<{
   return (
     <Card class={`${config.bg} ${config.border}`}>
       <div class="flex items-start gap-3">
-        <div class={`text-lg ${config.color} mt-0.5`}>
-          {config.icon}
-        </div>
+        <div class={`text-lg ${config.color} mt-0.5`}>{config.icon}</div>
 
         <div class="flex-1">
           <div class="flex items-center justify-between mb-1">
-            <h3 class="font-mono text-sm text-neutral-200">
-              {props.title}
-            </h3>
+            <h3 class="font-mono text-sm text-neutral-200">{props.title}</h3>
             <span class={`text-xs font-mono uppercase ${config.color}`}>
               {props.status}
             </span>
           </div>
 
           {props.message && (
-            <p class="text-sm text-neutral-400 mb-2">
-              {props.message}
-            </p>
+            <p class="text-sm text-neutral-400 mb-2">{props.message}</p>
           )}
 
           {props.lastUpdated && (
@@ -245,7 +244,11 @@ export const LinkCard: Component<{
       rel={props.external ? 'noopener noreferrer' : undefined}
       class="block no-underline"
     >
-      <Card interactive hover glow>
+      <Card
+        interactive
+        hover
+        glow
+      >
         <div class="flex items-start justify-between">
           <div class="flex-1">
             <h3 class="font-mono text-lg text-neutral-200 mb-2 group-hover:text-neutral-100">

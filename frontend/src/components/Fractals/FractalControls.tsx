@@ -3,7 +3,7 @@
  * I'm implementing comprehensive controls for zoom, center position, iterations, and fractal-specific parameters while maintaining the dark, eerie aesthetic throughout the control interface.
  */
 
-import { Component, createSignal, createEffect, Show, For } from 'solid-js';
+import { type Component, createSignal, createEffect, Show, For } from 'solid-js';
 import { Card } from '../UI/Card';
 
 interface FractalControlsProps {
@@ -15,7 +15,9 @@ interface FractalControlsProps {
     maxIterations: number;
     juliaConstant?: { real: number; imag: number };
   };
-  onParameterChange: (params: Partial<FractalControlsProps['parameters']>) => void;
+  onParameterChange: (
+    params: Partial<FractalControlsProps['parameters']>,
+  ) => void;
   isGenerating?: boolean;
   performanceMetrics?: {
     computationTime: number;
@@ -26,35 +28,54 @@ interface FractalControlsProps {
 
 export const FractalControls: Component<FractalControlsProps> = (props) => {
   const [isExpanded, setIsExpanded] = createSignal(true);
-  const [activeTab, setActiveTab] = createSignal<'basic' | 'advanced' | 'presets'>('basic');
+  const [activeTab, setActiveTab] = createSignal<
+    'basic' | 'advanced' | 'presets'
+  >('basic');
 
   // I'm creating preset configurations for common fractal views
   const presets = () => [
     {
       name: 'Classic Mandelbrot',
       type: 'mandelbrot' as const,
-      params: { zoom: 1.0, centerX: -0.5, centerY: 0.0, maxIterations: 100 }
+      params: { zoom: 1.0, centerX: -0.5, centerY: 0.0, maxIterations: 100 },
     },
     {
       name: 'Seahorse Valley',
       type: 'mandelbrot' as const,
-      params: { zoom: 1000, centerX: -0.743643887037151, centerY: 0.13182590420533, maxIterations: 300 }
+      params: {
+        zoom: 1000,
+        centerX: -0.743643887037151,
+        centerY: 0.13182590420533,
+        maxIterations: 300,
+      },
     },
     {
       name: 'Lightning',
       type: 'mandelbrot' as const,
-      params: { zoom: 100, centerX: -1.8, centerY: 0, maxIterations: 250 }
+      params: { zoom: 100, centerX: -1.8, centerY: 0, maxIterations: 250 },
     },
     {
       name: 'Classic Julia',
       type: 'julia' as const,
-      params: { zoom: 1.0, centerX: 0.0, centerY: 0.0, maxIterations: 150, juliaConstant: { real: -0.7, imag: 0.27015 } }
+      params: {
+        zoom: 1.0,
+        centerX: 0.0,
+        centerY: 0.0,
+        maxIterations: 150,
+        juliaConstant: { real: -0.7, imag: 0.27015 },
+      },
     },
     {
       name: 'Dragon Julia',
       type: 'julia' as const,
-      params: { zoom: 1.0, centerX: 0.0, centerY: 0.0, maxIterations: 200, juliaConstant: { real: -0.8, imag: 0.156 } }
-    }
+      params: {
+        zoom: 1.0,
+        centerX: 0.0,
+        centerY: 0.0,
+        maxIterations: 200,
+        juliaConstant: { real: -0.8, imag: 0.156 },
+      },
+    },
   ];
 
   const formatNumber = (num: number, decimals: number = 6): string => {
@@ -75,7 +96,11 @@ export const FractalControls: Component<FractalControlsProps> = (props) => {
 
   return (
     <div class="fixed top-4 right-4 w-80 z-20">
-      <Card variant="glass" padding="none" class="backdrop-blur-md border-neutral-700">
+      <Card
+        variant="glass"
+        padding="none"
+        class="backdrop-blur-md border-neutral-700"
+      >
         {/* Header */}
         <div class="flex items-center justify-between p-4 border-b border-neutral-700">
           <h3 class="font-mono text-sm text-neutral-300 tracking-wide">
@@ -112,7 +137,9 @@ export const FractalControls: Component<FractalControlsProps> = (props) => {
               {/* Zoom Control */}
               <div>
                 <div class="flex justify-between items-center mb-2">
-                  <label class="text-xs text-neutral-500 font-mono uppercase">Zoom</label>
+                  <label class="text-xs text-neutral-500 font-mono uppercase">
+                    Zoom
+                  </label>
                   <span class="text-xs text-neutral-400 font-mono">
                     {formatNumber(props.parameters.zoom)}
                   </span>
@@ -123,9 +150,11 @@ export const FractalControls: Component<FractalControlsProps> = (props) => {
                   max={Math.log10(1e12)}
                   step="0.1"
                   value={Math.log10(props.parameters.zoom)}
-                  onInput={(e) => props.onParameterChange({
-                    zoom: Math.pow(10, parseFloat(e.currentTarget.value))
-                  })}
+                  onInput={(e) =>
+                    props.onParameterChange({
+                      zoom: Math.pow(10, parseFloat(e.currentTarget.value)),
+                    })
+                  }
                   class="w-full h-2 bg-neutral-800 rounded-lg appearance-none slider cursor-pointer"
                   disabled={props.isGenerating}
                 />
@@ -134,7 +163,9 @@ export const FractalControls: Component<FractalControlsProps> = (props) => {
               {/* Center X Control */}
               <div>
                 <div class="flex justify-between items-center mb-2">
-                  <label class="text-xs text-neutral-500 font-mono uppercase">Center X</label>
+                  <label class="text-xs text-neutral-500 font-mono uppercase">
+                    Center X
+                  </label>
                   <span class="text-xs text-neutral-400 font-mono">
                     {formatNumber(props.parameters.centerX)}
                   </span>
@@ -145,9 +176,11 @@ export const FractalControls: Component<FractalControlsProps> = (props) => {
                   max="2"
                   step="0.001"
                   value={props.parameters.centerX}
-                  onInput={(e) => props.onParameterChange({
-                    centerX: parseFloat(e.currentTarget.value)
-                  })}
+                  onInput={(e) =>
+                    props.onParameterChange({
+                      centerX: parseFloat(e.currentTarget.value),
+                    })
+                  }
                   class="w-full h-2 bg-neutral-800 rounded-lg appearance-none slider cursor-pointer"
                   disabled={props.isGenerating}
                 />
@@ -156,7 +189,9 @@ export const FractalControls: Component<FractalControlsProps> = (props) => {
               {/* Center Y Control */}
               <div>
                 <div class="flex justify-between items-center mb-2">
-                  <label class="text-xs text-neutral-500 font-mono uppercase">Center Y</label>
+                  <label class="text-xs text-neutral-500 font-mono uppercase">
+                    Center Y
+                  </label>
                   <span class="text-xs text-neutral-400 font-mono">
                     {formatNumber(props.parameters.centerY)}
                   </span>
@@ -167,9 +202,11 @@ export const FractalControls: Component<FractalControlsProps> = (props) => {
                   max="2"
                   step="0.001"
                   value={props.parameters.centerY}
-                  onInput={(e) => props.onParameterChange({
-                    centerY: parseFloat(e.currentTarget.value)
-                  })}
+                  onInput={(e) =>
+                    props.onParameterChange({
+                      centerY: parseFloat(e.currentTarget.value),
+                    })
+                  }
                   class="w-full h-2 bg-neutral-800 rounded-lg appearance-none slider cursor-pointer"
                   disabled={props.isGenerating}
                 />
@@ -178,7 +215,9 @@ export const FractalControls: Component<FractalControlsProps> = (props) => {
               {/* Max Iterations */}
               <div>
                 <div class="flex justify-between items-center mb-2">
-                  <label class="text-xs text-neutral-500 font-mono uppercase">Iterations</label>
+                  <label class="text-xs text-neutral-500 font-mono uppercase">
+                    Iterations
+                  </label>
                   <span class="text-xs text-neutral-400 font-mono">
                     {props.parameters.maxIterations}
                   </span>
@@ -189,9 +228,11 @@ export const FractalControls: Component<FractalControlsProps> = (props) => {
                   max="2000"
                   step="10"
                   value={props.parameters.maxIterations}
-                  onInput={(e) => props.onParameterChange({
-                    maxIterations: parseInt(e.currentTarget.value)
-                  })}
+                  onInput={(e) =>
+                    props.onParameterChange({
+                      maxIterations: parseInt(e.currentTarget.value),
+                    })
+                  }
                   class="w-full h-2 bg-neutral-800 rounded-lg appearance-none slider cursor-pointer"
                   disabled={props.isGenerating}
                 />
@@ -200,14 +241,19 @@ export const FractalControls: Component<FractalControlsProps> = (props) => {
               {/* Julia Constant Controls */}
               <Show when={props.fractalType === 'julia'}>
                 <div class="pt-3 border-t border-neutral-800">
-                  <div class="text-xs text-neutral-500 font-mono uppercase mb-3">Julia Constant</div>
+                  <div class="text-xs text-neutral-500 font-mono uppercase mb-3">
+                    Julia Constant
+                  </div>
 
                   <div class="space-y-3">
                     <div>
                       <div class="flex justify-between items-center mb-2">
                         <label class="text-xs text-neutral-600">Real</label>
                         <span class="text-xs text-neutral-400 font-mono">
-                          {formatNumber(props.parameters.juliaConstant?.real || 0, 4)}
+                          {formatNumber(
+                            props.parameters.juliaConstant?.real || 0,
+                            4,
+                          )}
                         </span>
                       </div>
                       <input
@@ -216,12 +262,15 @@ export const FractalControls: Component<FractalControlsProps> = (props) => {
                         max="2"
                         step="0.01"
                         value={props.parameters.juliaConstant?.real || 0}
-                        onInput={(e) => props.onParameterChange({
-                          juliaConstant: {
-                            real: parseFloat(e.currentTarget.value),
-                            imag: props.parameters.juliaConstant?.imag || 0
-                          }
-                        })}
+                        onInput={(e) =>
+                          props.onParameterChange({
+                            juliaConstant: {
+                              real: parseFloat(e.currentTarget.value),
+                              imag:
+                                props.parameters.juliaConstant?.imag || 0,
+                            },
+                          })
+                        }
                         class="w-full h-2 bg-neutral-800 rounded-lg appearance-none slider cursor-pointer"
                         disabled={props.isGenerating}
                       />
@@ -229,9 +278,14 @@ export const FractalControls: Component<FractalControlsProps> = (props) => {
 
                     <div>
                       <div class="flex justify-between items-center mb-2">
-                        <label class="text-xs text-neutral-600">Imaginary</label>
+                        <label class="text-xs text-neutral-600">
+                          Imaginary
+                        </label>
                         <span class="text-xs text-neutral-400 font-mono">
-                          {formatNumber(props.parameters.juliaConstant?.imag || 0, 4)}
+                          {formatNumber(
+                            props.parameters.juliaConstant?.imag || 0,
+                            4,
+                          )}
                         </span>
                       </div>
                       <input
@@ -240,12 +294,15 @@ export const FractalControls: Component<FractalControlsProps> = (props) => {
                         max="2"
                         step="0.01"
                         value={props.parameters.juliaConstant?.imag || 0}
-                        onInput={(e) => props.onParameterChange({
-                          juliaConstant: {
-                            real: props.parameters.juliaConstant?.real || 0,
-                            imag: parseFloat(e.currentTarget.value)
-                          }
-                        })}
+                        onInput={(e) =>
+                          props.onParameterChange({
+                            juliaConstant: {
+                              real:
+                                props.parameters.juliaConstant?.real || 0,
+                              imag: parseFloat(e.currentTarget.value),
+                            },
+                          })
+                        }
                         class="w-full h-2 bg-neutral-800 rounded-lg appearance-none slider cursor-pointer"
                         disabled={props.isGenerating}
                       />
@@ -262,7 +319,9 @@ export const FractalControls: Component<FractalControlsProps> = (props) => {
               {/* Performance Metrics */}
               <Show when={props.performanceMetrics}>
                 <div class="bg-neutral-900/50 rounded-lg p-3 space-y-2">
-                  <div class="text-xs text-neutral-500 font-mono uppercase mb-2">Performance</div>
+                  <div class="text-xs text-neutral-500 font-mono uppercase mb-2">
+                    Performance
+                  </div>
 
                   <div class="flex justify-between text-xs">
                     <span class="text-neutral-600">Computation:</span>
@@ -274,21 +333,28 @@ export const FractalControls: Component<FractalControlsProps> = (props) => {
                   <div class="flex justify-between text-xs">
                     <span class="text-neutral-600">Pixels/sec:</span>
                     <span class="text-neutral-400 font-mono">
-                      {Math.round(props.performanceMetrics!.pixelsPerSecond).toLocaleString()}
+                      {Math.round(
+                        props.performanceMetrics!.pixelsPerSecond,
+                      ).toLocaleString()}
                     </span>
                   </div>
 
                   <div class="flex justify-between text-xs">
                     <span class="text-neutral-600">Parallel Eff:</span>
                     <span class="text-neutral-400 font-mono">
-                      {(props.performanceMetrics!.parallelEfficiency * 100).toFixed(1)}%
+                      {(
+                        props.performanceMetrics!.parallelEfficiency * 100
+                      ).toFixed(1)}
+                      %
                     </span>
                   </div>
 
                   <div class="flex justify-between text-xs">
                     <span class="text-neutral-600">Rating:</span>
                     <span class="text-cyan-400 font-mono text-xs">
-                      {getPerformanceRating(props.performanceMetrics!.pixelsPerSecond)}
+                      {getPerformanceRating(
+                        props.performanceMetrics!.pixelsPerSecond,
+                      )}
                     </span>
                   </div>
                 </div>
@@ -296,32 +362,42 @@ export const FractalControls: Component<FractalControlsProps> = (props) => {
 
               {/* Manual Input Fields */}
               <div class="space-y-3">
-                <div class="text-xs text-neutral-500 font-mono uppercase">Manual Input</div>
+                <div class="text-xs text-neutral-500 font-mono uppercase">
+                  Manual Input
+                </div>
 
                 <div class="grid grid-cols-2 gap-2">
                   <div>
-                    <label class="text-xs text-neutral-600 block mb-1">Center X</label>
+                    <label class="text-xs text-neutral-600 block mb-1">
+                      Center X
+                    </label>
                     <input
                       type="number"
                       step="0.000001"
                       value={props.parameters.centerX}
-                      onInput={(e) => props.onParameterChange({
-                        centerX: parseFloat(e.currentTarget.value)
-                      })}
+                      onInput={(e) =>
+                        props.onParameterChange({
+                          centerX: parseFloat(e.currentTarget.value),
+                        })
+                      }
                       class="w-full bg-neutral-900 border border-neutral-700 rounded px-2 py-1 text-xs font-mono text-neutral-300 focus:border-cyan-400 focus:outline-none"
                       disabled={props.isGenerating}
                     />
                   </div>
 
                   <div>
-                    <label class="text-xs text-neutral-600 block mb-1">Center Y</label>
+                    <label class="text-xs text-neutral-600 block mb-1">
+                      Center Y
+                    </label>
                     <input
                       type="number"
                       step="0.000001"
                       value={props.parameters.centerY}
-                      onInput={(e) => props.onParameterChange({
-                        centerY: parseFloat(e.currentTarget.value)
-                      })}
+                      onInput={(e) =>
+                        props.onParameterChange({
+                          centerY: parseFloat(e.currentTarget.value),
+                        })
+                      }
                       class="w-full bg-neutral-900 border border-neutral-700 rounded px-2 py-1 text-xs font-mono text-neutral-300 focus:border-cyan-400 focus:outline-none"
                       disabled={props.isGenerating}
                     />
@@ -329,14 +405,18 @@ export const FractalControls: Component<FractalControlsProps> = (props) => {
                 </div>
 
                 <div>
-                  <label class="text-xs text-neutral-600 block mb-1">Zoom Level</label>
+                  <label class="text-xs text-neutral-600 block mb-1">
+                    Zoom Level
+                  </label>
                   <input
                     type="number"
                     step="0.1"
                     value={props.parameters.zoom}
-                    onInput={(e) => props.onParameterChange({
-                      zoom: parseFloat(e.currentTarget.value)
-                    })}
+                    onInput={(e) =>
+                      props.onParameterChange({
+                        zoom: parseFloat(e.currentTarget.value),
+                      })
+                    }
                     class="w-full bg-neutral-900 border border-neutral-700 rounded px-2 py-1 text-xs font-mono text-neutral-300 focus:border-cyan-400 focus:outline-none"
                     disabled={props.isGenerating}
                   />
@@ -345,12 +425,15 @@ export const FractalControls: Component<FractalControlsProps> = (props) => {
 
               {/* Reset Button */}
               <button
-                onClick={() => props.onParameterChange({
-                  zoom: 1.0,
-                  centerX: props.fractalType === 'mandelbrot' ? -0.5 : 0.0,
-                  centerY: 0.0,
-                  maxIterations: props.fractalType === 'mandelbrot' ? 100 : 150
-                })}
+                onClick={() =>
+                  props.onParameterChange({
+                    zoom: 1.0,
+                    centerX: props.fractalType === 'mandelbrot' ? -0.5 : 0.0,
+                    centerY: 0.0,
+                    maxIterations:
+                      props.fractalType === 'mandelbrot' ? 100 : 150,
+                  })
+                }
                 class="w-full mt-4 px-3 py-2 bg-neutral-800 hover:bg-neutral-700 border border-neutral-600 text-neutral-300 rounded text-xs font-mono uppercase tracking-wide transition-colors duration-200"
                 disabled={props.isGenerating}
               >
@@ -362,7 +445,9 @@ export const FractalControls: Component<FractalControlsProps> = (props) => {
           {/* Presets */}
           <Show when={activeTab() === 'presets'}>
             <div class="p-4 space-y-2">
-              <For each={presets().filter(p => p.type === props.fractalType)}>
+              <For
+                each={presets().filter((p) => p.type === props.fractalType)}
+              >
                 {(preset) => (
                   <button
                     onClick={() => props.onParameterChange(preset.params)}
@@ -373,7 +458,8 @@ export const FractalControls: Component<FractalControlsProps> = (props) => {
                       {preset.name}
                     </div>
                     <div class="text-xs text-neutral-600">
-                      Zoom: {preset.params.zoom} • Iterations: {preset.params.maxIterations}
+                      Zoom: {preset.params.zoom} • Iterations:{' '}
+                      {preset.params.maxIterations}
                     </div>
                   </button>
                 )}

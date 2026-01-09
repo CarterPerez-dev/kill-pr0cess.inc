@@ -4,7 +4,10 @@ declare global {
   interface Window {
     __PERFORMANCE_START__?: number;
     fs?: {
-      readFile: (path: string, options?: { encoding?: string }) => Promise<Uint8Array | string>;
+      readFile: (
+        path: string,
+        options?: { encoding?: string },
+      ) => Promise<Uint8Array | string>;
     };
   }
 

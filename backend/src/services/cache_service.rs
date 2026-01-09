@@ -464,7 +464,7 @@ impl CacheService {
         }
 
         // Set all entries
-        conn.mset(&kv_pairs_for_redis).await
+        conn.mset::<_, _, ()>(&kv_pairs_for_redis).await
         .map_err(|e| AppError::CacheError(format!("Failed to set multiple cache entries: {}", e)))?;
 
         // Set expiration for all keys in a pipeline for efficiency
@@ -473,7 +473,7 @@ impl CacheService {
             let full_key_for_expire = self.build_key(key);
             pipe.expire(full_key_for_expire, ttl as i64);
         }
-        pipe.query_async(&mut conn).await
+        pipe.query_async::<_, ()>(&mut conn).await
             .map_err(|e| AppError::CacheError(format!("Failed to set expiration for multiple keys: {}", e)))?;
 
 

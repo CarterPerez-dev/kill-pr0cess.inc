@@ -3,7 +3,14 @@
  * I'm implementing comprehensive project visualization with pagination, search, filtering, and detailed project cards that maintain the dark aesthetic while showcasing technical projects effectively.
  */
 
-import { Component, createSignal, Show, For, onMount, createEffect } from 'solid-js';
+import {
+  type Component,
+  createSignal,
+  Show,
+  For,
+  onMount,
+  createEffect,
+} from 'solid-js';
 import { ProjectCard } from './ProjectCard';
 import { ProjectDetail } from './ProjectDetail';
 import { ProjectFilters } from './ProjectFilters';
@@ -27,7 +34,10 @@ export const ProjectGrid: Component<ProjectGridProps> = (props) => {
 
   // I'm handling repository selection for detailed view
   const handleRepositorySelect = async (repository: any) => {
-    const details = await github.getRepositoryDetails(repository.owner, repository.name);
+    const details = await github.getRepositoryDetails(
+      repository.owner,
+      repository.name,
+    );
     setSelectedRepository(details);
   };
 
@@ -39,7 +49,7 @@ export const ProjectGrid: Component<ProjectGridProps> = (props) => {
   // I'm getting unique languages for filter options
   const availableLanguages = () => {
     const languages = new Set<string>();
-    github.allRepositories().forEach(repo => {
+    github.allRepositories().forEach((repo) => {
       if (repo.language) {
         languages.add(repo.language);
       }
@@ -62,9 +72,7 @@ export const ProjectGrid: Component<ProjectGridProps> = (props) => {
       {/* View Controls */}
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-4">
-          <h2 class="text-2xl font-mono text-neutral-200">
-            REPOSITORIES
-          </h2>
+          <h2 class="text-2xl font-mono text-neutral-200">REPOSITORIES</h2>
           <div class="text-sm text-neutral-500 font-mono">
             {github.repositories().length} / {github.totalCount()}
           </div>
@@ -143,7 +151,13 @@ export const ProjectGrid: Component<ProjectGridProps> = (props) => {
       </Show>
 
       {/* Empty State */}
-      <Show when={!github.isLoading() && !github.error() && github.repositories().length === 0}>
+      <Show
+        when={
+          !github.isLoading() &&
+          !github.error() &&
+          github.repositories().length === 0
+        }
+      >
         <div class="text-center py-20">
           <div class="text-6xl mb-6 opacity-20">📁</div>
           <div class="text-xl font-thin text-neutral-300 mb-4">
@@ -166,12 +180,20 @@ export const ProjectGrid: Component<ProjectGridProps> = (props) => {
       </Show>
 
       {/* Repository Grid/List */}
-      <Show when={!github.isLoading() && !github.error() && github.repositories().length > 0}>
-        <div class={
-          viewMode() === 'grid'
-            ? 'grid md:grid-cols-2 lg:grid-cols-3 gap-6'
-            : 'space-y-4'
-        }>
+      <Show
+        when={
+          !github.isLoading() &&
+          !github.error() &&
+          github.repositories().length > 0
+        }
+      >
+        <div
+          class={
+            viewMode() === 'grid'
+              ? 'grid md:grid-cols-2 lg:grid-cols-3 gap-6'
+              : 'space-y-4'
+          }
+        >
           <For each={github.repositories()}>
             {(repository) => (
               <ProjectCard
@@ -195,23 +217,27 @@ export const ProjectGrid: Component<ProjectGridProps> = (props) => {
             </button>
 
             <div class="flex items-center gap-2">
-              {Array.from({ length: Math.min(5, github.totalPages()) }, (_, i) => {
-                const pageNum = github.currentPage() - 2 + i;
-                if (pageNum < 1 || pageNum > github.totalPages()) return null;
+              {Array.from(
+                { length: Math.min(5, github.totalPages()) },
+                (_, i) => {
+                  const pageNum = github.currentPage() - 2 + i;
+                  if (pageNum < 1 || pageNum > github.totalPages())
+                    return null;
 
-                return (
-                  <button
-                    onClick={() => github.goToPage(pageNum)}
-                    class={`w-10 h-10 rounded font-mono text-sm transition-colors duration-200 ${
-                      pageNum === github.currentPage()
-                        ? 'bg-cyan-600 text-white'
-                        : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'
-                    }`}
-                  >
-                    {pageNum}
-                  </button>
-                );
-              })}
+                  return (
+                    <button
+                      onClick={() => github.goToPage(pageNum)}
+                      class={`w-10 h-10 rounded font-mono text-sm transition-colors duration-200 ${
+                        pageNum === github.currentPage()
+                          ? 'bg-cyan-600 text-white'
+                          : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                },
+              )}
             </div>
 
             <button
@@ -224,22 +250,35 @@ export const ProjectGrid: Component<ProjectGridProps> = (props) => {
           </div>
 
           <div class="text-center text-xs text-neutral-500 font-mono">
-            Page {github.currentPage()} of {github.totalPages()} • {github.totalCount()} total repositories
+            Page {github.currentPage()} of {github.totalPages()} •{' '}
+            {github.totalCount()} total repositories
           </div>
         </Show>
       </Show>
 
       {/* Rate Limit Warning */}
-      <Show when={github.rateLimit()?.status === 'warning' || github.rateLimit()?.status === 'critical'}>
+      <Show
+        when={
+          github.rateLimit()?.status === 'warning' ||
+          github.rateLimit()?.status === 'critical'
+        }
+      >
         <div class="fixed bottom-4 right-4 bg-yellow-900/90 border border-yellow-700 rounded-lg p-4 max-w-sm backdrop-blur-sm">
           <div class="text-yellow-400 font-mono text-sm mb-2">
             API RATE LIMIT {github.rateLimit()?.status.toUpperCase()}
           </div>
           <div class="text-neutral-300 text-xs">
-            {github.rateLimit()?.remaining} / {github.rateLimit()?.limit} requests remaining
+            {github.rateLimit()?.remaining} / {github.rateLimit()?.limit}{' '}
+            requests remaining
           </div>
           <div class="text-neutral-400 text-xs mt-1">
-            Resets in {Math.ceil((new Date(github.rateLimit()?.resetTime || 0).getTime() - Date.now()) / (1000 * 60))} minutes
+            Resets in{' '}
+            {Math.ceil(
+              (new Date(github.rateLimit()?.resetTime || 0).getTime() -
+                Date.now()) /
+                (1000 * 60),
+            )}{' '}
+            minutes
           </div>
         </div>
       </Show>

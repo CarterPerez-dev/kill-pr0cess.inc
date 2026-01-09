@@ -2,7 +2,12 @@
  * ©AngelaMos | 2025
  */
 
-import { createSignal, createResource, createMemo, onCleanup } from 'solid-js';
+import {
+  createSignal,
+  createResource,
+  createMemo,
+  onCleanup,
+} from 'solid-js';
 import { createStore, produce } from 'solid-js/store';
 
 interface FractalRequest {
@@ -108,18 +113,19 @@ export function useFractals() {
   const [averageGenerationTime, setAverageGenerationTime] = createSignal(0);
 
   const [fractalResource] = createResource(
-    () => ({ 
-      request: buildFractalRequest(), 
-      count: generationCount() 
+    () => ({
+      request: buildFractalRequest(),
+      count: generationCount(),
     }),
     async ({ request }) => {
       setState('isGenerating', true);
       setState('error', null);
 
       try {
-        const endpoint = request.fractal_type === 'mandelbrot' 
-          ? '/api/fractals/mandelbrot' 
-          : '/api/fractals/julia';
+        const endpoint =
+          request.fractal_type === 'mandelbrot'
+            ? '/api/fractals/mandelbrot'
+            : '/api/fractals/julia';
 
         const params = new URLSearchParams();
         params.append('width', request.width.toString());
@@ -128,7 +134,7 @@ export function useFractals() {
         params.append('center_y', request.center_y.toString());
         params.append('zoom', request.zoom.toString());
         params.append('max_iterations', request.max_iterations.toString());
-        
+
         if (request.fractal_type === 'julia') {
           params.append('c_real', (request.c_real || -0.7).toString());
           params.append('c_imag', (request.c_imag || 0.27015).toString());
@@ -146,37 +152,43 @@ export function useFractals() {
         }
 
         const data: FractalResponse = await response.json();
-        
+
         const newCount = generationCount() + 1;
         const newTotal = totalComputationTime() + data.computation_time_ms;
         setGenerationCount(newCount);
         setTotalComputationTime(newTotal);
         setAverageGenerationTime(newTotal / newCount);
 
-        setState('performanceHistory', produce(history => {
-          history.unshift({
-            timestamp: new Date().toISOString(),
-            computation_time: data.computation_time_ms,
-            pixels_computed: data.width * data.height,
-            zoom_level: data.zoom_level,
-            fractal_type: request.fractal_type,
-          });
-          
-          if (history.length > 50) {
-            history.splice(50);
-          }
-        }));
+        setState(
+          'performanceHistory',
+          produce((history) => {
+            history.unshift({
+              timestamp: new Date().toISOString(),
+              computation_time: data.computation_time_ms,
+              pixels_computed: data.width * data.height,
+              zoom_level: data.zoom_level,
+              fractal_type: request.fractal_type,
+            });
+
+            if (history.length > 50) {
+              history.splice(50);
+            }
+          }),
+        );
 
         setState('currentFractal', data);
         return data;
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Fractal generation failed';
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : 'Fractal generation failed';
         setState('error', errorMessage);
         throw error;
       } finally {
         setState('isGenerating', false);
       }
-    }
+    },
   );
 
   const [benchmarkResource] = createResource(
@@ -184,7 +196,7 @@ export function useFractals() {
     async () => {
       try {
         setState('isGenerating', true);
-        
+
         const response = await fetch('/api/fractals/benchmark', {
           method: 'POST',
           headers: {
@@ -200,25 +212,36 @@ export function useFractals() {
         setState('benchmarkResults', data);
         return data;
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Benchmark failed';
+        const errorMessage =
+          error instanceof Error ? error.message : 'Benchmark failed';
         setState('error', errorMessage);
         throw error;
       } finally {
         setState('isGenerating', false);
       }
-    }
+    },
   );
 
   const performanceStats = createMemo(() => {
     const history = state.performanceHistory;
     if (history.length === 0) return null;
 
-    const totalPixels = history.reduce((sum, entry) => sum + entry.pixels_computed, 0);
-    const totalTime = history.reduce((sum, entry) => sum + entry.computation_time, 0);
+    const totalPixels = history.reduce(
+      (sum, entry) => sum + entry.pixels_computed,
+      0,
+    );
+    const totalTime = history.reduce(
+      (sum, entry) => sum + entry.computation_time,
+      0,
+    );
     const averagePixelsPerMs = totalPixels / totalTime;
 
-    const mandelbrotEntries = history.filter(entry => entry.fractal_type === 'mandelbrot');
-    const juliaEntries = history.filter(entry => entry.fractal_type === 'julia');
+    const mandelbrotEntries = history.filter(
+      (entry) => entry.fractal_type === 'mandelbrot',
+    );
+    const juliaEntries = history.filter(
+      (entry) => entry.fractal_type === 'julia',
+    );
 
     return {
       totalGenerations: history.length,
@@ -228,9 +251,15 @@ export function useFractals() {
       averageComputationTime: totalTime / history.length,
       mandelbrotCount: mandelbrotEntries.length,
       juliaCount: juliaEntries.length,
-      fastestGeneration: Math.min(...history.map(entry => entry.computation_time)),
-      slowestGeneration: Math.max(...history.map(entry => entry.computation_time)),
-      averageZoomLevel: history.reduce((sum, entry) => sum + entry.zoom_level, 0) / history.length,
+      fastestGeneration: Math.min(
+        ...history.map((entry) => entry.computation_time),
+      ),
+      slowestGeneration: Math.max(
+        ...history.map((entry) => entry.computation_time),
+      ),
+      averageZoomLevel:
+        history.reduce((sum, entry) => sum + entry.zoom_level, 0) /
+        history.length,
     };
   });
 
@@ -246,11 +275,16 @@ export function useFractals() {
       cpuUtilization: current.performance_metrics.cpu_utilization,
       pixelsComputed: current.width * current.height,
       zoomLevel: current.zoom_level,
-      performanceRating: getPerformanceRating(current.performance_metrics.pixels_per_second),
+      performanceRating: getPerformanceRating(
+        current.performance_metrics.pixels_per_second,
+      ),
     };
   });
 
-  function buildFractalRequest(): Omit<FractalRequest, 'center_x' | 'center_y' | 'zoom'> {
+  function buildFractalRequest(): Omit<
+    FractalRequest,
+    'center_x' | 'center_y' | 'zoom'
+  > {
     return {
       width: state.settings.width,
       height: state.settings.height,
@@ -279,13 +313,15 @@ export function useFractals() {
         zoom: params.zoom,
         width: params.width || state.settings.width,
         height: params.height || state.settings.height,
-        max_iterations: params.max_iterations || state.settings.maxIterations,
+        max_iterations:
+          params.max_iterations || state.settings.maxIterations,
       };
 
       try {
-        const endpoint = request.fractal_type === 'mandelbrot' 
-          ? '/api/fractals/mandelbrot' 
-          : '/api/fractals/julia';
+        const endpoint =
+          request.fractal_type === 'mandelbrot'
+            ? '/api/fractals/mandelbrot'
+            : '/api/fractals/julia';
 
         const urlParams = new URLSearchParams({
           width: request.width.toString(),
@@ -311,7 +347,7 @@ export function useFractals() {
 
         const data: FractalResponse = await response.json();
         setState('currentFractal', data);
-        
+
         const newCount = generationCount() + 1;
         const newTotal = totalComputationTime() + data.computation_time_ms;
         setGenerationCount(newCount);
@@ -320,7 +356,10 @@ export function useFractals() {
 
         return data;
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Fractal generation failed';
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : 'Fractal generation failed';
         setState('error', errorMessage);
         return null;
       }
@@ -331,40 +370,53 @@ export function useFractals() {
     },
 
     updateSettings(newSettings: Partial<FractalState['settings']>) {
-      setState('settings', produce(current => Object.assign(current, newSettings)));
-      
+      setState(
+        'settings',
+        produce((current) => Object.assign(current, newSettings)),
+      );
+
       if (state.currentFractal) {
-        setGenerationCount(prev => prev + 1);
+        setGenerationCount((prev) => prev + 1);
       }
     },
 
     setFractalType(type: 'mandelbrot' | 'julia') {
       setState('settings', 'fractalType', type);
-      
+
       if (type === 'julia' && state.settings.maxIterations < 150) {
         setState('settings', 'maxIterations', 150);
-      } else if (type === 'mandelbrot' && state.settings.maxIterations > 1000) {
+      } else if (
+        type === 'mandelbrot' &&
+        state.settings.maxIterations > 1000
+      ) {
         setState('settings', 'maxIterations', 200);
       }
     },
 
     setJuliaConstant(real: number, imag: number) {
       setState('settings', 'juliaConstant', { real, imag });
-      
+
       if (state.settings.fractalType === 'julia') {
-        setGenerationCount(prev => prev + 1);
+        setGenerationCount((prev) => prev + 1);
       }
     },
 
     setResolution(width: number, height: number) {
-      setState('settings', produce(settings => {
-        settings.width = Math.max(64, Math.min(4096, width));
-        settings.height = Math.max(64, Math.min(4096, height));
-      }));
+      setState(
+        'settings',
+        produce((settings) => {
+          settings.width = Math.max(64, Math.min(4096, width));
+          settings.height = Math.max(64, Math.min(4096, height));
+        }),
+      );
     },
 
     setMaxIterations(iterations: number) {
-      setState('settings', 'maxIterations', Math.max(50, Math.min(10000, iterations)));
+      setState(
+        'settings',
+        'maxIterations',
+        Math.max(50, Math.min(10000, iterations)),
+      );
     },
 
     setInteractionMode(mode: 'pan' | 'zoom' | 'parameter') {
@@ -396,16 +448,16 @@ export function useFractals() {
     },
 
     getOptimalIterations(zoomLevel: number): number {
-      const baseIterations = state.settings.fractalType === 'mandelbrot' ? 100 : 150;
+      const baseIterations =
+        state.settings.fractalType === 'mandelbrot' ? 100 : 150;
       const zoomFactor = Math.log10(Math.max(1, zoomLevel));
-      const optimalIterations = Math.floor(baseIterations + (zoomFactor * 50));
-      
+      const optimalIterations = Math.floor(baseIterations + zoomFactor * 50);
+
       return Math.max(50, Math.min(2000, optimalIterations));
     },
   };
 
-  onCleanup(() => {
-  });
+  onCleanup(() => {});
 
   function getPerformanceRating(pixelsPerSecond: number): string {
     if (pixelsPerSecond > 10000) return 'Exceptional';
@@ -422,21 +474,26 @@ export function useFractals() {
     error: () => state.error,
     settings: () => state.settings,
     interactionMode: () => state.interactionMode,
-    
+
     performanceHistory: () => state.performanceHistory,
     performanceStats,
     currentPerformance,
     benchmarkResults: () => state.benchmarkResults,
-    
+
     generationCount,
     averageGenerationTime,
     totalComputationTime,
-    
+
     fractalResource,
     benchmarkResource,
-    
+
     ...actions,
   };
 }
 
-export type { FractalRequest, FractalResponse, BenchmarkResult, PerformanceHistory };
+export type {
+  FractalRequest,
+  FractalResponse,
+  BenchmarkResult,
+  PerformanceHistory,
+};

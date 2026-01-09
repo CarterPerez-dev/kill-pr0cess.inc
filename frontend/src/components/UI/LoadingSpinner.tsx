@@ -3,7 +3,7 @@
  * I'm implementing various spinner types, sizes, and contextual loading messages that maintain the dark aesthetic while providing clear feedback during computation-intensive operations like fractal generation.
  */
 
-import { Component, JSX, Show, createMemo } from 'solid-js';
+import { type Component, JSX, Show, createMemo } from 'solid-js';
 
 interface LoadingSpinnerProps {
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
@@ -23,7 +23,7 @@ export const LoadingSpinner: Component<LoadingSpinnerProps> = (props) => {
       sm: 'w-4 h-4',
       md: 'w-6 h-6',
       lg: 'w-8 h-8',
-      xl: 'w-12 h-12'
+      xl: 'w-12 h-12',
     };
     return sizes[props.size || 'md'];
   });
@@ -34,7 +34,7 @@ export const LoadingSpinner: Component<LoadingSpinnerProps> = (props) => {
       primary: 'text-cyan-400 border-cyan-400',
       secondary: 'text-indigo-400 border-indigo-400',
       accent: 'text-purple-400 border-purple-400',
-      white: 'text-white border-white'
+      white: 'text-white border-white',
     };
     return colors[props.color || 'primary'];
   });
@@ -47,12 +47,16 @@ export const LoadingSpinner: Component<LoadingSpinnerProps> = (props) => {
     switch (variant) {
       case 'default':
         return (
-          <div class={`${baseClasses} border-2 border-t-transparent rounded-full animate-spin`}></div>
+          <div
+            class={`${baseClasses} border-2 border-t-transparent rounded-full animate-spin`}
+          ></div>
         );
 
       case 'pulse':
         return (
-          <div class={`${baseClasses} bg-current rounded-full animate-pulse`}></div>
+          <div
+            class={`${baseClasses} bg-current rounded-full animate-pulse`}
+          ></div>
         );
 
       case 'dots':
@@ -74,9 +78,9 @@ export const LoadingSpinner: Component<LoadingSpinnerProps> = (props) => {
               <div
                 class={`w-1 bg-current animate-pulse ${colorClasses()}`}
                 style={{
-                  height: `${8 + (i % 2) * 4}px`,
+                  'height': `${8 + (i % 2) * 4}px`,
                   'animation-delay': `${i * 0.15}s`,
-                  'animation-duration': '0.8s'
+                  'animation-duration': '0.8s',
                 }}
               ></div>
             ))}
@@ -87,8 +91,14 @@ export const LoadingSpinner: Component<LoadingSpinnerProps> = (props) => {
         return (
           <div class={`${baseClasses} relative`}>
             <div class="absolute inset-0 border-2 border-t-transparent rounded-full animate-spin"></div>
-            <div class="absolute inset-1 border border-r-transparent rounded-full animate-spin animation-reverse" style="animation-duration: 1.5s"></div>
-            <div class="absolute inset-2 border border-b-transparent rounded-full animate-spin" style="animation-duration: 2s"></div>
+            <div
+              class="absolute inset-1 border border-r-transparent rounded-full animate-spin animation-reverse"
+              style="animation-duration: 1.5s"
+            ></div>
+            <div
+              class="absolute inset-2 border border-b-transparent rounded-full animate-spin"
+              style="animation-duration: 2s"
+            ></div>
           </div>
         );
 
@@ -102,7 +112,7 @@ export const LoadingSpinner: Component<LoadingSpinnerProps> = (props) => {
                     class={`w-1 h-1 bg-current animate-pulse ${colorClasses()}`}
                     style={{
                       'animation-delay': `${(row * 3 + col) * 0.1}s`,
-                      opacity: Math.random() > 0.5 ? 1 : 0.3
+                      'opacity': Math.random() > 0.5 ? 1 : 0.3,
                     }}
                   ></div>
                 ))}
@@ -113,7 +123,9 @@ export const LoadingSpinner: Component<LoadingSpinnerProps> = (props) => {
 
       default:
         return (
-          <div class={`${baseClasses} border-2 border-t-transparent rounded-full animate-spin`}></div>
+          <div
+            class={`${baseClasses} border-2 border-t-transparent rounded-full animate-spin`}
+          ></div>
         );
     }
   };
@@ -125,7 +137,9 @@ export const LoadingSpinner: Component<LoadingSpinnerProps> = (props) => {
       ? 'fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center'
       : '';
 
-    return [baseClasses, centerClasses, overlayClasses, props.className].filter(Boolean).join(' ');
+    return [baseClasses, centerClasses, overlayClasses, props.className]
+      .filter(Boolean)
+      .join(' ');
   });
 
   return (
@@ -158,7 +172,7 @@ export const FractalLoader: Component<{
 
       <div class="text-center">
         <div class="text-neutral-300 font-mono text-sm mb-2">
-          {props.message || "Computing fractal..."}
+          {props.message || 'Computing fractal...'}
         </div>
 
         <Show when={props.progress !== undefined}>
@@ -186,7 +200,10 @@ export const SystemLoader: Component<{
         <div class="flex items-center gap-3 p-3 bg-neutral-900/30 rounded border border-neutral-800">
           <div class="flex-shrink-0">
             {system.status === 'loading' && (
-              <LoadingSpinner size="sm" variant="dots" />
+              <LoadingSpinner
+                size="sm"
+                variant="dots"
+              />
             )}
             {system.status === 'complete' && (
               <div class="w-4 h-4 text-green-400">✓</div>
@@ -233,14 +250,19 @@ export const BenchmarkLoader: Component<{
 
         <Show when={props.currentTest}>
           <p class="text-sm text-neutral-400 mb-4">
-            Currently testing: <span class="text-neutral-300 font-mono">{props.currentTest}</span>
+            Currently testing:{' '}
+            <span class="text-neutral-300 font-mono">
+              {props.currentTest}
+            </span>
           </p>
         </Show>
 
         <div class="space-y-2">
           <div class="flex justify-between text-xs font-mono text-neutral-500">
             <span>Progress</span>
-            <span>{props.completed} / {props.total}</span>
+            <span>
+              {props.completed} / {props.total}
+            </span>
           </div>
 
           <div class="w-80 h-2 bg-neutral-800 rounded-full overflow-hidden mx-auto">
@@ -253,7 +275,8 @@ export const BenchmarkLoader: Component<{
       </div>
 
       <p class="text-xs text-neutral-600 italic max-w-sm mx-auto">
-        Performance testing requires precision. Each measurement brings us closer to computational truth.
+        Performance testing requires precision. Each measurement brings us
+        closer to computational truth.
       </p>
     </div>
   );
@@ -272,8 +295,12 @@ export const NetworkLoader: Component<{
       />
 
       <div class="text-sm text-neutral-400">
-        <Show when={props.endpoint} fallback="Loading...">
-          Connecting to <span class="font-mono text-neutral-300">{props.endpoint}</span>
+        <Show
+          when={props.endpoint}
+          fallback="Loading..."
+        >
+          Connecting to{' '}
+          <span class="font-mono text-neutral-300">{props.endpoint}</span>
         </Show>
 
         <Show when={props.timeout}>

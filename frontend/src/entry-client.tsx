@@ -1,10 +1,8 @@
 // @refresh reload
-import { mount, StartClient } from "@solidjs/start/client";
+import { mount, StartClient } from '@solidjs/start/client';
 
-// I'm mounting the SolidStart client without any custom setup since StartClient handles routing internally
-mount(() => <StartClient />, document.getElementById("app")!);
+mount(() => <StartClient />, document.getElementById('app')!);
 
-// I'm keeping your performance tracking as-is
 if (typeof window !== 'undefined') {
   const hydrationStart = (window as any).__PERFORMANCE_START__ || Date.now();
   window.addEventListener('load', () => {
@@ -16,12 +14,21 @@ if (typeof window !== 'undefined') {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          metric: { name: 'hydration_time', value: hydrationTime, timestamp: Date.now() },
-          url: window.location.href, userAgent: navigator.userAgent,
+          metric: {
+            name: 'hydration_time',
+            value: hydrationTime,
+            timestamp: Date.now(),
+          },
+          url: window.location.href,
+          userAgent: navigator.userAgent,
         }),
       }).catch(() => {});
     }
   });
-  window.addEventListener('error', (event) => { console.error('[Client] Runtime error:', event.error); });
-  window.addEventListener('unhandledrejection', (event) => { console.error('[Client] Unhandled promise rejection:', event.reason); });
+  window.addEventListener('error', (event) => {
+    console.error('[Client] Runtime error:', event.error);
+  });
+  window.addEventListener('unhandledrejection', (event) => {
+    console.error('[Client] Unhandled promise rejection:', event.reason);
+  });
 }

@@ -3,7 +3,7 @@
  * I'm implementing comprehensive button variants, interaction states, and accessibility compliance to maintain design consistency across the application.
  */
 
-import { Component, JSX, splitProps } from 'solid-js';
+import { type Component, type JSX, splitProps } from 'solid-js';
 
 interface ButtonProps extends JSX.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'ghost' | 'danger' | 'success';
@@ -26,7 +26,7 @@ export const Button: Component<ButtonProps> = (props) => {
     'leftIcon',
     'rightIcon',
     'children',
-    'class'
+    'class',
   ]);
 
   // I'm defining the base styles and variants for consistent theming
@@ -128,21 +128,17 @@ export const Button: Component<ButtonProps> = (props) => {
       )}
 
       {/* Button content */}
-      <div class={`flex items-center gap-2 ${local.isLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-200`}>
+      <div
+        class={`flex items-center gap-2 ${local.isLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-200`}
+      >
         {local.leftIcon && (
-          <span class="flex-shrink-0">
-            {local.leftIcon}
-          </span>
+          <span class="flex-shrink-0">{local.leftIcon}</span>
         )}
 
-        <span class="truncate">
-          {local.children}
-        </span>
+        <span class="truncate">{local.children}</span>
 
         {local.rightIcon && (
-          <span class="flex-shrink-0">
-            {local.rightIcon}
-          </span>
+          <span class="flex-shrink-0">{local.rightIcon}</span>
         )}
       </div>
 

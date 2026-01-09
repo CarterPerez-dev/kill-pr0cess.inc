@@ -1,6 +1,6 @@
 // src/routes/[...404].tsx (Temporary Simplification)
-import { Component } from 'solid-js';
-import { Title } from "@solidjs/meta";
+import { type Component } from 'solid-js';
+import { Title } from '@solidjs/meta';
 
 const MinimalNotFound: Component = () => {
   return (

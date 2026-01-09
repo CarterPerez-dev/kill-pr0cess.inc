@@ -4,7 +4,7 @@ import autoprefixer from "autoprefixer";
 
 export default defineConfig({
   server: {
-    preset: "node",
+    preset: "node-server",
   },
   vite: {
     resolve: {

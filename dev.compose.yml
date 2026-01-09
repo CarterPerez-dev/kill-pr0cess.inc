@@ -1,22 +1,22 @@
-# ©AngelaMos | 2025
+# ©AngelaMos | 2026
 # Dev
 
 services:
   postgres:
-    image: postgres:15-alpine
+    image: postgres:17-alpine
     environment:
-      POSTGRES_DB: dark_performance
-      POSTGRES_USER: darkuser
-      POSTGRES_PASSWORD: darkpass
+      POSTGRES_DB: devdb
+      POSTGRES_USER: dev
+      POSTGRES_PASSWORD: development
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./backend/src/database/migrations:/docker-entrypoint-initdb.d:ro
     ports:
-      - "5432:5432"
+      - "5455:5432"
     networks:
       - dark_network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U darkuser -d dark_performance"]
+      test: ["CMD-SHELL", "pg_isready -U dev -d devdb"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -41,7 +41,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile.dev
     environment:
-      DATABASE_URL: postgresql://darkuser:darkpass@postgres:5432/dark_performance
+      DATABASE_URL: postgresql://dev:development@postgres:5432/devdb
       REDIS_URL: redis://redis:6379
       RUST_LOG: debug
       PORT: 8000
@@ -50,7 +50,7 @@ services:
       GITHUB_USERNAME: ${GITHUB_USERNAME}
       SQLX_OFFLINE: "true"
     ports:
-      - "8000:8000"
+      - "8111:8000"
     depends_on:
       postgres:
         condition: service_healthy
@@ -69,7 +69,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile.dev
     ports:
-      - "4000:3001"
+      - "4002:3000"
     environment:
       NODE_ENV: development
       VITE_API_URL: http://localhost:8090
@@ -97,44 +97,11 @@ services:
       - dark_network
     restart: unless-stopped
 
-  prometheus:
-    image: prom/prometheus:v2.47.2
-    ports:
-      - "9090:9090"
-    volumes:
-      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--web.console.libraries=/etc/prometheus/console_libraries'
-      - '--web.console.templates=/etc/prometheus/consoles'
-      - '--web.enable-lifecycle'
-    networks:
-      - dark_network
-    restart: unless-stopped
-
-  grafana:
-    image: grafana/grafana:10.2.2
-    ports:
-      - "3030:3000"
-    environment:
-      GF_SECURITY_ADMIN_PASSWORD: admin
-      GF_USERS_ALLOW_SIGN_UP: false
-    volumes:
-      - grafana_data:/var/lib/grafana
-      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
-    depends_on:
-      - prometheus
-    networks:
-      - dark_network
-    restart: unless-stopped
 
 volumes:
   postgres_data:
     driver: local
   redis_data:
-    driver: local
-  grafana_data:
     driver: local
   frontend_node_modules:
     driver: local
