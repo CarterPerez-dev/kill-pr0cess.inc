@@ -3,7 +3,14 @@
  * I'm implementing comprehensive error catching, logging, and user-friendly fallback interfaces that maintain the dark aesthetic while providing actionable error information and recovery options.
  */
 
-import { Component, JSX, createSignal, createEffect, Show, onMount } from 'solid-js';
+import {
+  type Component,
+  type JSX,
+  createSignal,
+  createEffect,
+  Show,
+  onMount,
+} from 'solid-js';
 import { Card } from './Card';
 
 interface ErrorInfo {
@@ -38,7 +45,7 @@ export const ErrorBoundary: Component<ErrorBoundaryProps> = (props) => {
         context: props.context || 'Promise Rejection',
         userAgent: navigator.userAgent,
         url: window.location.href,
-        stackTrace: event.reason?.stack || 'No stack trace available'
+        stackTrace: event.reason?.stack || 'No stack trace available',
       };
 
       handleError(errorInfo);
@@ -53,7 +60,7 @@ export const ErrorBoundary: Component<ErrorBoundaryProps> = (props) => {
         context: props.context || 'JavaScript Error',
         userAgent: navigator.userAgent,
         url: window.location.href,
-        stackTrace: event.error?.stack || 'No stack trace available'
+        stackTrace: event.error?.stack || 'No stack trace available',
       };
 
       handleError(errorInfo);
@@ -63,7 +70,10 @@ export const ErrorBoundary: Component<ErrorBoundaryProps> = (props) => {
     window.addEventListener('error', handleJSError);
 
     return () => {
-      window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+      window.removeEventListener(
+        'unhandledrejection',
+        handleUnhandledRejection,
+      );
       window.removeEventListener('error', handleJSError);
     };
   });
@@ -84,7 +94,7 @@ export const ErrorBoundary: Component<ErrorBoundaryProps> = (props) => {
 
   const retry = () => {
     setError(null);
-    setRetryCount(prev => prev + 1);
+    setRetryCount((prev) => prev + 1);
   };
 
   const reportError = (errorInfo: ErrorInfo) => {
@@ -97,15 +107,17 @@ export const ErrorBoundary: Component<ErrorBoundaryProps> = (props) => {
         error: {
           name: errorInfo.error.name,
           message: errorInfo.error.message,
-          stack: errorInfo.error.stack
-        }
+          stack: errorInfo.error.stack,
+        },
       };
 
       // In production, this would send to an error monitoring service
       console.warn('Error report:', errorReport);
 
       // Store in localStorage for debugging
-      const existingErrors = JSON.parse(localStorage.getItem('app-errors') || '[]');
+      const existingErrors = JSON.parse(
+        localStorage.getItem('app-errors') || '[]',
+      );
       existingErrors.push(errorReport);
 
       // Keep only last 10 errors
@@ -127,12 +139,27 @@ export const ErrorBoundary: Component<ErrorBoundaryProps> = (props) => {
     // Default fallback based on error level
     switch (props.level) {
       case 'critical':
-        return <CriticalErrorFallback error={currentError} onRetry={retry} />;
+        return (
+          <CriticalErrorFallback
+            error={currentError}
+            onRetry={retry}
+          />
+        );
       case 'page':
-        return <PageErrorFallback error={currentError} onRetry={retry} />;
+        return (
+          <PageErrorFallback
+            error={currentError}
+            onRetry={retry}
+          />
+        );
       case 'component':
       default:
-        return <ComponentErrorFallback error={currentError} onRetry={retry} />;
+        return (
+          <ComponentErrorFallback
+            error={currentError}
+            onRetry={retry}
+          />
+        );
     }
   };
 
@@ -145,7 +172,10 @@ export const ErrorBoundary: Component<ErrorBoundaryProps> = (props) => {
   });
 
   return (
-    <Show when={!error()} fallback={renderFallback()}>
+    <Show
+      when={!error()}
+      fallback={renderFallback()}
+    >
       {props.children}
     </Show>
   );
@@ -159,11 +189,12 @@ const ComponentErrorFallback: Component<{
   const [showDetails, setShowDetails] = createSignal(false);
 
   return (
-    <Card variant="outlined" class="border-red-800 bg-red-900/10">
+    <Card
+      variant="outlined"
+      class="border-red-800 bg-red-900/10"
+    >
       <div class="flex items-start gap-3">
-        <div class="text-red-400 text-xl flex-shrink-0">
-          ⚠
-        </div>
+        <div class="text-red-400 text-xl flex-shrink-0">⚠</div>
 
         <div class="flex-1">
           <h3 class="text-red-400 font-mono text-sm font-semibold mb-2">
@@ -171,7 +202,8 @@ const ComponentErrorFallback: Component<{
           </h3>
 
           <p class="text-neutral-300 text-sm mb-4">
-            Something went wrong in this component. The error has been logged and reported.
+            Something went wrong in this component. The error has been logged
+            and reported.
           </p>
 
           <div class="flex items-center gap-3 mb-4">
@@ -193,13 +225,19 @@ const ComponentErrorFallback: Component<{
           <Show when={showDetails()}>
             <div class="bg-black/50 rounded p-3 font-mono text-xs">
               <div class="text-neutral-400 mb-2">Error Message:</div>
-              <div class="text-red-300 mb-3">{props.error.error.message}</div>
+              <div class="text-red-300 mb-3">
+                {props.error.error.message}
+              </div>
 
               <div class="text-neutral-400 mb-2">Context:</div>
-              <div class="text-neutral-300 mb-3">{props.error.context || 'Unknown'}</div>
+              <div class="text-neutral-300 mb-3">
+                {props.error.context || 'Unknown'}
+              </div>
 
               <div class="text-neutral-400 mb-2">Timestamp:</div>
-              <div class="text-neutral-300">{props.error.timestamp.toISOString()}</div>
+              <div class="text-neutral-300">
+                {props.error.timestamp.toISOString()}
+              </div>
 
               <Show when={props.error.stackTrace}>
                 <div class="text-neutral-400 mt-3 mb-2">Stack Trace:</div>
@@ -222,18 +260,20 @@ const PageErrorFallback: Component<{
   return (
     <div class="min-h-screen bg-black text-neutral-100 flex items-center justify-center p-6">
       <div class="max-w-md w-full">
-        <Card variant="elevated" class="text-center border-red-800">
-          <div class="text-red-400 text-6xl mb-6">
-            ⚠
-          </div>
+        <Card
+          variant="elevated"
+          class="text-center border-red-800"
+        >
+          <div class="text-red-400 text-6xl mb-6">⚠</div>
 
           <h1 class="text-2xl font-thin text-neutral-100 mb-4">
             PAGE ERROR
           </h1>
 
           <p class="text-neutral-400 mb-6 leading-relaxed">
-            An unexpected error occurred while loading this page. The system has logged
-            the issue and our monitoring systems have been notified.
+            An unexpected error occurred while loading this page. The system
+            has logged the issue and our monitoring systems have been
+            notified.
           </p>
 
           <div class="space-y-3">
@@ -245,7 +285,7 @@ const PageErrorFallback: Component<{
             </button>
 
             <button
-              onClick={() => window.location.href = '/'}
+              onClick={() => (window.location.href = '/')}
               class="w-full px-6 py-3 bg-transparent border border-neutral-600 hover:border-neutral-500 text-neutral-300 rounded font-mono text-sm transition-colors duration-200"
             >
               RETURN HOME
@@ -270,18 +310,20 @@ const CriticalErrorFallback: Component<{
   return (
     <div class="min-h-screen bg-black text-neutral-100 flex items-center justify-center p-6">
       <div class="max-w-lg w-full">
-        <Card variant="elevated" class="text-center border-red-700 bg-red-900/20">
-          <div class="text-red-400 text-8xl mb-6 animate-pulse">
-            ⚠
-          </div>
+        <Card
+          variant="elevated"
+          class="text-center border-red-700 bg-red-900/20"
+        >
+          <div class="text-red-400 text-8xl mb-6 animate-pulse">⚠</div>
 
           <h1 class="text-3xl font-thin text-neutral-100 mb-4">
             CRITICAL SYSTEM ERROR
           </h1>
 
           <p class="text-neutral-300 mb-6 leading-relaxed">
-            A critical error has occurred that prevents the application from functioning normally.
-            This issue has been automatically reported to our development team.
+            A critical error has occurred that prevents the application from
+            functioning normally. This issue has been automatically reported
+            to our development team.
           </p>
 
           <div class="bg-red-900/30 border border-red-800 rounded p-4 mb-6">
@@ -308,7 +350,8 @@ const CriticalErrorFallback: Component<{
 
           <div class="mt-8 pt-6 border-t border-neutral-800">
             <p class="text-xs text-neutral-600 italic">
-              "In the face of computational failure, we find opportunities for greater understanding."
+              "In the face of computational failure, we find opportunities
+              for greater understanding."
             </p>
           </div>
         </Card>
@@ -326,9 +369,14 @@ export const FractalErrorBoundary: Component<{
       context="Fractal Generation"
       level="component"
       fallback={(error, retry) => (
-        <Card variant="outlined" class="border-red-800 bg-red-900/10 text-center p-8">
+        <Card
+          variant="outlined"
+          class="border-red-800 bg-red-900/10 text-center p-8"
+        >
           <div class="text-red-400 text-4xl mb-4">∞</div>
-          <h3 class="text-red-400 font-mono text-lg mb-3">FRACTAL COMPUTATION ERROR</h3>
+          <h3 class="text-red-400 font-mono text-lg mb-3">
+            FRACTAL COMPUTATION ERROR
+          </h3>
           <p class="text-neutral-400 text-sm mb-4">
             Mathematical complexity exceeded safe computational bounds.
           </p>
@@ -354,9 +402,14 @@ export const PerformanceErrorBoundary: Component<{
       context="Performance Monitoring"
       level="component"
       fallback={(error, retry) => (
-        <Card variant="outlined" class="border-yellow-800 bg-yellow-900/10 text-center p-6">
+        <Card
+          variant="outlined"
+          class="border-yellow-800 bg-yellow-900/10 text-center p-6"
+        >
           <div class="text-yellow-400 text-3xl mb-3">📊</div>
-          <h3 class="text-yellow-400 font-mono text-sm mb-2">METRICS COLLECTION FAILED</h3>
+          <h3 class="text-yellow-400 font-mono text-sm mb-2">
+            METRICS COLLECTION FAILED
+          </h3>
           <p class="text-neutral-400 text-xs mb-4">
             Performance monitoring temporarily unavailable.
           </p>
@@ -382,16 +435,21 @@ export const reportManualError = (error: Error, context?: string) => {
     context: context || 'Manual Report',
     userAgent: navigator.userAgent,
     url: window.location.href,
-    stackTrace: error.stack
+    stackTrace: error.stack,
   };
 
   console.error('Manual error report:', errorInfo);
 
   // Store for debugging
   try {
-    const existingErrors = JSON.parse(localStorage.getItem('app-errors') || '[]');
+    const existingErrors = JSON.parse(
+      localStorage.getItem('app-errors') || '[]',
+    );
     existingErrors.push(errorInfo);
-    localStorage.setItem('app-errors', JSON.stringify(existingErrors.slice(-10)));
+    localStorage.setItem(
+      'app-errors',
+      JSON.stringify(existingErrors.slice(-10)),
+    );
   } catch (storageError) {
     console.warn('Failed to store error locally:', storageError);
   }

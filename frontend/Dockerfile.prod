@@ -1,198 +1,43 @@
-FROM node:20-alpine as builder
+# ©AngelaMos | 2025
+# Dockerfile.prod
 
-RUN apk add --no-cache \
-    git \
-    python3 \
-    make \
-    g++ \
-    && rm -rf /var/cache/apk/*
+FROM node:20-alpine AS builder
 
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S nextjs -u 1001 -G nodejs
+RUN apk add --no-cache git python3 make g++
 
-USER nextjs
 WORKDIR /app
 
-COPY --chown=nextjs:nodejs package*.json ./
+COPY package*.json ./
+COPY vite-plugin-solid-patch.js ./
 
-RUN npm ci --only=production --ignore-scripts --prefer-offline --no-audit && \
-    npm cache clean --force
+RUN npm ci
 
-COPY --chown=nextjs:nodejs . .
+COPY . .
 
 ENV NODE_ENV=production
-ENV VITE_BUILD_MODE=production
-ENV VITE_OPTIMIZE_DEPS=true
-ENV VITE_MINIFY=true
+ENV VITE_API_URL=
 
 RUN npm run build
 
-RUN du -sh dist/ && \
-    find dist/ -name "*.js" -exec wc -c {} + | tail -1 && \
-    find dist/ -name "*.css" -exec wc -c {} + | tail -1
+FROM node:20-alpine AS runner
 
-FROM node:20-alpine as compressor
-
-RUN apk add --no-cache brotli gzip && \
-    rm -rf /var/cache/apk/*
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S solidjs -u 1001 -G nodejs
 
 WORKDIR /app
 
-COPY --from=builder /app/dist ./dist
+COPY --from=builder --chown=solidjs:nodejs /app/.output ./.output
+COPY --from=builder --chown=solidjs:nodejs /app/package.json ./
 
-RUN find dist -type f \( -name "*.js" -o -name "*.css" -o -name "*.html" -o -name "*.svg" -o -name "*.json" \) -exec sh -c 'gzip -9 -k "$1" && brotli -q 11 "$1"' _ {} \;
+USER solidjs
 
-RUN echo "=== Compression Analysis ===" && \
-    find dist -name "*.gz" -exec sh -c 'orig=$(echo "$1" | sed "s/.gz$//"); echo "$(basename "$orig"): $(stat -f%z "$orig") -> $(stat -f%z "$1") bytes ($(echo "scale=1; $(stat -f%z "$1") * 100 / $(stat -f%z "$orig")" | bc)%)"' _ {} \;
+ENV NODE_ENV=production
+ENV PORT=3000
+ENV HOST=0.0.0.0
 
-FROM nginx:1.27-alpine
-
-# I'm installing additional tools for monitoring and debugging
-RUN apk add --no-cache \
-    curl \
-    jq \
-    && rm -rf /var/cache/apk/*
-
-# I'm removing default nginx files
-RUN rm -rf /usr/share/nginx/html/* && \
-    rm /etc/nginx/conf.d/default.conf
-
-# I'm copying the optimized and compressed static assets
-COPY --from=compressor /app/dist /usr/share/nginx/html
-
-# I'm copying the optimized nginx configuration
-# COPY --chown=root:root nginx.prod.conf /etc/nginx/nginx.conf:ro
-
-# I'm creating a custom nginx configuration for SPA routing and performance
-RUN cat > /etc/nginx/conf.d/app.conf << 'EOF'
-# High-performance nginx configuration for SolidJS SPA
-server {
-    listen 3000;
-    listen [::]:3000;
-    server_name _;
-    root /usr/share/nginx/html;
-    index index.html;
-
-    # Security headers
-    add_header X-Frame-Options "SAMEORIGIN" always;
-    add_header X-Content-Type-Options "nosniff" always;
-    add_header X-XSS-Protection "1; mode=block" always;
-    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
-    add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:;" always;
-
-    # Performance headers
-    add_header X-Served-By "nginx-optimized" always;
-
-    # Compression settings
-    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
-        expires 1y;
-        add_header Cache-Control "public, immutable";
-        add_header Vary "Accept-Encoding";
-
-        # Serve pre-compressed files if available
-        location ~* \.(js|css|html|svg|json)$ {
-            gzip_static on;
-            brotli_static on;
-        }
-    }
-
-    # HTML files with short cache for updates
-    location ~* \.html$ {
-        expires 1h;
-        add_header Cache-Control "public, must-revalidate";
-        add_header Vary "Accept-Encoding";
-
-        gzip_static on;
-        brotli_static on;
-    }
-
-    # SPA routing - serve index.html for all routes
-    location / {
-        try_files $uri $uri/ /index.html;
-        add_header Cache-Control "no-cache, no-store, must-revalidate";
-        add_header Pragma "no-cache";
-        add_header Expires "0";
-    }
-
-    # Health check endpoint
-    location /health {
-        access_log off;
-        return 200 "healthy\n";
-        add_header Content-Type text/plain;
-    }
-
-    # API proxy to backend (if needed)
-    location /api/ {
-        # This would proxy to backend in production
-        return 404;
-    }
-}
-EOF
-
-# I'm creating a startup script for environment configuration
-RUN cat > /docker-entrypoint.d/10-setup-env.sh << 'EOF'
-#!/bin/sh
-# I'm configuring environment-specific settings at runtime
-
-echo "=== Frontend Container Starting ==="
-echo "Environment: ${NODE_ENV:-production}"
-echo "Build time: $(date)"
-echo "Nginx version: $(nginx -v 2>&1)"
-
-# I'm listing the built assets for verification
-echo "=== Static Assets ==="
-find /usr/share/nginx/html -type f -name "*.html" -o -name "*.js" -o -name "*.css" | head -10
-
-echo "=== Asset Sizes ==="
-du -sh /usr/share/nginx/html/*
-
-# I'm configuring nginx worker processes based on available CPUs
-if [ -f /proc/cpuinfo ]; then
-    WORKER_PROCESSES=$(grep -c ^processor /proc/cpuinfo)
-    sed -i "s/worker_processes auto;/worker_processes ${WORKER_PROCESSES};/" /etc/nginx/nginx.conf
-    echo "Configured nginx with ${WORKER_PROCESSES} worker processes"
-fi
-EOF
-
-RUN chmod +x /docker-entrypoint.d/10-setup-env.sh
-
-# I'm setting up proper permissions
-RUN chown -R nginx:nginx /usr/share/nginx/html && \
-    chown -R nginx:nginx /var/cache/nginx && \
-    chown -R nginx:nginx /var/log/nginx
-
-# I'm switching to non-root user for security
-USER nginx
-
-# I'm exposing the application port
 EXPOSE 3000
 
-# I'm setting up health check
-HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
-    CMD curl -f http://localhost:3000/health || exit 1
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1
 
-# I'm configuring the startup command
-CMD ["nginx", "-g", "daemon off;"]
-
-# Build arguments for metadata
-ARG BUILD_DATE
-ARG GIT_COMMIT
-ARG VERSION
-
-# I'm adding comprehensive metadata
-LABEL org.opencontainers.image.title="Performance Showcase Frontend"
-LABEL org.opencontainers.image.description="High-performance SolidJS frontend with optimized static serving"
-LABEL org.opencontainers.image.created=${BUILD_DATE}
-LABEL org.opencontainers.image.revision=${GIT_COMMIT}
-LABEL org.opencontainers.image.version=${VERSION}
-LABEL org.opencontainers.image.source="https://github.com/CarterPerez-dev/kill-pr0cess.inc"
-
-# I'm adding resource recommendations
-LABEL resource.cpu.min="0.25"
-LABEL resource.cpu.max="1.0"
-LABEL resource.memory.min="128Mi"
-LABEL resource.memory.max="512Mi"
-
-# I'm configuring security labels
-LABEL security.non-root=true
-LABEL security.readonly-rootfs=false
+CMD ["node", ".output/server/index.mjs"]

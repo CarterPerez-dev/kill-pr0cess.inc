@@ -54,14 +54,19 @@ export function useWebVitals(config: WebVitalsConfig = {}) {
     speedIndex: null,
   });
 
-  const [performanceEntries, setPerformanceEntries] = createSignal<PerformanceEntry[]>([]);
+  const [performanceEntries, setPerformanceEntries] = createSignal<
+    PerformanceEntry[]
+  >([]);
   const [isLoading, setIsLoading] = createSignal(true);
   const [lastUpdate, setLastUpdate] = createSignal<Date>(new Date());
 
   let performanceObserver: PerformanceObserver | null = null;
-  let navigationObserver: PerformanceObserver | null = null;
+  const navigationObserver: PerformanceObserver | null = null;
 
-  const getMetricRating = (metricName: string, value: number): 'good' | 'needs-improvement' | 'poor' => {
+  const getMetricRating = (
+    metricName: string,
+    value: number,
+  ): 'good' | 'needs-improvement' | 'poor' => {
     const thresholds = {
       lcp: { good: 2500, poor: 4000 },
       fid: { good: 100, poor: 300 },
@@ -79,19 +84,19 @@ export function useWebVitals(config: WebVitalsConfig = {}) {
   };
 
   const updateMetric = (name: string, value: number) => {
-    setMetrics(prev => ({
+    setMetrics((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
 
     const entry: PerformanceEntry = {
       name,
       value,
       rating: getMetricRating(name, value),
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
 
-    setPerformanceEntries(prev => [...prev, entry]);
+    setPerformanceEntries((prev) => [...prev, entry]);
     setLastUpdate(new Date());
 
     if (config.debug || import.meta.env.DEV) {
@@ -128,26 +133,40 @@ export function useWebVitals(config: WebVitalsConfig = {}) {
     }
   };
 
-  // I'm collecting basic navigation and paint metrics
   const collectBasicMetrics = () => {
-    if (!window.performance) return;
+    if (typeof window === 'undefined' || !window.performance) return;
 
-    const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
+    const navigation = performance.getEntriesByType(
+      'navigation',
+    )[0] as PerformanceNavigationTiming;
     const paintEntries = performance.getEntriesByType('paint');
 
     if (navigation) {
       updateMetric('navigationStart', navigation.navigationStart);
-      updateMetric('domContentLoaded', navigation.domContentLoadedEventEnd - navigation.navigationStart);
-      updateMetric('loadComplete', navigation.loadEventEnd - navigation.navigationStart);
-      updateMetric('ttfb', navigation.responseStart - navigation.navigationStart);
+
+      const domContentLoaded =
+        navigation.domContentLoadedEventEnd - navigation.navigationStart;
+      if (domContentLoaded > 0) {
+        updateMetric('domContentLoaded', domContentLoaded);
+      }
+
+      const loadComplete =
+        navigation.loadEventEnd - navigation.navigationStart;
+      if (loadComplete > 0) {
+        updateMetric('loadComplete', loadComplete);
+      }
+
+      const ttfb = navigation.responseStart - navigation.navigationStart;
+      if (ttfb > 0) {
+        updateMetric('ttfb', ttfb);
+      }
     }
 
-    // I'm collecting paint metrics
-    paintEntries.forEach(entry => {
-      if (entry.name === 'first-paint') {
+    paintEntries.forEach((entry) => {
+      if (entry.name === 'first-paint' && entry.startTime > 0) {
         updateMetric('firstPaint', entry.startTime);
       }
-      if (entry.name === 'first-contentful-paint') {
+      if (entry.name === 'first-contentful-paint' && entry.startTime > 0) {
         updateMetric('fcp', entry.startTime);
       }
     });
@@ -162,7 +181,10 @@ export function useWebVitals(config: WebVitalsConfig = {}) {
       performanceObserver = new PerformanceObserver((list) => {
         let clsValue = 0;
         for (const entry of list.getEntries()) {
-          if (entry.entryType === 'layout-shift' && !(entry as any).hadRecentInput) {
+          if (
+            entry.entryType === 'layout-shift' &&
+            !(entry as any).hadRecentInput
+          ) {
             clsValue += (entry as any).value;
           }
         }
@@ -197,7 +219,10 @@ export function useWebVitals(config: WebVitalsConfig = {}) {
     try {
       const fidObserver = new PerformanceObserver((list) => {
         for (const entry of list.getEntries()) {
-          updateMetric('fid', (entry as any).processingStart - entry.startTime);
+          updateMetric(
+            'fid',
+            (entry as any).processingStart - entry.startTime,
+          );
         }
       });
       fidObserver.observe({ entryTypes: ['first-input'] });
@@ -214,13 +239,19 @@ export function useWebVitals(config: WebVitalsConfig = {}) {
 
     // I'm estimating Time to Interactive
     if (currentMetrics.domContentLoaded && currentMetrics.loadComplete) {
-      const tti = Math.max(currentMetrics.domContentLoaded, currentMetrics.loadComplete || 0);
+      const tti = Math.max(
+        currentMetrics.domContentLoaded,
+        currentMetrics.loadComplete || 0,
+      );
       updateMetric('timeToInteractive', tti);
     }
 
     // I'm calculating total blocking time approximation
     if (currentMetrics.fcp && currentMetrics.timeToInteractive) {
-      const tbt = Math.max(0, currentMetrics.timeToInteractive - currentMetrics.fcp);
+      const tbt = Math.max(
+        0,
+        currentMetrics.timeToInteractive - currentMetrics.fcp,
+      );
       updateMetric('totalBlockingTime', tbt);
     }
   };
@@ -264,21 +295,26 @@ export function useWebVitals(config: WebVitalsConfig = {}) {
     if (entries.length === 0) return null;
 
     const scores = {
-      good: 100,
+      'good': 100,
       'needs-improvement': 75,
-      poor: 50
+      'poor': 50,
     };
 
-    const totalScore = entries.reduce((sum, entry) => sum + scores[entry.rating], 0);
+    const totalScore = entries.reduce(
+      (sum, entry) => sum + scores[entry.rating],
+      0,
+    );
     return Math.round(totalScore / entries.length);
   };
 
   const getMetricsByCategory = () => {
     const entries = performanceEntries();
     return {
-      good: entries.filter(e => e.rating === 'good').length,
-      needsImprovement: entries.filter(e => e.rating === 'needs-improvement').length,
-      poor: entries.filter(e => e.rating === 'poor').length,
+      good: entries.filter((e) => e.rating === 'good').length,
+      needsImprovement: entries.filter(
+        (e) => e.rating === 'needs-improvement',
+      ).length,
+      poor: entries.filter((e) => e.rating === 'poor').length,
     };
   };
 
@@ -305,7 +341,7 @@ export function useWebVitals(config: WebVitalsConfig = {}) {
       customMetrics: {
         timeToInteractive: currentMetrics.timeToInteractive,
         totalBlockingTime: currentMetrics.totalBlockingTime,
-      }
+      },
     };
   };
 

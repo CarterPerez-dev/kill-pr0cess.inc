@@ -3,7 +3,7 @@
  * I'm implementing advanced filtering capabilities including language, stars, size, and activity filters while maintaining the dark aesthetic and providing real-time filter feedback.
  */
 
-import { Component, createSignal, Show, For, createEffect } from 'solid-js';
+import { type Component, createSignal, Show, For, createEffect } from 'solid-js';
 import { Card } from '../UI/Card';
 
 interface FilterOptions {
@@ -35,7 +35,6 @@ export const ProjectFilters: Component<ProjectFiltersProps> = (props) => {
   const [isExpanded, setIsExpanded] = createSignal(false);
   const [activeFilterCount, setActiveFilterCount] = createSignal(0);
 
-  // I'm tracking the number of active filters for UI feedback
   createEffect(() => {
     let count = 0;
     const filters = props.filters;
@@ -82,21 +81,39 @@ export const ProjectFilters: Component<ProjectFiltersProps> = (props) => {
 
   const timeRangeOptions = [
     { value: '', label: 'All Time' },
-    { value: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], label: 'Last 30 Days' },
-    { value: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], label: 'Last 3 Months' },
-    { value: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], label: 'Last Year' },
+    {
+      value: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+        .toISOString()
+        .split('T')[0],
+      label: 'Last 30 Days',
+    },
+    {
+      value: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000)
+        .toISOString()
+        .split('T')[0],
+      label: 'Last 3 Months',
+    },
+    {
+      value: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000)
+        .toISOString()
+        .split('T')[0],
+      label: 'Last Year',
+    },
   ];
 
   return (
-    <Card variant="glass" class="backdrop-blur-md">
+    <Card
+      variant="glass"
+      class="backdrop-blur-md"
+    >
       {/* Header */}
       <div class="flex items-center justify-between mb-4">
         <div class="flex items-center gap-3">
-          <h3 class="font-mono text-sm text-neutral-300 tracking-wide">
+          <h3 class="font-sans text-sm text-neutral-300 tracking-wide">
             FILTERS
           </h3>
           <Show when={activeFilterCount() > 0}>
-            <span class="px-2 py-1 bg-cyan-900/30 text-cyan-400 border border-cyan-800 rounded text-xs font-mono">
+            <span class="px-2 py-1 bg-cyan-900/30 text-cyan-400 border border-cyan-800 rounded text-xs font-sans">
               {activeFilterCount()} ACTIVE
             </span>
           </Show>
@@ -106,7 +123,7 @@ export const ProjectFilters: Component<ProjectFiltersProps> = (props) => {
           <Show when={activeFilterCount() > 0}>
             <button
               onClick={clearAllFilters}
-              class="px-3 py-1 bg-red-900/30 hover:bg-red-800/30 text-red-400 border border-red-800 rounded text-xs font-mono transition-colors duration-200"
+              class="px-3 py-1 bg-red-900/30 hover:bg-red-800/30 text-red-400 border border-red-800 rounded text-xs font-sans transition-colors duration-200"
             >
               CLEAR ALL
             </button>
@@ -114,7 +131,7 @@ export const ProjectFilters: Component<ProjectFiltersProps> = (props) => {
 
           <button
             onClick={() => setIsExpanded(!isExpanded())}
-            class="px-3 py-1 bg-neutral-800 hover:bg-neutral-700 text-neutral-400 rounded text-xs font-mono transition-colors duration-200"
+            class="px-3 py-1 bg-neutral-800 hover:bg-neutral-700 text-neutral-400 rounded text-xs font-sans transition-colors duration-200"
           >
             {isExpanded() ? 'COLLAPSE' : 'EXPAND'}
           </button>
@@ -123,7 +140,7 @@ export const ProjectFilters: Component<ProjectFiltersProps> = (props) => {
 
       {/* Results Summary */}
       <div class="mb-4 p-3 bg-neutral-900/50 rounded">
-        <div class="flex items-center justify-between text-xs font-mono">
+        <div class="flex items-center justify-between text-xs font-sans">
           <span class="text-neutral-500">
             Showing {props.filteredCount} of {props.totalCount} repositories
           </span>
@@ -138,13 +155,15 @@ export const ProjectFilters: Component<ProjectFiltersProps> = (props) => {
 
       {/* Quick Search */}
       <div class="mb-4">
-        <label class="block text-xs text-neutral-500 font-mono uppercase mb-2">
+        <label class="block text-xs text-neutral-500 font-sans uppercase mb-2">
           Search
         </label>
         <input
           type="text"
           value={props.filters.search}
-          onInput={(e) => props.onFiltersChange({ search: e.currentTarget.value })}
+          onInput={(e) =>
+            props.onFiltersChange({ search: e.currentTarget.value })
+          }
           placeholder="Search repositories, descriptions, topics..."
           class="w-full bg-neutral-900 border border-neutral-700 focus:border-cyan-400 rounded px-3 py-2 text-sm text-neutral-300 placeholder-neutral-600 focus:outline-none"
         />
@@ -153,12 +172,14 @@ export const ProjectFilters: Component<ProjectFiltersProps> = (props) => {
       {/* Sort Options */}
       <div class="grid grid-cols-2 gap-3 mb-4">
         <div>
-          <label class="block text-xs text-neutral-500 font-mono uppercase mb-2">
+          <label class="block text-xs text-neutral-500 font-sans uppercase mb-2">
             Sort By
           </label>
           <select
             value={props.filters.sort}
-            onChange={(e) => props.onFiltersChange({ sort: e.currentTarget.value })}
+            onChange={(e) =>
+              props.onFiltersChange({ sort: e.currentTarget.value })
+            }
             class="w-full bg-neutral-900 border border-neutral-700 focus:border-cyan-400 rounded px-3 py-2 text-sm text-neutral-300 focus:outline-none"
           >
             <For each={sortOptions}>
@@ -170,12 +191,16 @@ export const ProjectFilters: Component<ProjectFiltersProps> = (props) => {
         </div>
 
         <div>
-          <label class="block text-xs text-neutral-500 font-mono uppercase mb-2">
+          <label class="block text-xs text-neutral-500 font-sans uppercase mb-2">
             Direction
           </label>
           <select
             value={props.filters.direction}
-            onChange={(e) => props.onFiltersChange({ direction: e.currentTarget.value as 'asc' | 'desc' })}
+            onChange={(e) =>
+              props.onFiltersChange({
+                direction: e.currentTarget.value as 'asc' | 'desc',
+              })
+            }
             class="w-full bg-neutral-900 border border-neutral-700 focus:border-cyan-400 rounded px-3 py-2 text-sm text-neutral-300 focus:outline-none"
           >
             <option value="desc">Descending</option>
@@ -189,45 +214,57 @@ export const ProjectFilters: Component<ProjectFiltersProps> = (props) => {
         <div class="space-y-4 pt-4 border-t border-neutral-800">
           {/* Language Filter */}
           <div>
-            <label class="block text-xs text-neutral-500 font-mono uppercase mb-2">
+            <label class="block text-xs text-neutral-500 font-sans uppercase mb-2">
               Language
             </label>
             <select
               value={props.filters.language}
-              onChange={(e) => props.onFiltersChange({ language: e.currentTarget.value })}
-              class="w-full bg-neutral-900 border border-neutral-700 focus:border-cyan-400 rounded px-3 py-2 text-sm text-neutral-300 focus:outline-none"
+              onChange={(e) =>
+                props.onFiltersChange({ language: e.currentTarget.value })
+              }
+              class="w-full bg-neutral-900 border border-neutral-700 focus:border-cyan-400 rounded px-4 py-2 text-sm text-neutral-300 focus:outline-none"
             >
               <option value="">All Languages</option>
               <For each={props.languages}>
-                {(language) => (
-                  <option value={language}>{language}</option>
-                )}
+                {(language) => <option value={language}>{language}</option>}
               </For>
             </select>
           </div>
 
           {/* Stars Range */}
           <div>
-            <label class="block text-xs text-neutral-500 font-mono uppercase mb-2">
+            <label class="block text-xs text-neutral-500 font-sans uppercase mb-2">
               Stars Range
             </label>
             <div class="grid grid-cols-2 gap-3">
               <div>
-                <label class="block text-xs text-neutral-600 mb-1">Min</label>
+                <label class="block text-xs text-neutral-600 mb-1">
+                  Min
+                </label>
                 <input
                   type="number"
                   value={props.filters.minStars}
-                  onInput={(e) => props.onFiltersChange({ minStars: parseInt(e.currentTarget.value) || 0 })}
+                  onInput={(e) =>
+                    props.onFiltersChange({
+                      minStars: parseInt(e.currentTarget.value) || 0,
+                    })
+                  }
                   min="0"
                   class="w-full bg-neutral-900 border border-neutral-700 focus:border-cyan-400 rounded px-3 py-2 text-sm text-neutral-300 focus:outline-none"
                 />
               </div>
               <div>
-                <label class="block text-xs text-neutral-600 mb-1">Max</label>
+                <label class="block text-xs text-neutral-600 mb-1">
+                  Max
+                </label>
                 <input
                   type="number"
                   value={props.filters.maxStars}
-                  onInput={(e) => props.onFiltersChange({ maxStars: parseInt(e.currentTarget.value) || 10000 })}
+                  onInput={(e) =>
+                    props.onFiltersChange({
+                      maxStars: parseInt(e.currentTarget.value) || 10000,
+                    })
+                  }
                   min="0"
                   class="w-full bg-neutral-900 border border-neutral-700 focus:border-cyan-400 rounded px-3 py-2 text-sm text-neutral-300 focus:outline-none"
                 />
@@ -237,26 +274,38 @@ export const ProjectFilters: Component<ProjectFiltersProps> = (props) => {
 
           {/* Size Range */}
           <div>
-            <label class="block text-xs text-neutral-500 font-mono uppercase mb-2">
+            <label class="block text-xs text-neutral-500 font-sans uppercase mb-2">
               Size Range (KB)
             </label>
             <div class="grid grid-cols-2 gap-3">
               <div>
-                <label class="block text-xs text-neutral-600 mb-1">Min</label>
+                <label class="block text-xs text-neutral-600 mb-1">
+                  Min
+                </label>
                 <input
                   type="number"
                   value={props.filters.minSize}
-                  onInput={(e) => props.onFiltersChange({ minSize: parseInt(e.currentTarget.value) || 0 })}
+                  onInput={(e) =>
+                    props.onFiltersChange({
+                      minSize: parseInt(e.currentTarget.value) || 0,
+                    })
+                  }
                   min="0"
                   class="w-full bg-neutral-900 border border-neutral-700 focus:border-cyan-400 rounded px-3 py-2 text-sm text-neutral-300 focus:outline-none"
                 />
               </div>
               <div>
-                <label class="block text-xs text-neutral-600 mb-1">Max</label>
+                <label class="block text-xs text-neutral-600 mb-1">
+                  Max
+                </label>
                 <input
                   type="number"
                   value={props.filters.maxSize}
-                  onInput={(e) => props.onFiltersChange({ maxSize: parseInt(e.currentTarget.value) || 1000000 })}
+                  onInput={(e) =>
+                    props.onFiltersChange({
+                      maxSize: parseInt(e.currentTarget.value) || 1000000,
+                    })
+                  }
                   min="0"
                   class="w-full bg-neutral-900 border border-neutral-700 focus:border-cyan-400 rounded px-3 py-2 text-sm text-neutral-300 focus:outline-none"
                 />
@@ -266,12 +315,16 @@ export const ProjectFilters: Component<ProjectFiltersProps> = (props) => {
 
           {/* Time Range */}
           <div>
-            <label class="block text-xs text-neutral-500 font-mono uppercase mb-2">
+            <label class="block text-xs text-neutral-500 font-sans uppercase mb-2">
               Updated After
             </label>
             <select
               value={props.filters.updatedAfter}
-              onChange={(e) => props.onFiltersChange({ updatedAfter: e.currentTarget.value })}
+              onChange={(e) =>
+                props.onFiltersChange({
+                  updatedAfter: e.currentTarget.value,
+                })
+              }
               class="w-full bg-neutral-900 border border-neutral-700 focus:border-cyan-400 rounded px-3 py-2 text-sm text-neutral-300 focus:outline-none"
             >
               <For each={timeRangeOptions}>
@@ -284,20 +337,26 @@ export const ProjectFilters: Component<ProjectFiltersProps> = (props) => {
 
           {/* Boolean Filters */}
           <div class="space-y-3">
-            <label class="block text-xs text-neutral-500 font-mono uppercase">
+            <label class="block text-xs text-neutral-500 font-sans uppercase">
               Repository Type
             </label>
 
             <div class="grid grid-cols-2 gap-3">
               {/* Archived Filter */}
               <div>
-                <label class="block text-xs text-neutral-600 mb-1">Archived</label>
+                <label class="block text-xs text-neutral-600 mb-1">
+                  Archived
+                </label>
                 <select
-                  value={props.filters.isArchived === null ? '' : props.filters.isArchived.toString()}
+                  value={
+                    props.filters.isArchived === null
+                      ? ''
+                      : props.filters.isArchived.toString()
+                  }
                   onChange={(e) => {
                     const value = e.currentTarget.value;
                     props.onFiltersChange({
-                      isArchived: value === '' ? null : value === 'true'
+                      isArchived: value === '' ? null : value === 'true',
                     });
                   }}
                   class="w-full bg-neutral-900 border border-neutral-700 focus:border-cyan-400 rounded px-3 py-2 text-sm text-neutral-300 focus:outline-none"
@@ -310,13 +369,19 @@ export const ProjectFilters: Component<ProjectFiltersProps> = (props) => {
 
               {/* Fork Filter */}
               <div>
-                <label class="block text-xs text-neutral-600 mb-1">Forks</label>
+                <label class="block text-xs text-neutral-600 mb-1">
+                  Forks
+                </label>
                 <select
-                  value={props.filters.isFork === null ? '' : props.filters.isFork.toString()}
+                  value={
+                    props.filters.isFork === null
+                      ? ''
+                      : props.filters.isFork.toString()
+                  }
                   onChange={(e) => {
                     const value = e.currentTarget.value;
                     props.onFiltersChange({
-                      isFork: value === '' ? null : value === 'true'
+                      isFork: value === '' ? null : value === 'true',
                     });
                   }}
                   class="w-full bg-neutral-900 border border-neutral-700 focus:border-cyan-400 rounded px-3 py-2 text-sm text-neutral-300 focus:outline-none"
@@ -329,13 +394,19 @@ export const ProjectFilters: Component<ProjectFiltersProps> = (props) => {
 
               {/* Topics Filter */}
               <div>
-                <label class="block text-xs text-neutral-600 mb-1">Topics</label>
+                <label class="block text-xs text-neutral-600 mb-1">
+                  Topics
+                </label>
                 <select
-                  value={props.filters.hasTopics === null ? '' : props.filters.hasTopics.toString()}
+                  value={
+                    props.filters.hasTopics === null
+                      ? ''
+                      : props.filters.hasTopics.toString()
+                  }
                   onChange={(e) => {
                     const value = e.currentTarget.value;
                     props.onFiltersChange({
-                      hasTopics: value === '' ? null : value === 'true'
+                      hasTopics: value === '' ? null : value === 'true',
                     });
                   }}
                   class="w-full bg-neutral-900 border border-neutral-700 focus:border-cyan-400 rounded px-3 py-2 text-sm text-neutral-300 focus:outline-none"
@@ -348,13 +419,19 @@ export const ProjectFilters: Component<ProjectFiltersProps> = (props) => {
 
               {/* License Filter */}
               <div>
-                <label class="block text-xs text-neutral-600 mb-1">License</label>
+                <label class="block text-xs text-neutral-600 mb-1">
+                  License
+                </label>
                 <select
-                  value={props.filters.hasLicense === null ? '' : props.filters.hasLicense.toString()}
+                  value={
+                    props.filters.hasLicense === null
+                      ? ''
+                      : props.filters.hasLicense.toString()
+                  }
                   onChange={(e) => {
                     const value = e.currentTarget.value;
                     props.onFiltersChange({
-                      hasLicense: value === '' ? null : value === 'true'
+                      hasLicense: value === '' ? null : value === 'true',
                     });
                   }}
                   class="w-full bg-neutral-900 border border-neutral-700 focus:border-cyan-400 rounded px-3 py-2 text-sm text-neutral-300 focus:outline-none"
@@ -369,7 +446,9 @@ export const ProjectFilters: Component<ProjectFiltersProps> = (props) => {
 
           {/* Advanced Search Tips */}
           <div class="mt-6 p-3 bg-neutral-900/30 rounded border border-neutral-800">
-            <div class="text-xs text-neutral-500 font-mono uppercase mb-2">Search Tips</div>
+            <div class="text-xs text-neutral-500 font-sans uppercase mb-2">
+              Search Tips
+            </div>
             <div class="text-xs text-neutral-600 space-y-1">
               <div>• Search terms match name, description, and topics</div>
               <div>• Use quotes for exact phrases: "react component"</div>
@@ -383,28 +462,34 @@ export const ProjectFilters: Component<ProjectFiltersProps> = (props) => {
       {/* Active Filters Summary */}
       <Show when={activeFilterCount() > 0}>
         <div class="mt-4 pt-4 border-t border-neutral-800">
-          <div class="text-xs text-neutral-500 font-mono uppercase mb-2">Active Filters</div>
+          <div class="text-xs text-neutral-500 font-sans uppercase mb-2">
+            Active Filters
+          </div>
           <div class="flex flex-wrap gap-2">
             <Show when={props.filters.search}>
-              <span class="px-2 py-1 bg-cyan-900/30 text-cyan-400 border border-cyan-800 rounded text-xs font-mono">
+              <span class="px-2 py-1 bg-cyan-900/30 text-cyan-400 border border-cyan-800 rounded text-xs font-sans">
                 Search: "{props.filters.search}"
               </span>
             </Show>
 
             <Show when={props.filters.language}>
-              <span class="px-2 py-1 bg-green-900/30 text-green-400 border border-green-800 rounded text-xs font-mono">
+              <span class="px-2 py-1 bg-green-900/30 text-green-400 border border-green-800 rounded text-xs font-sans">
                 Language: {props.filters.language}
               </span>
             </Show>
 
-            <Show when={props.filters.minStars > 0 || props.filters.maxStars < 10000}>
-              <span class="px-2 py-1 bg-yellow-900/30 text-yellow-400 border border-yellow-800 rounded text-xs font-mono">
+            <Show
+              when={
+                props.filters.minStars > 0 || props.filters.maxStars < 10000
+              }
+            >
+              <span class="px-2 py-1 bg-yellow-900/30 text-yellow-400 border border-yellow-800 rounded text-xs font-sans">
                 Stars: {props.filters.minStars}-{props.filters.maxStars}
               </span>
             </Show>
 
             <Show when={props.filters.isArchived !== null}>
-              <span class="px-2 py-1 bg-purple-900/30 text-purple-400 border border-purple-800 rounded text-xs font-mono">
+              <span class="px-2 py-1 bg-purple-900/30 text-purple-400 border border-purple-800 rounded text-xs font-sans">
                 {props.filters.isArchived ? 'Archived' : 'Active'}
               </span>
             </Show>

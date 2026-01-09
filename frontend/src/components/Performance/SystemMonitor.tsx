@@ -2,7 +2,14 @@
  * ©AngelaMos | 2025
  */
 
-import { Component, createSignal, onMount, Show, For, createEffect } from 'solid-js';
+import {
+  type Component,
+  createSignal,
+  onMount,
+  Show,
+  For,
+  createEffect,
+} from 'solid-js';
 import { usePerformance } from '../../hooks/usePerformance';
 import { Card, MetricCard, StatusCard } from '../UI/Card';
 import { LoadingSpinner } from '../UI/LoadingSpinner';
@@ -19,16 +26,20 @@ interface ResourceGaugeProps {
 
 const ResourceGauge: Component<ResourceGaugeProps> = (props) => {
   const percentage = () => Math.min((props.value / props.max) * 100, 100);
-  
+
   const getColor = () => {
-    if (props.critical && props.value >= props.critical) return 'text-red-400 bg-red-400';
-    if (props.warning && props.value >= props.warning) return 'text-yellow-400 bg-yellow-400';
+    if (props.critical && props.value >= props.critical)
+      return 'text-red-400 bg-red-400';
+    if (props.warning && props.value >= props.warning)
+      return 'text-yellow-400 bg-yellow-400';
     return props.color || 'text-cyan-400 bg-cyan-400';
   };
 
   const getGradient = () => {
-    if (props.critical && props.value >= props.critical) return 'from-red-600 to-red-400';
-    if (props.warning && props.value >= props.warning) return 'from-yellow-600 to-yellow-400';
+    if (props.critical && props.value >= props.critical)
+      return 'from-red-600 to-red-400';
+    if (props.warning && props.value >= props.warning)
+      return 'from-yellow-600 to-yellow-400';
     return 'from-cyan-600 to-cyan-400';
   };
 
@@ -39,40 +50,40 @@ const ResourceGauge: Component<ResourceGaugeProps> = (props) => {
           {props.label}
         </span>
         <div class="text-right">
-          <span class={`text-lg font-mono font-semibold ${getColor().split(' ')[0]}`}>
+          <span
+            class={`text-lg font-mono font-semibold ${getColor().split(' ')[0]}`}
+          >
             {props.value.toFixed(1)}
           </span>
-          <span class="text-sm text-neutral-500 ml-1">
-            {props.unit}
-          </span>
+          <span class="text-sm text-neutral-500 ml-1">{props.unit}</span>
         </div>
       </div>
-      
+
       <div class="relative">
         <div class="w-full h-2 bg-neutral-800 rounded-full overflow-hidden">
-          <div 
+          <div
             class={`h-full bg-gradient-to-r ${getGradient()} rounded-full transition-all duration-500 ease-out relative`}
             style={{ width: `${percentage()}%` }}
           >
             <div class="absolute inset-0 bg-white/20 animate-pulse rounded-full"></div>
           </div>
         </div>
-        
+
         {/* Warning and critical thresholds */}
         {props.warning && (
-          <div 
+          <div
             class="absolute top-0 w-0.5 h-2 bg-yellow-400/60"
             style={{ left: `${(props.warning / props.max) * 100}%` }}
           ></div>
         )}
         {props.critical && (
-          <div 
+          <div
             class="absolute top-0 w-0.5 h-2 bg-red-400/60"
             style={{ left: `${(props.critical / props.max) * 100}%` }}
           ></div>
         )}
       </div>
-      
+
       <div class="text-xs text-neutral-600 font-mono">
         {percentage().toFixed(1)}% utilized
       </div>
@@ -87,40 +98,58 @@ const MiniChart: Component<{
 }> = (props) => {
   const height = () => props.height || 40;
   const color = () => props.color || '#22d3ee';
-  
+
   const pathData = () => {
     if (props.data.length < 2) return '';
-    
+
     const width = 200;
-    const maxValue = Math.max(...props.data.map(d => d.value));
-    const minValue = Math.min(...props.data.map(d => d.value));
+    const maxValue = Math.max(...props.data.map((d) => d.value));
+    const minValue = Math.min(...props.data.map((d) => d.value));
     const range = maxValue - minValue || 1;
-    
-    const points = props.data.map((point, index) => {
-      const x = (index / (props.data.length - 1)) * width;
-      const y = height() - ((point.value - minValue) / range) * height();
-      return `${x},${y}`;
-    }).join(' ');
-    
+
+    const points = props.data
+      .map((point, index) => {
+        const x = (index / (props.data.length - 1)) * width;
+        const y = height() - ((point.value - minValue) / range) * height();
+        return `${x},${y}`;
+      })
+      .join(' ');
+
     return `M ${points.replace(/,/g, ' L ')}`;
   };
 
   return (
     <div class="relative">
-      <svg width="200" height={height()} class="w-full">
+      <svg
+        width="200"
+        height={height()}
+        class="w-full"
+      >
         <defs>
-          <linearGradient id="chartGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" style={`stop-color:${color()};stop-opacity:0.3`} />
-            <stop offset="100%" style={`stop-color:${color()};stop-opacity:0.05`} />
+          <linearGradient
+            id="chartGradient"
+            x1="0%"
+            y1="0%"
+            x2="0%"
+            y2="100%"
+          >
+            <stop
+              offset="0%"
+              style={`stop-color:${color()};stop-opacity:0.3`}
+            />
+            <stop
+              offset="100%"
+              style={`stop-color:${color()};stop-opacity:0.05`}
+            />
           </linearGradient>
         </defs>
-        
+
         {/* Fill area */}
         <path
           d={`${pathData()} L 200,${height()} L 0,${height()} Z`}
           fill="url(#chartGradient)"
         />
-        
+
         {/* Line */}
         <path
           d={pathData()}
@@ -130,16 +159,16 @@ const MiniChart: Component<{
           stroke-linecap="round"
           stroke-linejoin="round"
         />
-        
+
         {/* Dots for recent points */}
         {props.data.slice(-3).map((point, index) => {
           const totalIndex = props.data.length - 3 + index;
           const x = (totalIndex / (props.data.length - 1)) * 200;
-          const maxValue = Math.max(...props.data.map(d => d.value));
-          const minValue = Math.min(...props.data.map(d => d.value));
+          const maxValue = Math.max(...props.data.map((d) => d.value));
+          const minValue = Math.min(...props.data.map((d) => d.value));
           const range = maxValue - minValue || 1;
           const y = height() - ((point.value - minValue) / range) * height();
-          
+
           return (
             <circle
               cx={x}
@@ -169,10 +198,12 @@ export const SystemMonitor: Component = () => {
     stopMonitoring,
     refreshMetrics,
     clearError,
-    resolveAlert
+    resolveAlert,
   } = usePerformance();
 
-  const [selectedTimeRange, setSelectedTimeRange] = createSignal<'5m' | '15m' | '1h' | '24h'>('15m');
+  const [selectedTimeRange, setSelectedTimeRange] = createSignal<
+    '5m' | '15m' | '1h' | '24h'
+  >('15m');
 
   onMount(() => {
     // I'm starting monitoring automatically
@@ -187,18 +218,20 @@ export const SystemMonitor: Component = () => {
       '5m': 5 * 60 * 1000,
       '15m': 15 * 60 * 1000,
       '1h': 60 * 60 * 1000,
-      '24h': 24 * 60 * 60 * 1000
+      '24h': 24 * 60 * 60 * 1000,
     };
-    
+
     const cutoff = now - ranges[selectedTimeRange()];
-    return history.filter(item => new Date(item.timestamp).getTime() > cutoff);
+    return history.filter(
+      (item) => new Date(item.timestamp).getTime() > cutoff,
+    );
   };
 
   const formatUptime = (seconds: number): string => {
     const days = Math.floor(seconds / 86400);
     const hours = Math.floor((seconds % 86400) / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
-    
+
     if (days > 0) return `${days}d ${hours}h ${minutes}m`;
     if (hours > 0) return `${hours}h ${minutes}m`;
     return `${minutes}m`;
@@ -213,11 +246,15 @@ export const SystemMonitor: Component = () => {
             SYSTEM MONITOR
           </h2>
           <div class="flex items-center gap-3">
-            <div class={`w-2 h-2 rounded-full ${
-              connectionStatus() === 'connected' ? 'bg-green-400' :
-              connectionStatus() === 'reconnecting' ? 'bg-yellow-400 animate-pulse' :
-              'bg-red-400'
-            }`}></div>
+            <div
+              class={`w-2 h-2 rounded-full ${
+                connectionStatus() === 'connected'
+                  ? 'bg-green-400'
+                  : connectionStatus() === 'reconnecting'
+                    ? 'bg-yellow-400 animate-pulse'
+                    : 'bg-red-400'
+              }`}
+            ></div>
             <span class="text-sm font-mono text-neutral-500">
               {connectionStatus().toUpperCase()}
             </span>
@@ -269,7 +306,10 @@ export const SystemMonitor: Component = () => {
 
       {/* Error Display */}
       <Show when={error()}>
-        <Card variant="outlined" class="border-red-800 bg-red-900/10">
+        <Card
+          variant="outlined"
+          class="border-red-800 bg-red-900/10"
+        >
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-3">
               <div class="text-red-400 text-xl">⚠</div>
@@ -277,9 +317,7 @@ export const SystemMonitor: Component = () => {
                 <div class="text-red-400 font-mono text-sm font-semibold">
                   MONITORING ERROR
                 </div>
-                <div class="text-neutral-300 text-sm mt-1">
-                  {error()}
-                </div>
+                <div class="text-neutral-300 text-sm mt-1">{error()}</div>
               </div>
             </div>
             <button
@@ -294,14 +332,17 @@ export const SystemMonitor: Component = () => {
 
       {/* Critical Alerts */}
       <Show when={criticalAlerts().length > 0}>
-        <Card variant="outlined" class="border-red-700 bg-red-900/20">
+        <Card
+          variant="outlined"
+          class="border-red-700 bg-red-900/20"
+        >
           <div class="flex items-center gap-3 mb-4">
             <div class="text-red-400 text-xl animate-pulse">🚨</div>
             <h3 class="text-red-400 font-mono text-sm font-semibold">
               CRITICAL ALERTS ({criticalAlerts().length})
             </h3>
           </div>
-          
+
           <div class="space-y-2">
             <For each={criticalAlerts().slice(0, 3)}>
               {(alert) => (
@@ -330,9 +371,9 @@ export const SystemMonitor: Component = () => {
       {/* Loading State */}
       <Show when={!currentMetrics() && isMonitoring()}>
         <Card class="text-center py-12">
-          <LoadingSpinner 
-            variant="pulse" 
-            size="lg" 
+          <LoadingSpinner
+            variant="pulse"
+            size="lg"
             message="Collecting system metrics..."
           />
         </Card>
@@ -347,7 +388,7 @@ export const SystemMonitor: Component = () => {
               <h3 class="text-lg font-mono text-neutral-300 mb-6">
                 RESOURCE UTILIZATION
               </h3>
-              
+
               <div class="grid md:grid-cols-2 gap-6">
                 <ResourceGauge
                   label="CPU Usage"
@@ -357,7 +398,7 @@ export const SystemMonitor: Component = () => {
                   warning={75}
                   critical={90}
                 />
-                
+
                 <ResourceGauge
                   label="Memory Usage"
                   value={currentMetrics()!.memory_usage_percent}
@@ -367,7 +408,7 @@ export const SystemMonitor: Component = () => {
                   critical={85}
                   color="text-purple-400 bg-purple-400"
                 />
-                
+
                 <ResourceGauge
                   label="Disk Usage"
                   value={currentMetrics()!.disk_usage_percent}
@@ -377,7 +418,7 @@ export const SystemMonitor: Component = () => {
                   critical={90}
                   color="text-yellow-400 bg-yellow-400"
                 />
-                
+
                 <ResourceGauge
                   label="Load Average"
                   value={currentMetrics()!.load_average_1m}
@@ -395,28 +436,41 @@ export const SystemMonitor: Component = () => {
               <h3 class="text-lg font-mono text-neutral-300 mb-6">
                 PERFORMANCE TRENDS ({selectedTimeRange()})
               </h3>
-              
+
               <div class="grid md:grid-cols-3 gap-6">
                 <div>
                   <div class="text-sm text-neutral-400 mb-3">CPU Usage</div>
-                  <MiniChart 
-                    data={filteredHistory().map(h => ({ timestamp: h.timestamp, value: h.cpu }))}
+                  <MiniChart
+                    data={filteredHistory().map((h) => ({
+                      timestamp: h.timestamp,
+                      value: h.cpu,
+                    }))}
                     color="#22d3ee"
                   />
                 </div>
-                
+
                 <div>
-                  <div class="text-sm text-neutral-400 mb-3">Memory Usage</div>
-                  <MiniChart 
-                    data={filteredHistory().map(h => ({ timestamp: h.timestamp, value: h.memory }))}
+                  <div class="text-sm text-neutral-400 mb-3">
+                    Memory Usage
+                  </div>
+                  <MiniChart
+                    data={filteredHistory().map((h) => ({
+                      timestamp: h.timestamp,
+                      value: h.memory,
+                    }))}
                     color="#a855f7"
                   />
                 </div>
-                
+
                 <div>
-                  <div class="text-sm text-neutral-400 mb-3">Load Average</div>
-                  <MiniChart 
-                    data={filteredHistory().map(h => ({ timestamp: h.timestamp, value: h.load }))}
+                  <div class="text-sm text-neutral-400 mb-3">
+                    Load Average
+                  </div>
+                  <MiniChart
+                    data={filteredHistory().map((h) => ({
+                      timestamp: h.timestamp,
+                      value: h.load,
+                    }))}
                     color="#22c55e"
                   />
                 </div>
@@ -430,7 +484,7 @@ export const SystemMonitor: Component = () => {
               <h3 class="text-lg font-mono text-neutral-300 mb-4">
                 SYSTEM INFO
               </h3>
-              
+
               <div class="space-y-3 text-sm">
                 <div class="flex justify-between">
                   <span class="text-neutral-500">CPU Model</span>
@@ -438,35 +492,39 @@ export const SystemMonitor: Component = () => {
                     {currentMetrics()!.cpu_model}
                   </div>
                 </div>
-                
+
                 <div class="flex justify-between">
                   <span class="text-neutral-500">CPU Cores</span>
                   <span class="text-neutral-300 font-mono">
-                    {currentMetrics()!.cpu_cores} cores / {currentMetrics()!.cpu_threads} threads
+                    {currentMetrics()!.cpu_cores} cores /{' '}
+                    {currentMetrics()!.cpu_threads} threads
                   </span>
                 </div>
-                
+
                 <div class="flex justify-between">
                   <span class="text-neutral-500">Total Memory</span>
                   <span class="text-neutral-300 font-mono">
-                    {currentMetrics()?.memory_total_gb?.toFixed(1) || '0.0'} GB
+                    {currentMetrics()?.memory_total_gb?.toFixed(1) || '0.0'}{' '}
+                    GB
                   </span>
                 </div>
-                
+
                 <div class="flex justify-between">
                   <span class="text-neutral-500">Available Memory</span>
                   <span class="text-neutral-300 font-mono">
-                    {currentMetrics()?.memory_available_gb?.toFixed(1) || '0.0'} GB
+                    {currentMetrics()?.memory_available_gb?.toFixed(1) ||
+                      '0.0'}{' '}
+                    GB
                   </span>
                 </div>
-                
+
                 <div class="flex justify-between">
                   <span class="text-neutral-500">Uptime</span>
                   <span class="text-neutral-300 font-mono">
                     {formatUptime(currentMetrics()!.uptime_seconds)}
                   </span>
                 </div>
-                
+
                 <div class="flex justify-between">
                   <span class="text-neutral-500">Processes</span>
                   <span class="text-neutral-300 font-mono">
@@ -482,16 +540,17 @@ export const SystemMonitor: Component = () => {
                 <h3 class="text-lg font-mono text-neutral-300 mb-4">
                   PERFORMANCE GRADE
                 </h3>
-                
+
                 <div class="text-center mb-4">
                   <div class="text-4xl font-mono font-bold text-cyan-400">
                     {performanceInsights()!.grade}
                   </div>
                   <div class="text-sm text-neutral-500 mt-1">
-                    {performanceInsights()?.overallScore?.toFixed(0) || '0'}/100
+                    {performanceInsights()?.overallScore?.toFixed(0) || '0'}
+                    /100
                   </div>
                 </div>
-                
+
                 <div class="space-y-2 text-xs">
                   <div class="flex justify-between">
                     <span class="text-neutral-500">CPU Score</span>
@@ -517,11 +576,14 @@ export const SystemMonitor: Component = () => {
 
             {/* Recommendations */}
             <Show when={performanceInsights()?.recommendations.length}>
-              <Card variant="outlined" class="border-yellow-800 bg-yellow-900/10">
+              <Card
+                variant="outlined"
+                class="border-yellow-800 bg-yellow-900/10"
+              >
                 <h3 class="text-sm font-mono text-yellow-400 mb-3">
                   RECOMMENDATIONS
                 </h3>
-                
+
                 <div class="space-y-2">
                   <For each={performanceInsights()!.recommendations}>
                     {(recommendation) => (

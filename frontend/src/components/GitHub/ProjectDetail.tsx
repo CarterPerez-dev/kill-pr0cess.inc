@@ -3,7 +3,14 @@
  * I'm implementing an immersive project exploration interface with performance metrics, contribution analysis, and technical insights that maintains the dark, contemplative aesthetic.
  */
 
-import { Component, createSignal, Show, For, onMount, createEffect } from 'solid-js';
+import {
+  type Component,
+  createSignal,
+  Show,
+  For,
+  onMount,
+  createEffect,
+} from 'solid-js';
 import { Card, MetricCard, StatusCard } from '../UI/Card';
 import { LoadingSpinner } from '../UI/LoadingSpinner';
 
@@ -49,8 +56,11 @@ interface ProjectDetailProps {
 }
 
 export const ProjectDetail: Component<ProjectDetailProps> = (props) => {
-  const [activeTab, setActiveTab] = createSignal<'overview' | 'readme' | 'analytics' | 'insights'>('overview');
-  const [repositoryStats, setRepositoryStats] = createSignal<RepositoryStats | null>(null);
+  const [activeTab, setActiveTab] = createSignal<
+    'overview' | 'readme' | 'analytics' | 'insights'
+  >('overview');
+  const [repositoryStats, setRepositoryStats] =
+    createSignal<RepositoryStats | null>(null);
   const [isLoadingStats, setIsLoadingStats] = createSignal(false);
 
   // I'm fetching detailed statistics when the component mounts
@@ -70,7 +80,9 @@ export const ProjectDetail: Component<ProjectDetailProps> = (props) => {
   const fetchRepositoryStats = async () => {
     setIsLoadingStats(true);
     try {
-      const response = await fetch(`/api/github/repo/${props.repository.full_name}/stats`);
+      const response = await fetch(
+        `/api/github/repo/${props.repository.full_name}/stats`,
+      );
       if (response.ok) {
         const stats = await response.json();
         setRepositoryStats(stats);
@@ -90,23 +102,42 @@ export const ProjectDetail: Component<ProjectDetailProps> = (props) => {
     const insights = [];
 
     if (!repo.description) {
-      insights.push({ type: 'warning', message: 'Missing description - consider adding one for better discoverability' });
+      insights.push({
+        type: 'warning',
+        message:
+          'Missing description - consider adding one for better discoverability',
+      });
     }
 
     if (repo.topics.length === 0) {
-      insights.push({ type: 'info', message: 'No topics defined - adding topics helps with categorization' });
+      insights.push({
+        type: 'info',
+        message:
+          'No topics defined - adding topics helps with categorization',
+      });
     }
 
     if (!repo.license_name) {
-      insights.push({ type: 'warning', message: 'No license specified - consider adding one for legal clarity' });
+      insights.push({
+        type: 'warning',
+        message:
+          'No license specified - consider adding one for legal clarity',
+      });
     }
 
     if (stats && stats.last_activity_days > 180) {
-      insights.push({ type: 'error', message: 'Repository appears inactive - last activity over 6 months ago' });
+      insights.push({
+        type: 'error',
+        message:
+          'Repository appears inactive - last activity over 6 months ago',
+      });
     }
 
     if (repo.stargazers_count > 0 && repo.forks_count === 0) {
-      insights.push({ type: 'info', message: 'High star-to-fork ratio suggests excellent code quality' });
+      insights.push({
+        type: 'info',
+        message: 'High star-to-fork ratio suggests excellent code quality',
+      });
     }
 
     return insights;
@@ -117,7 +148,7 @@ export const ProjectDetail: Component<ProjectDetailProps> = (props) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
-      day: 'numeric'
+      day: 'numeric',
     });
   };
 
@@ -196,18 +227,20 @@ export const ProjectDetail: Component<ProjectDetailProps> = (props) => {
 
         {/* Tab Navigation */}
         <div class="flex border-b border-neutral-800">
-          {(['overview', 'readme', 'analytics', 'insights'] as const).map((tab) => (
-            <button
-              onClick={() => setActiveTab(tab)}
-              class={`px-6 py-3 font-mono text-sm uppercase tracking-wide transition-colors duration-200 ${
-                activeTab() === tab
-                  ? 'bg-neutral-800 text-neutral-200 border-b-2 border-cyan-400'
-                  : 'text-neutral-500 hover:text-neutral-300'
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
+          {(['overview', 'readme', 'analytics', 'insights'] as const).map(
+            (tab) => (
+              <button
+                onClick={() => setActiveTab(tab)}
+                class={`px-6 py-3 font-mono text-sm uppercase tracking-wide transition-colors duration-200 ${
+                  activeTab() === tab
+                    ? 'bg-neutral-800 text-neutral-200 border-b-2 border-cyan-400'
+                    : 'text-neutral-500 hover:text-neutral-300'
+                }`}
+              >
+                {tab}
+              </button>
+            ),
+          )}
         </div>
 
         {/* Content */}
@@ -219,15 +252,21 @@ export const ProjectDetail: Component<ProjectDetailProps> = (props) => {
               <div class="lg:col-span-2 space-y-6">
                 <Show when={repo.description}>
                   <Card>
-                    <h3 class="text-lg font-mono text-neutral-300 mb-3">Description</h3>
-                    <p class="text-neutral-400 leading-relaxed">{repo.description}</p>
+                    <h3 class="text-lg font-mono text-neutral-300 mb-3">
+                      Description
+                    </h3>
+                    <p class="text-neutral-400 leading-relaxed">
+                      {repo.description}
+                    </p>
                   </Card>
                 </Show>
 
                 {/* Topics */}
                 <Show when={repo.topics.length > 0}>
                   <Card>
-                    <h3 class="text-lg font-mono text-neutral-300 mb-3">Topics</h3>
+                    <h3 class="text-lg font-mono text-neutral-300 mb-3">
+                      Topics
+                    </h3>
                     <div class="flex flex-wrap gap-2">
                       <For each={repo.topics}>
                         {(topic) => (
@@ -242,10 +281,14 @@ export const ProjectDetail: Component<ProjectDetailProps> = (props) => {
 
                 {/* Clone URLs */}
                 <Card>
-                  <h3 class="text-lg font-mono text-neutral-300 mb-3">Clone Repository</h3>
+                  <h3 class="text-lg font-mono text-neutral-300 mb-3">
+                    Clone Repository
+                  </h3>
                   <div class="space-y-3">
                     <div>
-                      <label class="text-xs text-neutral-500 font-mono uppercase block mb-1">HTTPS</label>
+                      <label class="text-xs text-neutral-500 font-mono uppercase block mb-1">
+                        HTTPS
+                      </label>
                       <div class="flex items-center gap-2">
                         <input
                           type="text"
@@ -254,7 +297,9 @@ export const ProjectDetail: Component<ProjectDetailProps> = (props) => {
                           class="flex-1 bg-neutral-900 border border-neutral-700 rounded px-3 py-2 text-sm font-mono text-neutral-300"
                         />
                         <button
-                          onClick={() => navigator.clipboard.writeText(repo.clone_url)}
+                          onClick={() =>
+                            navigator.clipboard.writeText(repo.clone_url)
+                          }
                           class="px-3 py-2 bg-neutral-800 hover:bg-neutral-700 text-neutral-400 rounded text-sm transition-colors duration-200"
                         >
                           COPY
@@ -262,7 +307,9 @@ export const ProjectDetail: Component<ProjectDetailProps> = (props) => {
                       </div>
                     </div>
                     <div>
-                      <label class="text-xs text-neutral-500 font-mono uppercase block mb-1">SSH</label>
+                      <label class="text-xs text-neutral-500 font-mono uppercase block mb-1">
+                        SSH
+                      </label>
                       <div class="flex items-center gap-2">
                         <input
                           type="text"
@@ -271,7 +318,9 @@ export const ProjectDetail: Component<ProjectDetailProps> = (props) => {
                           class="flex-1 bg-neutral-900 border border-neutral-700 rounded px-3 py-2 text-sm font-mono text-neutral-300"
                         />
                         <button
-                          onClick={() => navigator.clipboard.writeText(repo.ssh_url)}
+                          onClick={() =>
+                            navigator.clipboard.writeText(repo.ssh_url)
+                          }
                           class="px-3 py-2 bg-neutral-800 hover:bg-neutral-700 text-neutral-400 rounded text-sm transition-colors duration-200"
                         >
                           COPY
@@ -324,11 +373,19 @@ export const ProjectDetail: Component<ProjectDetailProps> = (props) => {
                     <div class="flex items-center gap-2 mb-2">
                       <div
                         class="w-3 h-3 rounded-full"
-                        style={{ 'background-color': getLanguageColor(repo.language!) }}
+                        style={{
+                          'background-color': getLanguageColor(
+                            repo.language!,
+                          ),
+                        }}
                       ></div>
-                      <span class="text-sm font-mono text-neutral-300">{repo.language}</span>
+                      <span class="text-sm font-mono text-neutral-300">
+                        {repo.language}
+                      </span>
                     </div>
-                    <div class="text-xs text-neutral-500">Primary language</div>
+                    <div class="text-xs text-neutral-500">
+                      Primary language
+                    </div>
                   </Card>
                 </Show>
 
@@ -344,16 +401,22 @@ export const ProjectDetail: Component<ProjectDetailProps> = (props) => {
                   <div class="space-y-2 text-sm">
                     <div class="flex justify-between">
                       <span class="text-neutral-500">Created:</span>
-                      <span class="text-neutral-400">{formatDate(repo.created_at)}</span>
+                      <span class="text-neutral-400">
+                        {formatDate(repo.created_at)}
+                      </span>
                     </div>
                     <div class="flex justify-between">
                       <span class="text-neutral-500">Updated:</span>
-                      <span class="text-neutral-400">{formatDate(repo.updated_at)}</span>
+                      <span class="text-neutral-400">
+                        {formatDate(repo.updated_at)}
+                      </span>
                     </div>
                     <Show when={repo.pushed_at}>
                       <div class="flex justify-between">
                         <span class="text-neutral-500">Last Push:</span>
-                        <span class="text-neutral-400">{formatDate(repo.pushed_at!)}</span>
+                        <span class="text-neutral-400">
+                          {formatDate(repo.pushed_at!)}
+                        </span>
                       </div>
                     </Show>
                   </div>
@@ -365,12 +428,19 @@ export const ProjectDetail: Component<ProjectDetailProps> = (props) => {
           {/* README Tab */}
           <Show when={activeTab() === 'readme'}>
             <Card>
-              <Show when={repo.readme_content} fallback={
-                <div class="text-center py-12">
-                  <div class="text-neutral-500 font-mono mb-2">No README available</div>
-                  <div class="text-neutral-600 text-sm">This repository doesn't have a README file.</div>
-                </div>
-              }>
+              <Show
+                when={repo.readme_content}
+                fallback={
+                  <div class="text-center py-12">
+                    <div class="text-neutral-500 font-mono mb-2">
+                      No README available
+                    </div>
+                    <div class="text-neutral-600 text-sm">
+                      This repository doesn't have a README file.
+                    </div>
+                  </div>
+                }
+              >
                 <div class="prose prose-invert max-w-none">
                   <pre class="bg-neutral-900 p-4 rounded text-sm text-neutral-300 whitespace-pre-wrap">
                     {repo.readme_content}
@@ -436,22 +506,35 @@ export const ProjectDetail: Component<ProjectDetailProps> = (props) => {
           <Show when={activeTab() === 'insights'}>
             <div class="space-y-6">
               <Card>
-                <h3 class="text-lg font-mono text-neutral-300 mb-4">Repository Health Analysis</h3>
-                <Show when={healthInsights.length > 0} fallback={
-                  <div class="text-center py-8">
-                    <div class="text-green-400 text-2xl mb-2">✓</div>
-                    <div class="text-neutral-300 font-mono">All health checks passed</div>
-                    <div class="text-neutral-500 text-sm mt-1">This repository follows best practices</div>
-                  </div>
-                }>
+                <h3 class="text-lg font-mono text-neutral-300 mb-4">
+                  Repository Health Analysis
+                </h3>
+                <Show
+                  when={healthInsights.length > 0}
+                  fallback={
+                    <div class="text-center py-8">
+                      <div class="text-green-400 text-2xl mb-2">✓</div>
+                      <div class="text-neutral-300 font-mono">
+                        All health checks passed
+                      </div>
+                      <div class="text-neutral-500 text-sm mt-1">
+                        This repository follows best practices
+                      </div>
+                    </div>
+                  }
+                >
                   <div class="space-y-3">
                     <For each={healthInsights}>
                       {(insight) => (
-                        <div class={`p-3 rounded border-l-4 ${
-                          insight.type === 'error' ? 'bg-red-900/20 border-red-500 text-red-300' :
-                          insight.type === 'warning' ? 'bg-yellow-900/20 border-yellow-500 text-yellow-300' :
-                          'bg-blue-900/20 border-blue-500 text-blue-300'
-                        }`}>
+                        <div
+                          class={`p-3 rounded border-l-4 ${
+                            insight.type === 'error'
+                              ? 'bg-red-900/20 border-red-500 text-red-300'
+                              : insight.type === 'warning'
+                                ? 'bg-yellow-900/20 border-yellow-500 text-yellow-300'
+                                : 'bg-blue-900/20 border-blue-500 text-blue-300'
+                          }`}
+                        >
                           <div class="text-sm">{insight.message}</div>
                         </div>
                       )}
@@ -461,33 +544,52 @@ export const ProjectDetail: Component<ProjectDetailProps> = (props) => {
               </Card>
 
               <Card>
-                <h3 class="text-lg font-mono text-neutral-300 mb-4">Performance Insights</h3>
+                <h3 class="text-lg font-mono text-neutral-300 mb-4">
+                  Performance Insights
+                </h3>
                 <div class="space-y-4">
                   <div class="bg-neutral-900/50 rounded p-4">
-                    <div class="text-sm text-neutral-400 mb-2">Engagement Analysis</div>
+                    <div class="text-sm text-neutral-400 mb-2">
+                      Engagement Analysis
+                    </div>
                     <div class="text-xs text-neutral-500">
-                      This repository has {repo.stargazers_count} stars and {repo.forks_count} forks,
-                      indicating {repo.forks_count > repo.stargazers_count * 0.1 ? 'high' : 'moderate'} community engagement.
-                      The star-to-fork ratio suggests the code is {repo.forks_count === 0 && repo.stargazers_count > 0 ? 'viewed more than modified' : 'actively used and modified'}.
+                      This repository has {repo.stargazers_count} stars and{' '}
+                      {repo.forks_count} forks, indicating{' '}
+                      {repo.forks_count > repo.stargazers_count * 0.1
+                        ? 'high'
+                        : 'moderate'}{' '}
+                      community engagement. The star-to-fork ratio suggests
+                      the code is{' '}
+                      {repo.forks_count === 0 && repo.stargazers_count > 0
+                        ? 'viewed more than modified'
+                        : 'actively used and modified'}
+                      .
                     </div>
                   </div>
 
                   <div class="bg-neutral-900/50 rounded p-4">
-                    <div class="text-sm text-neutral-400 mb-2">Maintenance Status</div>
+                    <div class="text-sm text-neutral-400 mb-2">
+                      Maintenance Status
+                    </div>
                     <div class="text-xs text-neutral-500">
                       Last updated {formatDate(repo.updated_at)}.
-                      {repo.is_archived ? ' This repository is archived and no longer actively maintained.' :
-                       ' The repository appears to be actively maintained.'}
+                      {repo.is_archived
+                        ? ' This repository is archived and no longer actively maintained.'
+                        : ' The repository appears to be actively maintained.'}
                     </div>
                   </div>
 
                   <div class="bg-neutral-900/50 rounded p-4">
-                    <div class="text-sm text-neutral-400 mb-2">Technical Assessment</div>
+                    <div class="text-sm text-neutral-400 mb-2">
+                      Technical Assessment
+                    </div>
                     <div class="text-xs text-neutral-500">
                       Repository size: {formatSize(repo.size_kb)}.
-                      {repo.size_kb > 100000 ? ' Large codebase indicating comprehensive project.' :
-                       repo.size_kb > 10000 ? ' Medium-sized project with substantial code.' :
-                       ' Compact codebase, likely focused or minimal project.'}
+                      {repo.size_kb > 100000
+                        ? ' Large codebase indicating comprehensive project.'
+                        : repo.size_kb > 10000
+                          ? ' Medium-sized project with substantial code.'
+                          : ' Compact codebase, likely focused or minimal project.'}
                     </div>
                   </div>
                 </div>

@@ -60,7 +60,9 @@ class PerformanceMonitor {
         const entries = list.getEntries();
         entries.forEach((entry) => {
           if (entry.entryType === 'navigation') {
-            this.recordNavigationMetrics(entry as PerformanceNavigationTiming);
+            this.recordNavigationMetrics(
+              entry as PerformanceNavigationTiming,
+            );
           }
         });
       });
@@ -100,7 +102,6 @@ class PerformanceMonitor {
       });
       paintObserver.observe({ entryTypes: ['paint'] });
       this.observers.push(paintObserver);
-
     } catch (error) {
       console.warn('Failed to initialize performance observers:', error);
     }
@@ -109,15 +110,42 @@ class PerformanceMonitor {
   // I'm recording navigation timing metrics
   private recordNavigationMetrics(entry: PerformanceNavigationTiming) {
     const metrics = [
-      { name: 'dns_lookup', value: entry.domainLookupEnd - entry.domainLookupStart, unit: 'ms' },
-      { name: 'tcp_connect', value: entry.connectEnd - entry.connectStart, unit: 'ms' },
-      { name: 'request_response', value: entry.responseEnd - entry.requestStart, unit: 'ms' },
-      { name: 'dom_content_loaded', value: entry.domContentLoadedEventEnd - entry.domContentLoadedEventStart, unit: 'ms' },
-      { name: 'load_complete', value: entry.loadEventEnd - entry.loadEventStart, unit: 'ms' },
-      { name: 'total_load_time', value: entry.loadEventEnd - entry.navigationStart, unit: 'ms' }
+      {
+        name: 'dns_lookup',
+        value: entry.domainLookupEnd - entry.domainLookupStart,
+        unit: 'ms',
+      },
+      {
+        name: 'tcp_connect',
+        value: entry.connectEnd - entry.connectStart,
+        unit: 'ms',
+      },
+      {
+        name: 'request_response',
+        value: entry.responseEnd - entry.requestStart,
+        unit: 'ms',
+      },
+      {
+        name: 'dom_content_loaded',
+        value:
+          entry.domContentLoadedEventEnd - entry.domContentLoadedEventStart,
+        unit: 'ms',
+      },
+      {
+        name: 'load_complete',
+        value: entry.loadEventEnd - entry.loadEventStart,
+        unit: 'ms',
+      },
+      {
+        name: 'total_load_time',
+        value: entry.loadEventEnd - entry.navigationStart,
+        unit: 'ms',
+      },
     ];
 
-    metrics.forEach(metric => this.addMetric(metric.name, metric.value, metric.unit, 'navigation'));
+    metrics.forEach((metric) =>
+      this.addMetric(metric.name, metric.value, metric.unit, 'navigation'),
+    );
   }
 
   // I'm recording resource loading metrics
@@ -129,18 +157,13 @@ class PerformanceMonitor {
       `resource_load_${resourceType}`,
       duration,
       'ms',
-      `resource: ${entry.name}`
+      `resource: ${entry.name}`,
     );
   }
 
   // I'm recording custom measurements
   private recordMeasure(entry: PerformanceMeasure) {
-    this.addMetric(
-      entry.name,
-      entry.duration,
-      'ms',
-      'custom_measure'
-    );
+    this.addMetric(entry.name, entry.duration, 'ms', 'custom_measure');
   }
 
   // I'm recording paint timing metrics
@@ -149,7 +172,7 @@ class PerformanceMonitor {
       entry.name.replace('-', '_'),
       entry.startTime,
       'ms',
-      'paint'
+      'paint',
     );
   }
 
@@ -170,7 +193,7 @@ class PerformanceMonitor {
       value,
       unit,
       timestamp: Date.now(),
-      context
+      context,
     };
 
     this.metrics.push(metric);
@@ -184,7 +207,7 @@ class PerformanceMonitor {
   // I'm implementing timing utilities for custom measurements
   time(name: string): () => void {
     const startTime = performance.now();
-    
+
     return () => {
       const duration = performance.now() - startTime;
       this.addMetric(name, duration, 'ms', 'custom_timing');
@@ -194,7 +217,7 @@ class PerformanceMonitor {
   // I'm providing async timing wrapper
   async timeAsync<T>(name: string, operation: () => Promise<T>): Promise<T> {
     const startTime = performance.now();
-    
+
     try {
       const result = await operation();
       const duration = performance.now() - startTime;
@@ -202,15 +225,24 @@ class PerformanceMonitor {
       return result;
     } catch (error) {
       const duration = performance.now() - startTime;
-      this.addMetric(`${name}_error`, duration, 'ms', 'async_operation_error');
+      this.addMetric(
+        `${name}_error`,
+        duration,
+        'ms',
+        'async_operation_error',
+      );
       throw error;
     }
   }
 
   // I'm implementing benchmark utilities
-  benchmark(name: string, iterations: number, operation: () => void): BenchmarkResult {
+  benchmark(
+    name: string,
+    iterations: number,
+    operation: () => void,
+  ): BenchmarkResult {
     const samples: number[] = [];
-    
+
     // Warm up
     for (let i = 0; i < Math.min(iterations, 10); i++) {
       operation();
@@ -229,9 +261,13 @@ class PerformanceMonitor {
     const averageTime = totalDuration / samples.length;
     const minTime = Math.min(...samples);
     const maxTime = Math.max(...samples);
-    
+
     // Calculate standard deviation
-    const variance = samples.reduce((sum, sample) => sum + Math.pow(sample - averageTime, 2), 0) / samples.length;
+    const variance =
+      samples.reduce(
+        (sum, sample) => sum + Math.pow(sample - averageTime, 2),
+        0,
+      ) / samples.length;
     const standardDeviation = Math.sqrt(variance);
 
     const result: BenchmarkResult = {
@@ -242,7 +278,7 @@ class PerformanceMonitor {
       minTime,
       maxTime,
       standardDeviation,
-      samples
+      samples,
     };
 
     // Store benchmark results
@@ -260,7 +296,8 @@ class PerformanceMonitor {
         usedJSHeapSize: memory.usedJSHeapSize,
         totalJSHeapSize: memory.totalJSHeapSize,
         jsHeapSizeLimit: memory.jsHeapSizeLimit,
-        usage_percentage: (memory.usedJSHeapSize / memory.jsHeapSizeLimit) * 100
+        usage_percentage:
+          (memory.usedJSHeapSize / memory.jsHeapSizeLimit) * 100,
       };
     }
     return null;
@@ -274,12 +311,14 @@ class PerformanceMonitor {
         lcp: 0,
         fid: 0,
         cls: 0,
-        ttfb: 0
+        ttfb: 0,
       };
 
       // First Contentful Paint
       const paintEntries = performance.getEntriesByType('paint');
-      const fcpEntry = paintEntries.find(entry => entry.name === 'first-contentful-paint');
+      const fcpEntry = paintEntries.find(
+        (entry) => entry.name === 'first-contentful-paint',
+      );
       if (fcpEntry) {
         vitals.fcp = fcpEntry.startTime;
       }
@@ -353,13 +392,15 @@ class PerformanceMonitor {
 
     if (filter) {
       if (filter.name) {
-        filtered = filtered.filter(m => m.name.includes(filter.name!));
+        filtered = filtered.filter((m) => m.name.includes(filter.name!));
       }
       if (filter.context) {
-        filtered = filtered.filter(m => m.context?.includes(filter.context!));
+        filtered = filtered.filter((m) =>
+          m.context?.includes(filter.context!),
+        );
       }
       if (filter.since) {
-        filtered = filtered.filter(m => m.timestamp > filter.since!);
+        filtered = filtered.filter((m) => m.timestamp > filter.since!);
       }
       if (filter.limit) {
         filtered = filtered.slice(-filter.limit);
@@ -379,13 +420,13 @@ class PerformanceMonitor {
         // Other resources would be populated by system monitoring
       },
       userAgent: navigator.userAgent,
-      url: window.location.href
+      url: window.location.href,
     };
   }
 
   // I'm implementing cleanup
   dispose() {
-    this.observers.forEach(observer => observer.disconnect());
+    this.observers.forEach((observer) => observer.disconnect());
     this.observers = [];
     this.metrics = [];
     this.benchmarks.clear();
@@ -406,7 +447,10 @@ export const performanceUtils = {
   },
 
   // Measure async function execution time
-  measureAsync: async <T>(name: string, fn: () => Promise<T>): Promise<T> => {
+  measureAsync: async <T>(
+    name: string,
+    fn: () => Promise<T>,
+  ): Promise<T> => {
     return performanceMonitor.timeAsync(name, fn);
   },
 
@@ -418,14 +462,16 @@ export const performanceUtils = {
     const measureFrame = () => {
       frameCount++;
       const currentTime = performance.now();
-      
+
       if (currentTime - lastTime >= duration) {
-        const fps = Math.round((frameCount * 1000) / (currentTime - lastTime));
+        const fps = Math.round(
+          (frameCount * 1000) / (currentTime - lastTime),
+        );
         callback(fps);
         frameCount = 0;
         lastTime = currentTime;
       }
-      
+
       requestAnimationFrame(measureFrame);
     };
 
@@ -433,7 +479,10 @@ export const performanceUtils = {
   },
 
   // Monitor memory usage
-  monitorMemory: (callback: (usage: any) => void, interval: number = 1000) => {
+  monitorMemory: (
+    callback: (usage: any) => void,
+    interval: number = 1000,
+  ) => {
     const monitor = () => {
       const usage = performanceMonitor.getMemoryUsage();
       if (usage) {
@@ -452,56 +501,72 @@ export const performanceUtils = {
     const metrics = performanceMonitor.getMetrics({ limit: 100 });
 
     // Check for slow API calls
-    const apiMetrics = metrics.filter(m => m.context === 'api');
-    const slowAPICalls = apiMetrics.filter(m => m.value > 1000);
+    const apiMetrics = metrics.filter((m) => m.context === 'api');
+    const slowAPICalls = apiMetrics.filter((m) => m.value > 1000);
     if (slowAPICalls.length > 0) {
-      issues.push(`Slow API calls detected: ${slowAPICalls.length} calls > 1000ms`);
+      issues.push(
+        `Slow API calls detected: ${slowAPICalls.length} calls > 1000ms`,
+      );
     }
 
     // Check for memory issues
     const memoryUsage = performanceMonitor.getMemoryUsage();
     if (memoryUsage && memoryUsage.usage_percentage > 80) {
-      issues.push(`High memory usage: ${memoryUsage.usage_percentage.toFixed(1)}%`);
+      issues.push(
+        `High memory usage: ${memoryUsage.usage_percentage.toFixed(1)}%`,
+      );
     }
 
     // Check for slow render times
-    const renderMetrics = metrics.filter(m => m.name.includes('render'));
-    const slowRenders = renderMetrics.filter(m => m.value > 16); // 60fps = 16ms per frame
+    const renderMetrics = metrics.filter((m) => m.name.includes('render'));
+    const slowRenders = renderMetrics.filter((m) => m.value > 16); // 60fps = 16ms per frame
     if (slowRenders.length > 5) {
-      issues.push(`Slow rendering detected: ${slowRenders.length} renders > 16ms`);
+      issues.push(
+        `Slow rendering detected: ${slowRenders.length} renders > 16ms`,
+      );
     }
 
     return issues;
   },
 
   // Get performance grade
-  getPerformanceGrade: (): { grade: string; score: number; details: any } => {
+  getPerformanceGrade: (): {
+    grade: string;
+    score: number;
+    details: any;
+  } => {
     const metrics = performanceMonitor.getMetrics({ limit: 100 });
-    
+
     // Calculate scores for different aspects
     const scores = {
       loading: 100,
       rendering: 100,
       memory: 100,
-      network: 100
+      network: 100,
     };
 
     // Adjust scores based on metrics
-    const loadMetrics = metrics.filter(m => m.name.includes('load'));
-    const avgLoadTime = loadMetrics.reduce((sum, m) => sum + m.value, 0) / loadMetrics.length;
-    if (avgLoadTime > 1000) scores.loading = Math.max(0, 100 - (avgLoadTime - 1000) / 10);
+    const loadMetrics = metrics.filter((m) => m.name.includes('load'));
+    const avgLoadTime =
+      loadMetrics.reduce((sum, m) => sum + m.value, 0) / loadMetrics.length;
+    if (avgLoadTime > 1000)
+      scores.loading = Math.max(0, 100 - (avgLoadTime - 1000) / 10);
 
-    const renderMetrics = metrics.filter(m => m.name.includes('render'));
-    const avgRenderTime = renderMetrics.reduce((sum, m) => sum + m.value, 0) / renderMetrics.length;
-    if (avgRenderTime > 16) scores.rendering = Math.max(0, 100 - (avgRenderTime - 16) * 2);
+    const renderMetrics = metrics.filter((m) => m.name.includes('render'));
+    const avgRenderTime =
+      renderMetrics.reduce((sum, m) => sum + m.value, 0) /
+      renderMetrics.length;
+    if (avgRenderTime > 16)
+      scores.rendering = Math.max(0, 100 - (avgRenderTime - 16) * 2);
 
     const memoryUsage = performanceMonitor.getMemoryUsage();
     if (memoryUsage) {
       scores.memory = Math.max(0, 100 - memoryUsage.usage_percentage);
     }
 
-    const totalScore = Object.values(scores).reduce((sum, score) => sum + score, 0) / 4;
-    
+    const totalScore =
+      Object.values(scores).reduce((sum, score) => sum + score, 0) / 4;
+
     let grade = 'F';
     if (totalScore >= 90) grade = 'A';
     else if (totalScore >= 80) grade = 'B';
@@ -509,7 +574,7 @@ export const performanceUtils = {
     else if (totalScore >= 60) grade = 'D';
 
     return { grade, score: totalScore, details: scores };
-  }
+  },
 };
 
 // I'm providing React/SolidJS integration utilities
@@ -517,18 +582,18 @@ export const usePerformanceMonitoring = () => {
   return {
     monitor: performanceMonitor,
     utils: performanceUtils,
-    
+
     // Hook for measuring component render time
     measureRender: (componentName: string) => {
       const startTime = performance.now();
-      
+
       return () => {
         const duration = performance.now() - startTime;
         performanceMonitor.addMetric(
           `render_${componentName}`,
           duration,
           'ms',
-          'component_render'
+          'component_render',
         );
       };
     },
@@ -538,7 +603,7 @@ export const usePerformanceMonitoring = () => {
       const stop = performanceMonitor.time(`effect_${effectName}`);
       fn();
       stop();
-    }
+    },
   };
 };
 
@@ -547,5 +612,5 @@ export type {
   PerformanceMetric,
   SystemResources,
   PerformanceSnapshot,
-  BenchmarkResult
+  BenchmarkResult,
 };

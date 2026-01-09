@@ -32,11 +32,11 @@ interface ColorPalette {
 }
 
 interface TypographyScale {
-  xs: string;
-  sm: string;
-  base: string;
-  lg: string;
-  xl: string;
+  'xs': string;
+  'sm': string;
+  'base': string;
+  'lg': string;
+  'xl': string;
   '2xl': string;
   '3xl': string;
   '4xl': string;
@@ -86,7 +86,7 @@ export const darkTheme: ColorPalette = {
     warning: '#f59e0b', // Amber for warnings
     error: '#ef4444', // Red for errors
     info: '#3b82f6', // Blue for informational states
-  }
+  },
 };
 
 // I'm creating alternative theme variations for different moods
@@ -100,7 +100,7 @@ export const themeVariations = {
       primary: '#000000',
       secondary: '#001100',
       tertiary: '#002200',
-    }
+    },
   },
 
   cyberpunk: {
@@ -113,7 +113,7 @@ export const themeVariations = {
       primary: '#0a0a0a',
       secondary: '#1a0a1a',
       tertiary: '#2a1a2a',
-    }
+    },
   },
 
   void: {
@@ -126,38 +126,38 @@ export const themeVariations = {
       primary: '#000000',
       secondary: '#0f0f0f',
       tertiary: '#1f1f1f',
-    }
-  }
+    },
+  },
 };
 
 // I'm defining typography scales for consistent text hierarchy
 export const typography: TypographyScale = {
-  xs: '0.75rem',    // 12px
-  sm: '0.875rem',   // 14px
-  base: '1rem',     // 16px
-  lg: '1.125rem',   // 18px
-  xl: '1.25rem',    // 20px
-  '2xl': '1.5rem',  // 24px
+  'xs': '0.75rem', // 12px
+  'sm': '0.875rem', // 14px
+  'base': '1rem', // 16px
+  'lg': '1.125rem', // 18px
+  'xl': '1.25rem', // 20px
+  '2xl': '1.5rem', // 24px
   '3xl': '1.875rem', // 30px
   '4xl': '2.25rem', // 36px
-  '5xl': '3rem',    // 48px
-  '6xl': '4rem',    // 64px
+  '5xl': '3rem', // 48px
+  '6xl': '4rem', // 64px
 };
 
 // I'm defining spacing scale for consistent layout
 export const spacing: SpacingScale = {
   '0': '0',
   '1': '0.25rem', // 4px
-  '2': '0.5rem',  // 8px
+  '2': '0.5rem', // 8px
   '3': '0.75rem', // 12px
-  '4': '1rem',    // 16px
-  '6': '1.5rem',  // 24px
-  '8': '2rem',    // 32px
-  '12': '3rem',   // 48px
-  '16': '4rem',   // 64px
-  '20': '5rem',   // 80px
-  '24': '6rem',   // 96px
-  '32': '8rem',   // 128px
+  '4': '1rem', // 16px
+  '6': '1.5rem', // 24px
+  '8': '2rem', // 32px
+  '12': '3rem', // 48px
+  '16': '4rem', // 64px
+  '20': '5rem', // 80px
+  '24': '6rem', // 96px
+  '32': '8rem', // 128px
 };
 
 // I'm creating CSS custom properties for dynamic theming
@@ -187,14 +187,14 @@ export const generateCSSVariables = (theme: ColorPalette): string => {
       --color-info: ${theme.semantic.info};
 
       /* Typography scale */
-      ${Object.entries(typography).map(([key, value]) =>
-        `--text-${key}: ${value};`
-      ).join('\n      ')}
+      ${Object.entries(typography)
+        .map(([key, value]) => `--text-${key}: ${value};`)
+        .join('\n      ')}
 
       /* Spacing scale */
-      ${Object.entries(spacing).map(([key, value]) =>
-        `--space-${key}: ${value};`
-      ).join('\n      ')}
+      ${Object.entries(spacing)
+        .map(([key, value]) => `--space-${key}: ${value};`)
+        .join('\n      ')}
     }
   `;
 };
@@ -227,16 +227,24 @@ export const colorUtils = {
 
     const max = Math.max(r, g, b);
     const min = Math.min(r, g, b);
-    let h = 0, s = 0, l = (max + min) / 2;
+    let h = 0,
+      s = 0,
+      l = (max + min) / 2;
 
     if (max !== min) {
       const d = max - min;
       s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
 
       switch (max) {
-        case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-        case g: h = (b - r) / d + 2; break;
-        case b: h = (r - g) / d + 4; break;
+        case r:
+          h = (g - b) / d + (g < b ? 6 : 0);
+          break;
+        case g:
+          h = (b - r) / d + 2;
+          break;
+        case b:
+          h = (r - g) / d + 4;
+          break;
       }
       h /= 6;
     }
@@ -262,23 +270,37 @@ export const colorUtils = {
     l = Math.max(0, Math.min(100, l)) / 100;
 
     const c = (1 - Math.abs(2 * l - 1)) * s;
-    const x = c * (1 - Math.abs((h / 60) % 2 - 1));
+    const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
     const m = l - c / 2;
 
-    let r = 0, g = 0, b = 0;
+    let r = 0,
+      g = 0,
+      b = 0;
 
     if (0 <= h && h < 60) {
-      r = c; g = x; b = 0;
+      r = c;
+      g = x;
+      b = 0;
     } else if (60 <= h && h < 120) {
-      r = x; g = c; b = 0;
+      r = x;
+      g = c;
+      b = 0;
     } else if (120 <= h && h < 180) {
-      r = 0; g = c; b = x;
+      r = 0;
+      g = c;
+      b = x;
     } else if (180 <= h && h < 240) {
-      r = 0; g = x; b = c;
+      r = 0;
+      g = x;
+      b = c;
     } else if (240 <= h && h < 300) {
-      r = x; g = 0; b = c;
+      r = x;
+      g = 0;
+      b = c;
     } else if (300 <= h && h < 360) {
-      r = c; g = 0; b = x;
+      r = c;
+      g = 0;
+      b = x;
     }
 
     const red = Math.round((r + m) * 255);
@@ -290,12 +312,18 @@ export const colorUtils = {
 
   // Add alpha channel to hex color
   addAlpha: (hex: string, alpha: number): string => {
-    const alphaHex = Math.round(alpha * 255).toString(16).padStart(2, '0');
+    const alphaHex = Math.round(alpha * 255)
+      .toString(16)
+      .padStart(2, '0');
     return `${hex}${alphaHex}`;
   },
 
   // Generate gradient stops
-  generateGradient: (startColor: string, endColor: string, steps: number): string[] => {
+  generateGradient: (
+    startColor: string,
+    endColor: string,
+    steps: number,
+  ): string[] => {
     const [h1, s1, l1] = colorUtils.hexToHsl(startColor);
     const [h2, s2, l2] = colorUtils.hexToHsl(endColor);
 
@@ -309,16 +337,16 @@ export const colorUtils = {
     }
 
     return colors;
-  }
+  },
 };
 
 // I'm creating responsive breakpoint utilities
 export const breakpoints = {
-  xs: '0px',
-  sm: '640px',
-  md: '768px',
-  lg: '1024px',
-  xl: '1280px',
+  'xs': '0px',
+  'sm': '640px',
+  'md': '768px',
+  'lg': '1024px',
+  'xl': '1280px',
   '2xl': '1536px',
 };
 
@@ -327,47 +355,47 @@ export const themeComponents = {
   // Generate button variants based on current theme
   generateButtonStyles: (theme: ColorPalette) => ({
     primary: {
-      backgroundColor: theme.primary,
-      color: theme.background.primary,
-      border: `1px solid ${theme.primary}`,
+      'backgroundColor': theme.primary,
+      'color': theme.background.primary,
+      'border': `1px solid ${theme.primary}`,
       '&:hover': {
         backgroundColor: colorUtils.lighten(theme.primary, 10),
-      }
+      },
     },
     secondary: {
-      backgroundColor: 'transparent',
-      color: theme.text.primary,
-      border: `1px solid ${theme.border.secondary}`,
+      'backgroundColor': 'transparent',
+      'color': theme.text.primary,
+      'border': `1px solid ${theme.border.secondary}`,
       '&:hover': {
         backgroundColor: theme.background.tertiary,
-      }
+      },
     },
     ghost: {
-      backgroundColor: 'transparent',
-      color: theme.text.secondary,
-      border: 'none',
+      'backgroundColor': 'transparent',
+      'color': theme.text.secondary,
+      'border': 'none',
       '&:hover': {
         backgroundColor: theme.background.secondary,
         color: theme.text.primary,
-      }
-    }
+      },
+    },
   }),
 
   // Generate card styles
   generateCardStyles: (theme: ColorPalette) => ({
-    backgroundColor: theme.background.tertiary,
-    border: `1px solid ${theme.border.primary}`,
-    color: theme.text.primary,
+    'backgroundColor': theme.background.tertiary,
+    'border': `1px solid ${theme.border.primary}`,
+    'color': theme.text.primary,
     '&:hover': {
       borderColor: theme.border.secondary,
-    }
+    },
   }),
 
   // Generate input styles
   generateInputStyles: (theme: ColorPalette) => ({
-    backgroundColor: theme.background.secondary,
-    border: `1px solid ${theme.border.primary}`,
-    color: theme.text.primary,
+    'backgroundColor': theme.background.secondary,
+    'border': `1px solid ${theme.border.primary}`,
+    'color': theme.text.primary,
     '&:focus': {
       borderColor: theme.primary,
       outline: 'none',
@@ -375,8 +403,8 @@ export const themeComponents = {
     },
     '&::placeholder': {
       color: theme.text.muted,
-    }
-  })
+    },
+  }),
 };
 
 // I'm creating theme persistence utilities
@@ -404,13 +432,16 @@ export const themeStorage = {
     } catch (error) {
       console.warn('Failed to clear theme preference:', error);
     }
-  }
+  },
 };
 
 // I'm providing system theme detection
 export const systemTheme = {
   isDarkMode: (): boolean => {
-    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    return (
+      window.matchMedia &&
+      window.matchMedia('(prefers-color-scheme: dark)').matches
+    );
   },
 
   onChange: (callback: (isDark: boolean) => void) => {
@@ -427,7 +458,7 @@ export const systemTheme = {
     }
 
     return () => {}; // No-op cleanup for unsupported browsers
-  }
+  },
 };
 
 // I'm creating theme initialization with proper defaults
@@ -436,8 +467,10 @@ export const initializeTheme = () => {
   const savedTheme = themeStorage.load();
 
   if (savedTheme) {
-    const theme = Object.values({ darkTheme, ...themeVariations })
-      .find(t => t.name === savedTheme) || darkTheme;
+    const theme =
+      Object.values({ darkTheme, ...themeVariations }).find(
+        (t) => t.name === savedTheme,
+      ) || darkTheme;
     applyTheme(theme);
     return;
   }
@@ -460,9 +493,9 @@ export const tailwindIntegration = {
   generateTailwindTheme: (theme: ColorPalette) => ({
     extend: {
       colors: {
-        primary: theme.primary,
-        secondary: theme.secondary,
-        accent: theme.accent,
+        'primary': theme.primary,
+        'secondary': theme.secondary,
+        'accent': theme.accent,
         'bg-primary': theme.background.primary,
         'bg-secondary': theme.background.secondary,
         'bg-tertiary': theme.background.tertiary,
@@ -477,9 +510,9 @@ export const tailwindIntegration = {
       animation: {
         'pulse-slow': 'pulse 3s ease-in-out infinite',
         'float': 'float 6s ease-in-out infinite',
-      }
-    }
-  })
+      },
+    },
+  }),
 };
 
 // Export the default theme and initialization function

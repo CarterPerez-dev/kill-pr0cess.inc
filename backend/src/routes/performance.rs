@@ -113,10 +113,21 @@ pub async fn get_current_metrics(
         active_processes: system.processes().len() as u32,
     };
 
+    let cpu_threads = system.cpus().len() as u32;
+    let cpu_cores = system.physical_core_count()
+        .map(|c| c as u32)
+        .unwrap_or_else(|| {
+            if cpu_threads > 0 { (cpu_threads / 2).max(1) } else { 1 }
+        });
+
     let hardware_info = HardwareInfo {
-        cpu_model: system.global_cpu_info().brand().to_string(),
-        cpu_cores: system.physical_core_count().unwrap_or(0) as u32,
-        cpu_threads: system.cpus().len() as u32,
+        cpu_model: if system.global_cpu_info().brand().is_empty() {
+            "Unknown CPU".to_string()
+        } else {
+            system.global_cpu_info().brand().to_string()
+        },
+        cpu_cores,
+        cpu_threads,
         architecture: std::env::consts::ARCH.to_string(),
         total_memory_gb: system.total_memory() as f64 / (1024.0 * 1024.0 * 1024.0),
     };
@@ -201,12 +212,14 @@ pub async fn run_benchmark(
         serde_json::json!({
             "single_thread": {
                 "primes_found": single_thread_primes,
-                "duration_ms": single_thread_time.as_millis(),
+                "duration_ms": single_thread_time.as_secs_f64() * 1000.0,
+                "duration_us": single_thread_time.as_micros(),
                 "primes_per_second": single_thread_primes as f64 / single_thread_time.as_secs_f64()
             },
             "multi_thread": {
                 "primes_found": multi_thread_primes,
-                "duration_ms": multi_thread_time.as_millis(),
+                "duration_ms": multi_thread_time.as_secs_f64() * 1000.0,
+                "duration_us": multi_thread_time.as_micros(),
                 "primes_per_second": multi_thread_primes as f64 / multi_thread_time.as_secs_f64()
             },
             "parallel_efficiency": (multi_thread_primes as f64 / multi_thread_time.as_secs_f64()) /
@@ -234,17 +247,20 @@ pub async fn run_benchmark(
 
         serde_json::json!({
             "allocation": {
-                "duration_ms": allocation_time.as_millis(),
+                "duration_ms": allocation_time.as_secs_f64() * 1000.0,
+                "duration_us": allocation_time.as_micros(),
                 "mb_allocated": (data_size * 8) as f64 / (1024.0 * 1024.0),
                 "mb_per_second": (data_size * 8) as f64 / (1024.0 * 1024.0) / allocation_time.as_secs_f64()
             },
             "sequential_read": {
-                "duration_ms": read_time.as_millis(),
+                "duration_ms": read_time.as_secs_f64() * 1000.0,
+                "duration_us": read_time.as_micros(),
                 "sum_result": sum,
                 "mb_per_second": (data_size * 8) as f64 / (1024.0 * 1024.0) / read_time.as_secs_f64()
             },
             "sequential_write": {
-                "duration_ms": write_time.as_millis(),
+                "duration_ms": write_time.as_secs_f64() * 1000.0,
+                "duration_us": write_time.as_micros(),
                 "mb_per_second": (data_size * 8) as f64 / (1024.0 * 1024.0) / write_time.as_secs_f64()
             }
         })

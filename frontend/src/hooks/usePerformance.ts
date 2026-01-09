@@ -2,7 +2,14 @@
  * ©AngelaMos | 2025
  */
 
-import { createSignal, createResource, createMemo, createEffect, onMount, onCleanup } from 'solid-js';
+import {
+  createSignal,
+  createResource,
+  createMemo,
+  createEffect,
+  onMount,
+  onCleanup,
+} from 'solid-js';
 import { createStore, produce } from 'solid-js/store';
 import { performanceMonitor, performanceUtils } from '../utils/performance';
 
@@ -86,34 +93,40 @@ export function usePerformance() {
     async () => {
       try {
         setState('error', null);
-        
+
         const response = await fetch('/api/performance/system');
         if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: Failed to fetch system metrics`);
+          throw new Error(
+            `HTTP ${response.status}: Failed to fetch system metrics`,
+          );
         }
 
         const metrics: SystemMetrics = await response.json();
-        
+
         setState('currentMetrics', metrics);
         setState('connectionStatus', 'connected');
-        
-        setState('metricsHistory', produce(history => {
-          history.push(metrics);
-          if (history.length > 100) {
-            history.shift();
-          }
-        }));
+
+        setState(
+          'metricsHistory',
+          produce((history) => {
+            history.push(metrics);
+            if (history.length > 100) {
+              history.shift();
+            }
+          }),
+        );
 
         checkForAlerts(metrics);
 
         return metrics;
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Failed to fetch metrics';
+        const errorMessage =
+          error instanceof Error ? error.message : 'Failed to fetch metrics';
         setState('error', errorMessage);
         setState('connectionStatus', 'disconnected');
         throw error;
       }
-    }
+    },
   );
 
   const [benchmarkResource] = createResource(
@@ -123,7 +136,7 @@ export function usePerformance() {
 
       try {
         setState('error', null);
-        
+
         const response = await fetch('/api/performance/benchmark', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -137,13 +150,14 @@ export function usePerformance() {
         setState('benchmarkResults', results);
         return results;
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Benchmark failed';
+        const errorMessage =
+          error instanceof Error ? error.message : 'Benchmark failed';
         setState('error', errorMessage);
         throw error;
       } finally {
         setState('isRunningBenchmark', false);
       }
-    }
+    },
   );
 
   let metricsInterval: number | null = null;
@@ -164,12 +178,37 @@ export function usePerformance() {
     try {
       const vitals = await performanceUtils.getWebVitals();
       setState('webVitals', vitals);
-      
-      performanceMonitor.addMetric('web_vitals_fcp', vitals.fcp, 'ms', 'web_vitals');
-      performanceMonitor.addMetric('web_vitals_lcp', vitals.lcp, 'ms', 'web_vitals');
-      performanceMonitor.addMetric('web_vitals_fid', vitals.fid, 'ms', 'web_vitals');
-      performanceMonitor.addMetric('web_vitals_cls', vitals.cls, 'score', 'web_vitals');
-      performanceMonitor.addMetric('web_vitals_ttfb', vitals.ttfb, 'ms', 'web_vitals');
+
+      performanceMonitor.addMetric(
+        'web_vitals_fcp',
+        vitals.fcp,
+        'ms',
+        'web_vitals',
+      );
+      performanceMonitor.addMetric(
+        'web_vitals_lcp',
+        vitals.lcp,
+        'ms',
+        'web_vitals',
+      );
+      performanceMonitor.addMetric(
+        'web_vitals_fid',
+        vitals.fid,
+        'ms',
+        'web_vitals',
+      );
+      performanceMonitor.addMetric(
+        'web_vitals_cls',
+        vitals.cls,
+        'score',
+        'web_vitals',
+      );
+      performanceMonitor.addMetric(
+        'web_vitals_ttfb',
+        vitals.ttfb,
+        'ms',
+        'web_vitals',
+      );
     } catch (error) {
       console.warn('Failed to collect Web Vitals:', error);
     }
@@ -187,7 +226,7 @@ export function usePerformance() {
         resolved: false,
         metric: 'cpu_usage_percent',
         value: metrics.cpu_usage_percent,
-        threshold: 90
+        threshold: 90,
       });
     } else if (metrics.cpu_usage_percent > 75) {
       newAlerts.push({
@@ -198,7 +237,7 @@ export function usePerformance() {
         resolved: false,
         metric: 'cpu_usage_percent',
         value: metrics.cpu_usage_percent,
-        threshold: 75
+        threshold: 75,
       });
     }
 
@@ -211,7 +250,7 @@ export function usePerformance() {
         resolved: false,
         metric: 'memory_usage_percent',
         value: metrics.memory_usage_percent,
-        threshold: 85
+        threshold: 85,
       });
     } else if (metrics.memory_usage_percent > 70) {
       newAlerts.push({
@@ -222,7 +261,7 @@ export function usePerformance() {
         resolved: false,
         metric: 'memory_usage_percent',
         value: metrics.memory_usage_percent,
-        threshold: 70
+        threshold: 70,
       });
     }
 
@@ -235,18 +274,21 @@ export function usePerformance() {
         resolved: false,
         metric: 'load_average_1m',
         value: metrics.load_average_1m,
-        threshold: metrics.cpu_cores * 2
+        threshold: metrics.cpu_cores * 2,
       });
     }
 
     if (newAlerts.length > 0) {
-      setState('alerts', produce(alerts => {
-        alerts.push(...newAlerts);
-        // Keep only last 50 alerts
-        if (alerts.length > 50) {
-          alerts.splice(0, alerts.length - 50);
-        }
-      }));
+      setState(
+        'alerts',
+        produce((alerts) => {
+          alerts.push(...newAlerts);
+          // Keep only last 50 alerts
+          if (alerts.length > 50) {
+            alerts.splice(0, alerts.length - 50);
+          }
+        }),
+      );
     }
   };
 
@@ -256,10 +298,13 @@ export function usePerformance() {
 
     const cpuScore = Math.max(0, 100 - metrics.cpu_usage_percent);
     const memoryScore = Math.max(0, 100 - metrics.memory_usage_percent);
-    const loadScore = Math.max(0, 100 - (metrics.load_average_1m / metrics.cpu_cores) * 50);
-    
+    const loadScore = Math.max(
+      0,
+      100 - (metrics.load_average_1m / metrics.cpu_cores) * 50,
+    );
+
     const overallScore = (cpuScore + memoryScore + loadScore) / 3;
-    
+
     let grade = 'F';
     if (overallScore >= 90) grade = 'A';
     else if (overallScore >= 80) grade = 'B';
@@ -272,12 +317,12 @@ export function usePerformance() {
       cpuScore,
       memoryScore,
       loadScore,
-      recommendations: generateRecommendations(metrics)
+      recommendations: generateRecommendations(metrics),
     };
   });
 
   const metricsHistory = createMemo(() => {
-    return state.metricsHistory.map(metrics => ({
+    return state.metricsHistory.map((metrics) => ({
       timestamp: metrics.timestamp,
       cpu: metrics.cpu_usage_percent,
       memory: metrics.memory_usage_percent,
@@ -286,11 +331,11 @@ export function usePerformance() {
   });
 
   const activeAlerts = createMemo(() => {
-    return state.alerts.filter(alert => !alert.resolved);
+    return state.alerts.filter((alert) => !alert.resolved);
   });
 
   const criticalAlerts = createMemo(() => {
-    return activeAlerts().filter(alert => alert.severity === 'critical');
+    return activeAlerts().filter((alert) => alert.severity === 'critical');
   });
 
   const generateRecommendations = (metrics: SystemMetrics): string[] => {
@@ -309,7 +354,9 @@ export function usePerformance() {
     }
 
     if (metrics.disk_usage_percent > 85) {
-      recommendations.push('Disk space is running low - cleanup recommended');
+      recommendations.push(
+        'Disk space is running low - cleanup recommended',
+      );
     }
 
     return recommendations;
@@ -318,7 +365,7 @@ export function usePerformance() {
   const actions = {
     startMonitoring() {
       setState('isMonitoring', true);
-      
+
       metricsInterval = setInterval(() => {
         metricsResource.refetch();
       }, 12000); // Every 12 seconds
@@ -326,7 +373,7 @@ export function usePerformance() {
 
     stopMonitoring() {
       setState('isMonitoring', false);
-      
+
       if (metricsInterval) {
         clearInterval(metricsInterval);
         metricsInterval = null;
@@ -351,21 +398,27 @@ export function usePerformance() {
 
     // Resolve alert
     resolveAlert(alertId: string) {
-      setState('alerts', produce(alerts => {
-        const alert = alerts.find(a => a.id === alertId);
-        if (alert) {
-          alert.resolved = true;
-        }
-      }));
+      setState(
+        'alerts',
+        produce((alerts) => {
+          const alert = alerts.find((a) => a.id === alertId);
+          if (alert) {
+            alert.resolved = true;
+          }
+        }),
+      );
     },
 
     // Clear all resolved alerts
     clearResolvedAlerts() {
-      setState('alerts', produce(alerts => {
-        const unresolved = alerts.filter(alert => !alert.resolved);
-        alerts.length = 0;
-        alerts.push(...unresolved);
-      }));
+      setState(
+        'alerts',
+        produce((alerts) => {
+          const unresolved = alerts.filter((alert) => !alert.resolved);
+          alerts.length = 0;
+          alerts.push(...unresolved);
+        }),
+      );
     },
 
     // Get performance grade
@@ -385,7 +438,7 @@ export function usePerformance() {
         alerts: state.alerts,
         webVitals: state.webVitals,
         insights: performanceInsights(),
-        exportedAt: new Date().toISOString()
+        exportedAt: new Date().toISOString(),
       };
     },
 
@@ -393,9 +446,12 @@ export function usePerformance() {
       return performanceUtils.measure(name, operation);
     },
 
-    async measureAsyncOperation<T>(name: string, operation: () => Promise<T>): Promise<T> {
+    async measureAsyncOperation<T>(
+      name: string,
+      operation: () => Promise<T>,
+    ): Promise<T> {
       return performanceUtils.measureAsync(name, operation);
-    }
+    },
   };
 
   return {

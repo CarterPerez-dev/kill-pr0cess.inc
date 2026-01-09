@@ -9,9 +9,7 @@ module.exports = {
   darkMode: 'class',
   theme: {
     extend: {
-      // I'm customizing the color palette for the dark, eerie aesthetic
       colors: {
-        // I'm defining the primary color system
         primary: {
           50: '#ecfeff',
           100: '#cffafe',
@@ -24,7 +22,6 @@ module.exports = {
           800: '#155e75',
           900: '#164e63',
         },
-        // I'm defining secondary colors for variety
         secondary: {
           50: '#eef2ff',
           100: '#e0e7ff',
@@ -37,7 +34,6 @@ module.exports = {
           800: '#3730a3',
           900: '#312e81',
         },
-        // I'm extending the neutral palette for fine-grained control
         neutral: {
           25: '#fefefe',
           50: '#fafafa',
@@ -62,24 +58,17 @@ module.exports = {
           950: '#0a0a0a',
         }
       },
-      // I'm customizing fonts for the technical aesthetic
       fontFamily: {
         mono: ['JetBrains Mono', 'SF Mono', 'Monaco', 'Cascadia Code', 'Roboto Mono', 'Consolas', 'Courier New', 'monospace'],
         sans: ['system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
       },
-      // I'm adding custom animations for the performance showcase
       animation: {
-        'fade-in': 'fadeIn 0.5s ease-in-out',
-        'fade-in-up': 'fadeInUp 0.8s ease-out',
-        'slide-in-left': 'slideInLeft 0.5s ease-out',
-        'slide-in-right': 'slideInRight 0.5s ease-out',
-        'pulse-slow': 'pulseSlow 3s ease-in-out infinite',
+        'fade-in': 'fadeIn 0.2s ease-in-out',
+        'fade-in-up': 'fadeInUp 0.3s ease-out',
+        'slide-in-left': 'slideInLeft 0.2s ease-out',
+        'slide-in-right': 'slideInRight 0.2s ease-out',
         'float': 'float 6s ease-in-out infinite',
-        'glow': 'glow 2s ease-in-out infinite',
-        'matrix-rain': 'matrixRain 20s linear infinite',
-        'glitch': 'glitch 0.5s ease-in-out',
       },
-      // I'm defining custom keyframes for sophisticated animations
       keyframes: {
         fadeIn: {
           '0%': { opacity: '0' },
@@ -123,38 +112,31 @@ module.exports = {
           '80%': { transform: 'translate(2px, -2px)' },
         },
       },
-      // I'm customizing spacing for precise layouts
       spacing: {
         '18': '4.5rem',
         '88': '22rem',
         '128': '32rem',
       },
-      // I'm adding custom border radius values
       borderRadius: {
         'xl': '0.75rem',
         '2xl': '1rem',
         '3xl': '1.5rem',
       },
-      // I'm customizing shadows for depth and atmosphere
       boxShadow: {
         'glow': '0 0 20px rgba(34, 211, 238, 0.3)',
         'glow-lg': '0 0 40px rgba(34, 211, 238, 0.4)',
-        'inner-glow': 'inset 0 0 20px rgba(34, 211, 238, 0.2)',
         'dark': '0 10px 25px rgba(0, 0, 0, 0.5)',
         'dark-lg': '0 20px 40px rgba(0, 0, 0, 0.7)',
       },
-      // I'm customizing backdrop blur for glass effects
       backdropBlur: {
         xs: '2px',
         '3xl': '64px',
       },
-      // I'm adding custom gradients for the performance theme
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
         'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
         'grid-pattern': 'radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.15) 1px, transparent 0)',
       },
-      // I'm customizing line clamp for text truncation
       lineClamp: {
         7: '7',
         8: '8',
@@ -164,7 +146,6 @@ module.exports = {
     },
   },
   plugins: [
-    // I'm adding custom utilities for the performance showcase
     function({ addUtilities, theme }) {
       const newUtilities = {
         '.text-shadow': {

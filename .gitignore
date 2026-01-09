@@ -40,25 +40,6 @@ dist/
 # --- Rust (Backend) ---
 **/target/
 
-# --- Docker ---
-docker-compose.override.yml
-docker-compose.*.yml # If you have specific overrides like docker-compose.dev.yml
-*.env # Docker-specific env files if not covered by general .env
-
-# --- IDE & Editor Specific ---
-.idea/
-*.iml
-*.ipr
-*.iws
-out/
-gen/
-
-# VS Code
-.vscode/
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
 
 # Virtual Env
 .env/
@@ -67,9 +48,3 @@ ENV/
 env.bak/
 venv.bak/
 
-**/.claude/settings.local.json
-API/
-/API/
-API
-.claude
-CONTEXT.md
